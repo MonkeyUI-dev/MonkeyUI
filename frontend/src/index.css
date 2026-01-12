@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* =========================================================
+     * MonkeyUI Design System - Notion-Inspired Minimalism
+     * Brand Colors
+     * ========================================================= */
+    --brand-primary: #000000;
+    --brand-secondary: #2A99D3;
+
+    /* =========================================================
+     * Neutral Colors
+     * ========================================================= */
+    --bg-canvas: #FFFFFF;
+    --bg-surface: #F8F8F8;
+    
+    --border-subtle: #E8E8E8;
+    --border-default: #E0E0E0;
+    
+    --text-primary: #101010;
+    --text-secondary: #525252;
+    --text-tertiary: #737373;
+    --text-on-dark: #FFFFFF;
+
+    /* =========================================================
+     * Accent Colors (Use Sparingly)
+     * ========================================================= */
+    --accent-red: #F8534E;
+    --accent-yellow: #FBC113;
+    --accent-blue: #2A99D3;
+
+    /* =========================================================
+     * Functional Colors
+     * ========================================================= */
+    --color-success: #22C55E;
+    --color-warning: #F59E0B;
+    --color-error: #EF4444;
+    --color-info: #3B82F6;
+
+    /* =========================================================
+     * Typography
+     * ========================================================= */
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans";
+    
+    --font-weight-heading: 800;
+    --font-weight-body: 400;
+    
+    --text-h1-size: 4rem;
+    --text-h1-line: 1.05;
+    --text-body-size: 1.125rem;
+    --text-body-line: 1.6;
+
+    /* =========================================================
+     * Spacing & Radius
+     * ========================================================= */
+    --radius-md: 10px;
+
+    /* =========================================================
+     * Elevation (Shadows)
+     * ========================================================= */
+    --shadow-none: none;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
+    --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.16);
+
+    /* =========================================================
+     * Component Semantics
+     * ========================================================= */
+    --btn-primary-bg: #101010;
+    --btn-primary-fg: #FFFFFF;
+    --link-default: #2A99D3;
+
+    /* =========================================================
+     * Shadcn/ui Compatibility Layer
+     * Map design tokens to Shadcn's HSL format
+     * ========================================================= */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 6%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 6%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 6%;
+    --primary: 0 0% 6%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 97%;
+    --secondary-foreground: 0 0% 32%;
+    --muted: 0 0% 97%;
+    --muted-foreground: 0 0% 32%;
+    --accent: 0 0% 97%;
+    --accent-foreground: 0 0% 6%;
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 91%;
+    --input: 0 0% 91%;
+    --ring: 0 0% 6%;
+    --radius: 10px;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+  }
+}

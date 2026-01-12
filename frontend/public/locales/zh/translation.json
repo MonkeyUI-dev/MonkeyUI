@@ -1,0 +1,17 @@
+{
+  "welcome": {
+    "title": "欢迎来到 MonkeyUI",
+    "description": "使用 React 和 Django 构建的现代全栈应用",
+    "counter": "点击次数",
+    "techStack": "使用现代技术栈构建"
+  },
+  "common": {
+    "loading": "加载中...",
+    "error": "发生错误",
+    "success": "成功",
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑"
+  }
+}

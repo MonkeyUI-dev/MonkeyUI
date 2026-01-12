@@ -1,0 +1,41 @@
+[project]
+name = "monkeyui-backend"
+version = "0.1.0"
+description = "MonkeyUI Backend API"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "django~=6.0.1",
+    "djangorestframework~=3.14",
+    "django-cors-headers~=4.3",
+    "psycopg2-binary~=2.9",
+    "pgvector~=0.2",
+    "python-dotenv~=1.0",
+    "drf-spectacular~=0.27",
+    "mcp>=1.25.0",
+    "openai>=2.15.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "flake8",
+    "pytest",
+    "pytest-django",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "black",
+    "flake8",
+    "pytest",
+    "pytest-django",
+]
+
+[tool.black]
+line-length = 120
+target-version = ['py314']
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]

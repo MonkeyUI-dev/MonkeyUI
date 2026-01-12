@@ -1,0 +1,23 @@
+{
+  "name": "monkeyui",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MonkeyUI - A modern full-stack application",
+  "workspaces": [
+    "frontend"
+  ],
+  "scripts": {
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:frontend": "cd frontend && npm run build",
+    "preview:frontend": "cd frontend && npm run preview",
+    "dev:backend": "cd backend && uv run python manage.py runserver",
+    "lint": "cd frontend && npm run lint",
+    "docker:up": "docker compose up",
+    "docker:build": "docker compose up --build",
+    "docker:down": "docker compose down"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "welcome": {
+    "title": "Welcome to MonkeyUI",
+    "description": "A modern full-stack application built with React and Django",
+    "counter": "Click count",
+    "techStack": "Built with modern technologies"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit"
+  }
+}

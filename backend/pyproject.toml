@@ -7,6 +7,7 @@ requires-python = ">=3.14"
 dependencies = [
     "django~=6.0.1",
     "djangorestframework~=3.14",
+    "djangorestframework-simplejwt~=5.3",
     "django-cors-headers~=4.3",
     "psycopg2-binary~=2.9",
     "pgvector~=0.2",
@@ -14,6 +15,14 @@ dependencies = [
     "drf-spectacular~=0.27",
     "mcp>=1.25.0",
     "openai>=2.15.0",
+    # Async task queue
+    "celery[redis]>=5.3.0",
+    "redis>=5.0.0",
+    # LLM providers
+    "google-generativeai>=0.8.0",
+    "pillow>=10.0.0",
+    # JSON parsing utilities - pin major version only per library recommendation
+    "json-repair>=0.55.0,<1.0.0",
 ]
 
 [project.optional-dependencies]
@@ -22,6 +31,7 @@ dev = [
     "flake8",
     "pytest",
     "pytest-django",
+    "watchdog>=3.0.0",  # For auto-reload in development
 ]
 
 [tool.uv]

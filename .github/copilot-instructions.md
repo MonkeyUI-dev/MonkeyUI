@@ -219,6 +219,7 @@ When Tailwind classes align with our design system, prefer them. Otherwise, use 
 - Structure: `locales/en/translation.json` and `locales/zh/translation.json`
 - Always add both English and Chinese translations when creating new keys
 - Use nested keys for better organization: `{ "common": { "button": { "save": "Save" } } }`
+- **Text Casing**: Use Sentence case for all system-level titles and headings in English (capitalize only the first word and proper nouns). Examples: "Design workshop", "Create new vibe", "Color palette"
 
 ### Backend i18n Setup
 - Use Django's internationalization framework

@@ -68,3 +68,5 @@ build/
 
 # System
 Thumbs.db
+
+.vscode/

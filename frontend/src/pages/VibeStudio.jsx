@@ -6,10 +6,13 @@ import {
   ArrowDownTrayIcon, 
   BookmarkIcon, 
   PhotoIcon, 
-  XMarkIcon
+  XMarkIcon,
+  ServerIcon
 } from '@heroicons/react/24/outline'
 import { Button } from '@/components/ui/button'
 import StyleAnalysisPanel from '@/components/vibe/StyleAnalysisPanel'
+import ExportRulesModal from '@/components/vibe/ExportRulesModal'
+import MCPAccessPanel from '@/components/vibe/MCPAccessPanel'
 import designSystemService, { DesignSystemStatus } from '@/services/designSystem'
 
 // Default style data structure
@@ -46,6 +49,8 @@ export default function VibeStudio({ isNew }) {
   const [currentDesignSystem, setCurrentDesignSystem] = useState(null)
   const [isLoading, setIsLoading] = useState(!isNew)
   const [isImageExpanded, setIsImageExpanded] = useState(false)
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
+  const [isMCPPanelOpen, setIsMCPPanelOpen] = useState(false)
 
   // Convert backend style data format to frontend format
   const convertStyleData = (data) => {
@@ -274,18 +279,7 @@ export default function VibeStudio({ isNew }) {
   }
 
   const handleExportRules = () => {
-    const rules = {
-      name: name,
-      description: description,
-      ...convertToBackendFormat(styleData)
-    }
-    const blob = new Blob([JSON.stringify(rules, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${name || 'design-system'}-rules.json`
-    a.click()
-    URL.revokeObjectURL(url)
+    setIsExportModalOpen(true)
   }
 
   const handleSaveVibe = async () => {
@@ -365,6 +359,17 @@ export default function VibeStudio({ isNew }) {
           </div>
           
           <div className="flex items-center gap-x-3">
+            {/* MCP Access Button - only show when design system exists */}
+            {currentDesignSystem?.id && (
+              <Button 
+                variant="outline" 
+                onClick={() => setIsMCPPanelOpen(true)}
+                className="gap-x-2"
+              >
+                <ServerIcon className="size-4" />
+                {t('vibeStudio.mcp.access')}
+              </Button>
+            )}
             <Button 
               variant="outline" 
               onClick={handleExportRules}
@@ -589,6 +594,24 @@ export default function VibeStudio({ isNew }) {
           </div>
         </div>
       )}
+
+      {/* Export Rules Modal */}
+      <ExportRulesModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        styleData={styleData}
+        name={name}
+        description={description}
+      />
+
+      {/* MCP Access Panel */}
+      <MCPAccessPanel
+        isOpen={isMCPPanelOpen}
+        onClose={() => setIsMCPPanelOpen(false)}
+        designSystemId={currentDesignSystem?.id}
+        designSystemName={name}
+        apiKey={currentDesignSystem?.mcp_api_key}
+      />
     </div>
   )
 }

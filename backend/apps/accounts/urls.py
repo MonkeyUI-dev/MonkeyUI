@@ -7,6 +7,8 @@ from .views import (
     logout_view,
     current_user_view,
     ChangePasswordView,
+    UserAPIKeyListCreateView,
+    UserAPIKeyDetailView,
 )
 
 app_name = 'accounts'
@@ -18,4 +20,8 @@ urlpatterns = [
     path('me/', current_user_view, name='current-user'),
     path('change-password/', ChangePasswordView.as_view(), name='change-password'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
+    
+    # API Keys
+    path('api-keys/', UserAPIKeyListCreateView.as_view(), name='api-key-list-create'),
+    path('api-keys/<uuid:pk>/', UserAPIKeyDetailView.as_view(), name='api-key-detail'),
 ]

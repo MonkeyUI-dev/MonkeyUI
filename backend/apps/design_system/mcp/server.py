@@ -62,11 +62,31 @@ class MCPDesignSystemServer:
         return self._design_system
     
     def validate_api_key(self, provided_key: str) -> bool:
-        """Validate the provided API key."""
-        design_system = self._load_design_system()
-        if not design_system:
+        """Validate the provided API key using UserAPIKey."""
+        from apps.accounts.models import UserAPIKey
+        from django.utils import timezone
+        
+        try:
+            user_api_key = UserAPIKey.objects.get(key=provided_key, is_active=True)
+            
+            # Check if key is expired
+            if user_api_key.expires_at and user_api_key.expires_at < timezone.now():
+                return False
+            
+            # Check if user owns this design system
+            design_system = self._load_design_system()
+            if not design_system:
+                return False
+            
+            if design_system.user_id != user_api_key.user_id:
+                return False
+            
+            # Update last used timestamp
+            user_api_key.update_last_used()
+            return True
+            
+        except UserAPIKey.DoesNotExist:
             return False
-        return design_system.mcp_api_key == provided_key
     
     def get_tools(self) -> list[MCPTool]:
         """

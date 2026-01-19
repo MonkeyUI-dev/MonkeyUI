@@ -58,6 +58,38 @@
     },
     "profile": "个人资料"
   },
+  "settings": {
+    "language": "语言",
+    "general": "通用设置",
+    "apiKeys": "API 密钥",
+    "apiKeyManagement": {
+      "title": "API 密钥管理",
+      "description": "管理用于 MCP 和外部集成的 API 密钥",
+      "createNew": "创建新密钥",
+      "noKeys": "还没有 API 密钥",
+      "noKeysDescription": "创建你的第一个 API 密钥，通过 MCP 或外部工具访问 MonkeyUI",
+      "keyName": "密钥名称",
+      "keyNamePlaceholder": "例如：Cursor MCP、Claude Desktop",
+      "created": "创建时间",
+      "lastUsed": "最后使用",
+      "never": "从未使用",
+      "active": "活跃",
+      "inactive": "停用",
+      "delete": "删除",
+      "confirmDelete": "确定要删除此 API 密钥吗？",
+      "deleteWarning": "此操作不可撤销。使用此密钥的任何集成都将停止工作。",
+      "createSuccess": "API 密钥创建成功",
+      "createWarning": "请确保现在复制你的 API 密钥，你将无法再次查看！",
+      "copyKey": "复制密钥",
+      "keyCopied": "密钥已复制到剪贴板",
+      "deleteSuccess": "API 密钥删除成功",
+      "deleteError": "删除 API 密钥失败",
+      "createError": "创建 API 密钥失败",
+      "loadError": "加载 API 密钥失败",
+      "limitReached": "已达到上限（10个）",
+      "keyCount": "{{count}} / 10 个密钥"
+    }
+  },
   "console": {
     "designWorkshop": "设计工坊",
     "closeSidebar": "关闭侧边栏",
@@ -66,9 +98,7 @@
     "noDesignSystems": "还没有设计系统",
     "settings": "设置"
   },
-  "settings": {
-    "language": "语言"
-  },
+
   "designWorkshop": {
     "title": "设计工坊",
     "description": "管理和探索您保存的设计系统",
@@ -135,6 +165,42 @@
     "shadowLevel": "阴影等级",
     "overallStyle": "整体设计风格",
     "detectedAesthetic": "识别的美学风格",
-    "styleDescriptionDefault": "该设计系统采用高对比度边界、结构化排版和一致的圆角处理，呈现专业视觉效果。"
+    "styleDescriptionDefault": "该设计系统采用高对比度边界、结构化排版和一致的圆角处理，呈现专业视觉效果。",
+    "export": {
+      "title": "导出设计规则",
+      "subtitle": "选择适合您 AI 编程助手的格式",
+      "selectFormat": "选择导出格式",
+      "cursorDesc": "适用于 Cursor IDE - 放置于项目根目录",
+      "copilotDesc": "适用于 GitHub Copilot - 放置于 .github 文件夹",
+      "genericAgent": "通用 Agent",
+      "agentsDesc": "适用于其他 AI 编程工具的通用格式",
+      "preview": "预览",
+      "download": "下载文件"
+    },
+    "mcp": {
+      "access": "MCP 访问",
+      "title": "MCP 连接",
+      "subtitle": "将您的 AI 编程工具连接到此设计系统",
+      "stdioProtocol": "stdio 协议",
+      "stdioDesc": "适用于 Cursor、Claude Desktop 和本地 CLI 工具",
+      "streamableHttpProtocol": "streamable-http 协议",
+      "streamableHttpDesc": "适用于 Web 客户端和远程连接",
+      "cliCommand": "CLI 命令",
+      "cursorConfig": "Cursor IDE 配置",
+      "claudeDesktopConfig": "Claude Desktop 配置",
+      "httpEndpoint": "HTTP 端点",
+      "standardProtocols": "标准 MCP 协议",
+      "standardProtocolsDesc": "本服务器支持官方 MCP 协议：stdio 用于本地工具（Cursor、Claude Desktop），streamable-http 用于远程连接。",
+      "availableTools": "可用工具",
+      "tools": {
+        "getDesignSystem": "获取完整设计系统",
+        "getColors": "获取色彩调色板",
+        "getTypography": "获取字体排版设置",
+        "getSpacing": "获取间距值",
+        "getComponentStyles": "获取组件样式",
+        "getCssVariables": "获取 CSS 变量",
+        "getTailwindConfig": "获取 Tailwind 配置"
+      }
+    }
   }
 }

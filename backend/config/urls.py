@@ -18,6 +18,8 @@ urlpatterns = [
     path('api/accounts/', include('apps.accounts.urls', namespace='accounts')),
     path('api/', include('apps.core.urls')),
     path('api/design-system/', include('apps.design_system.urls', namespace='design_system')),
+    # API v1 endpoints
+    path('api/v1/design-systems/', include('apps.design_system.urls', namespace='design_system_v1')),
 ]
 
 # Serve media files in development

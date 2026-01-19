@@ -85,8 +85,8 @@ export default function DesignWorkshop() {
           // Stop polling
           stopPollingSystem(systemId)
         } else {
-          // Continue polling
-          pollingRefs.current[systemId] = setTimeout(poll, 2000)
+          // Continue polling every 10 seconds
+          pollingRefs.current[systemId] = setTimeout(poll, 10000)
         }
       } catch (err) {
         console.error(`Polling failed for system ${systemId}:`, err)

@@ -25,6 +25,10 @@ dependencies = [
     "json-repair>=0.55.0,<1.0.0",
 ]
 
+[project.scripts]
+# MCP CLI entry point for stdio transport
+monkeyui-mcp = "apps.design_system.mcp.cli:main"
+
 [project.optional-dependencies]
 dev = [
     "black",

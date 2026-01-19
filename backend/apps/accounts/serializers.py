@@ -4,6 +4,8 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
+from .models import UserAPIKey
+
 User = get_user_model()
 
 
@@ -77,3 +79,48 @@ class ChangePasswordSerializer(serializers.Serializer):
         write_only=True,
         validators=[validate_password]
     )
+
+
+class UserAPIKeySerializer(serializers.ModelSerializer):
+    """
+    Serializer for UserAPIKey model.
+    Returns masked key for security (except on creation).
+    """
+    key = serializers.CharField(read_only=True)
+    key_display = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = UserAPIKey
+        fields = [
+            'id', 'name', 'key', 'key_display', 'key_prefix',
+            'is_active', 'last_used_at', 'expires_at',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = [
+            'id', 'key', 'key_prefix', 'last_used_at',
+            'created_at', 'updated_at'
+        ]
+    
+    def get_key_display(self, obj):
+        """Return masked key for display."""
+        return f"{obj.key_prefix}..." if obj.key_prefix else "***..."
+    
+    def to_representation(self, instance):
+        """Customize representation to show full key only on creation."""
+        representation = super().to_representation(instance)
+        # Only show full key when it's being created (context from view)
+        if not self.context.get('show_full_key', False):
+            representation.pop('key', None)
+        return representation
+
+
+class CreateUserAPIKeySerializer(serializers.ModelSerializer):
+    """
+    Serializer for creating UserAPIKey.
+    Returns full key value only once on creation.
+    """
+    
+    class Meta:
+        model = UserAPIKey
+        fields = ['id', 'name', 'key', 'key_prefix', 'expires_at', 'created_at']
+        read_only_fields = ['id', 'key', 'key_prefix', 'created_at']

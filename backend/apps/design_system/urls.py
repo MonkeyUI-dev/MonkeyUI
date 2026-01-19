@@ -58,4 +58,10 @@ urlpatterns = [
         mcp_views.mcp_get_config,
         name='mcp-config'
     ),
+    # MCP streamable HTTP endpoint (for GitHub Copilot, etc.)
+    path(
+        'mcp/<str:design_system_id>/',
+        mcp_views.mcp_streamable_http,
+        name='mcp-streamable-http'
+    ),
 ]

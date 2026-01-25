@@ -243,7 +243,7 @@ export default function VibeStudio({ isNew }) {
           localImages.map(img => img.file)
         )
         
-        setAnalysisProgress({ progress: 10, message: t('vibeStudio.uploadingImages') })
+        setAnalysisProgress({ progress: 5, message: t('vibeStudio.uploadingImages') })
         await designSystemService.uploadImages(systemId, imageData)
         
         // Mark images as uploaded
@@ -254,14 +254,23 @@ export default function VibeStudio({ isNew }) {
       }
       
       // Start analysis
-      setAnalysisProgress({ progress: 20, message: t('vibeStudio.startingAnalysis') })
+      setAnalysisProgress({ progress: 8, message: t('vibeStudio.startingAnalysis') })
       await designSystemService.startAnalysis(systemId)
       
       // Poll for completion
       await designSystemService.pollAnalysisStatus(
         systemId,
         (status) => {
-          setAnalysisProgress(status)
+          // Only update progress if it's moving forward (prevent visual regression)
+          setAnalysisProgress(prev => {
+            const newProgress = status.progress || 0
+            const prevProgress = prev?.progress || 0
+            // Keep the higher progress value to prevent visual regression
+            if (newProgress >= prevProgress) {
+              return status
+            }
+            return { ...status, progress: prevProgress }
+          })
           if (status.status === 'completed' && status.result) {
             setStyleData(convertStyleData(status.result))
           }
@@ -543,19 +552,11 @@ export default function VibeStudio({ isNew }) {
                     </div>
                     
                     <p 
-                      className="text-base font-medium mb-2"
+                      className="text-base font-medium"
                       style={{ color: 'white' }}
                     >
                       {analysisProgress?.message || t('vibeStudio.analyzing')}
                     </p>
-                    {analysisProgress?.current_step && (
-                      <p 
-                        className="text-sm"
-                        style={{ color: 'rgba(255, 255, 255, 0.7)' }}
-                      >
-                        {analysisProgress.current_step}
-                      </p>
-                    )}
                   </div>
                 </div>
               )}

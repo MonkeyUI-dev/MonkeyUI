@@ -3,6 +3,9 @@ Design system generation service.
 
 This module provides the service layer for design system generation,
 coordinating between LLM providers, prompts, and task management.
+
+Uses a single-step analysis approach with comprehensive prompt for
+extracting design tokens from images and generating HTML verification pages.
 """
 import json
 import logging
@@ -11,7 +14,7 @@ from dataclasses import dataclass
 from json_repair import repair_json
 from .llm import create_llm_provider, LLMResponse
 from .llm.config import get_provider_config, get_default_provider, LLMProviderType
-from .prompts import get_image_analysis_prompt, get_design_system_prompt
+from .prompts import get_single_step_analysis_prompt
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +78,12 @@ class DesignSystemService:
         context: Optional[str] = None
     ) -> DesignSystemResult:
         """
-        Analyze a single image to extract design system tokens.
+        Analyze a single image to extract design system tokens using single-step analysis.
+        
+        This method uses a comprehensive prompt that instructs the LLM to:
+        - Use three-point sampling for accurate color extraction
+        - Extract typography, buttons, cards, spacing, and iconography
+        - Generate an HTML verification page
         
         Args:
             image_data: Raw image bytes
@@ -83,14 +91,16 @@ class DesignSystemService:
             context: Optional additional context (vibe name, description)
             
         Returns:
-            DesignSystemResult with extracted design tokens
+            DesignSystemResult with extracted design tokens and HTML
         """
         try:
             provider = self._get_provider()
-            prompt = get_image_analysis_prompt()
+            prompt = get_single_step_analysis_prompt()
             
             if context:
                 prompt = f"{prompt}\n\n# Additional Context\n{context}"
+            
+            logger.info(f"Starting image analysis with provider: {self._config.provider_type.value}, model: {self._config.model}")
             
             response = await provider.generate_with_image(
                 prompt=prompt,
@@ -98,11 +108,20 @@ class DesignSystemService:
                 image_mime_type=image_mime_type
             )
             
-            parsed = self._parse_llm_response(response.content)
+            # Log reasoning if available (for debugging)
+            if hasattr(response, 'reasoning') and response.reasoning:
+                logger.debug(f"Reasoning tokens: {response.reasoning[:500]}...")
+            
+            # The response should contain HTML, store as raw content
+            result_data = {
+                'html_output': response.content,
+                'provider': self._config.provider_type.value,
+                'model': self._config.model,
+            }
             
             return DesignSystemResult(
                 success=True,
-                data=parsed,
+                data=result_data,
                 provider=self._config.provider_type.value,
                 model=self._config.model
             )

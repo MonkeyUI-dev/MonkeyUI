@@ -1,15 +1,16 @@
 """
 LLM Provider abstraction layer.
 
-This module provides a unified interface for interacting with various LLM providers
-including OpenAI, Gemini, OpenRouter, Qwen, and Kimi.
+This module provides a unified interface for interacting with LLM providers.
+Currently supports:
+- Gemini (direct Google API)
+- OpenRouter (with Gemini 3 Pro support and reasoning capabilities)
 """
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, Any
 import base64
-import json
 import logging
 
 logger = logging.getLogger(__name__)
@@ -17,11 +18,8 @@ logger = logging.getLogger(__name__)
 
 class LLMProviderType(str, Enum):
     """Supported LLM provider types."""
-    OPENAI = "openai"
     GEMINI = "gemini"
     OPENROUTER = "openrouter"
-    QWEN = "qwen"
-    KIMI = "kimi"
 
 
 @dataclass
@@ -31,9 +29,8 @@ class LLMConfig:
     api_key: str
     model: str
     base_url: Optional[str] = None
-    max_tokens: int = 4096
-    temperature: float = 0.7
-    timeout: int = 120  # seconds
+    timeout: int = 300  # seconds - increased for reasoning models
+    enable_reasoning: bool = True  # Enable reasoning for supported models
 
 
 @dataclass
@@ -44,6 +41,7 @@ class LLMResponse:
     provider: str
     usage: dict[str, int]
     raw_response: Optional[Any] = None
+    reasoning: Optional[str] = None  # Reasoning tokens if available
 
 
 class BaseLLMProvider(ABC):
@@ -106,89 +104,8 @@ class BaseLLMProvider(ABC):
         return base64.b64encode(image_data).decode('utf-8')
 
 
-class OpenAIProvider(BaseLLMProvider):
-    """OpenAI API provider."""
-    
-    def _initialize_client(self):
-        from openai import AsyncOpenAI
-        self._client = AsyncOpenAI(
-            api_key=self.config.api_key,
-            base_url=self.config.base_url,
-            timeout=self.config.timeout
-        )
-    
-    async def generate(self, prompt: str, system_prompt: Optional[str] = None) -> LLMResponse:
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": prompt})
-        
-        response = await self.client.chat.completions.create(
-            model=self.config.model,
-            messages=messages,
-            max_tokens=self.config.max_tokens,
-            temperature=self.config.temperature
-        )
-        
-        return LLMResponse(
-            content=response.choices[0].message.content,
-            model=response.model,
-            provider=LLMProviderType.OPENAI.value,
-            usage={
-                "prompt_tokens": response.usage.prompt_tokens,
-                "completion_tokens": response.usage.completion_tokens,
-                "total_tokens": response.usage.total_tokens
-            },
-            raw_response=response
-        )
-    
-    async def generate_with_image(
-        self, 
-        prompt: str, 
-        image_data: bytes,
-        image_mime_type: str = "image/png",
-        system_prompt: Optional[str] = None
-    ) -> LLMResponse:
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        
-        base64_image = self._encode_image_base64(image_data)
-        messages.append({
-            "role": "user",
-            "content": [
-                {"type": "text", "text": prompt},
-                {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:{image_mime_type};base64,{base64_image}"
-                    }
-                }
-            ]
-        })
-        
-        response = await self.client.chat.completions.create(
-            model=self.config.model,
-            messages=messages,
-            max_tokens=self.config.max_tokens,
-            temperature=self.config.temperature
-        )
-        
-        return LLMResponse(
-            content=response.choices[0].message.content,
-            model=response.model,
-            provider=LLMProviderType.OPENAI.value,
-            usage={
-                "prompt_tokens": response.usage.prompt_tokens,
-                "completion_tokens": response.usage.completion_tokens,
-                "total_tokens": response.usage.total_tokens
-            },
-            raw_response=response
-        )
-
-
 class GeminiProvider(BaseLLMProvider):
-    """Google Gemini API provider."""
+    """Google Gemini API provider (direct API access)."""
     
     def _initialize_client(self):
         import google.generativeai as genai
@@ -201,8 +118,7 @@ class GeminiProvider(BaseLLMProvider):
         response = await self.client.generate_content_async(
             full_prompt,
             generation_config={
-                "max_output_tokens": self.config.max_tokens,
-                "temperature": self.config.temperature
+                "temperature": 0.1
             }
         )
         
@@ -234,8 +150,7 @@ class GeminiProvider(BaseLLMProvider):
         response = await self.client.generate_content_async(
             [full_prompt, image],
             generation_config={
-                "max_output_tokens": self.config.max_tokens,
-                "temperature": self.config.temperature
+                "temperature": 0.1
             }
         )
         
@@ -253,7 +168,13 @@ class GeminiProvider(BaseLLMProvider):
 
 
 class OpenRouterProvider(BaseLLMProvider):
-    """OpenRouter API provider (uses OpenAI-compatible API)."""
+    """
+    OpenRouter API provider with reasoning support.
+    
+    Uses OpenAI-compatible API with additional OpenRouter features:
+    - Reasoning tokens for Gemini 3 Pro and other reasoning models
+    - Multi-provider access through a single API
+    """
     
     def _initialize_client(self):
         from openai import AsyncOpenAI
@@ -267,86 +188,42 @@ class OpenRouterProvider(BaseLLMProvider):
             }
         )
     
-    async def generate(self, prompt: str, system_prompt: Optional[str] = None) -> LLMResponse:
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": prompt})
+    def _build_extra_body(self) -> dict:
+        """Build extra_body parameters for OpenRouter requests."""
+        extra_body = {}
         
-        response = await self.client.chat.completions.create(
-            model=self.config.model,
-            messages=messages,
-            max_tokens=self.config.max_tokens,
-            temperature=self.config.temperature
-        )
+        # Enable reasoning for supported models (like Gemini 3 Pro)
+        if self.config.enable_reasoning:
+            extra_body["reasoning"] = {
+                "enabled": True,
+                "effort": "high"  # Use high reasoning effort for better analysis
+            }
         
-        return LLMResponse(
-            content=response.choices[0].message.content,
-            model=response.model,
-            provider=LLMProviderType.OPENROUTER.value,
-            usage={
-                "prompt_tokens": response.usage.prompt_tokens if response.usage else 0,
-                "completion_tokens": response.usage.completion_tokens if response.usage else 0,
-                "total_tokens": response.usage.total_tokens if response.usage else 0
-            },
-            raw_response=response
-        )
+        return extra_body if extra_body else None
     
-    async def generate_with_image(
-        self, 
-        prompt: str, 
-        image_data: bytes,
-        image_mime_type: str = "image/png",
-        system_prompt: Optional[str] = None
-    ) -> LLMResponse:
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        
-        base64_image = self._encode_image_base64(image_data)
-        messages.append({
-            "role": "user",
-            "content": [
-                {"type": "text", "text": prompt},
-                {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:{image_mime_type};base64,{base64_image}"
-                    }
-                }
-            ]
-        })
-        
-        response = await self.client.chat.completions.create(
-            model=self.config.model,
-            messages=messages,
-            max_tokens=self.config.max_tokens,
-            temperature=self.config.temperature
-        )
-        
-        return LLMResponse(
-            content=response.choices[0].message.content,
-            model=response.model,
-            provider=LLMProviderType.OPENROUTER.value,
-            usage={
-                "prompt_tokens": response.usage.prompt_tokens if response.usage else 0,
-                "completion_tokens": response.usage.completion_tokens if response.usage else 0,
-                "total_tokens": response.usage.total_tokens if response.usage else 0
-            },
-            raw_response=response
-        )
-
-
-class QwenProvider(BaseLLMProvider):
-    """Alibaba Qwen API provider."""
-    
-    def _initialize_client(self):
-        from openai import AsyncOpenAI
-        self._client = AsyncOpenAI(
-            api_key=self.config.api_key,
-            base_url=self.config.base_url or "https://dashscope.aliyuncs.com/compatible-mode/v1",
-            timeout=self.config.timeout
-        )
+    def _extract_reasoning(self, response) -> Optional[str]:
+        """Extract reasoning from response if available."""
+        try:
+            message = response.choices[0].message
+            
+            # Check for reasoning in different possible locations
+            if hasattr(message, 'reasoning'):
+                return message.reasoning
+            
+            if hasattr(message, 'reasoning_details') and message.reasoning_details:
+                # Extract text from reasoning_details array
+                reasoning_texts = []
+                for detail in message.reasoning_details:
+                    if hasattr(detail, 'text') and detail.text:
+                        reasoning_texts.append(detail.text)
+                    elif hasattr(detail, 'summary') and detail.summary:
+                        reasoning_texts.append(detail.summary)
+                return "\n".join(reasoning_texts) if reasoning_texts else None
+            
+            return None
+        except Exception as e:
+            logger.debug(f"Could not extract reasoning: {e}")
+            return None
     
     async def generate(self, prompt: str, system_prompt: Optional[str] = None) -> LLMResponse:
         messages = []
@@ -354,111 +231,31 @@ class QwenProvider(BaseLLMProvider):
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
         
-        response = await self.client.chat.completions.create(
-            model=self.config.model,
-            messages=messages,
-            max_tokens=self.config.max_tokens,
-            temperature=self.config.temperature
-        )
+        extra_body = self._build_extra_body()
         
-        return LLMResponse(
-            content=response.choices[0].message.content,
-            model=response.model,
-            provider=LLMProviderType.QWEN.value,
-            usage={
-                "prompt_tokens": response.usage.prompt_tokens if response.usage else 0,
-                "completion_tokens": response.usage.completion_tokens if response.usage else 0,
-                "total_tokens": response.usage.total_tokens if response.usage else 0
-            },
-            raw_response=response
-        )
-    
-    async def generate_with_image(
-        self, 
-        prompt: str, 
-        image_data: bytes,
-        image_mime_type: str = "image/png",
-        system_prompt: Optional[str] = None
-    ) -> LLMResponse:
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        
-        base64_image = self._encode_image_base64(image_data)
-        messages.append({
-            "role": "user",
-            "content": [
-                {"type": "text", "text": prompt},
-                {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:{image_mime_type};base64,{base64_image}"
-                    }
-                }
-            ]
-        })
-        
-        # Enable thinking for Qwen models to improve analysis quality
-        extra_body = {
-            'enable_thinking': True,
-            'thinking_budget': 6000
+        kwargs = {
+            "model": self.config.model,
+            "messages": messages,
+            "temperature": 0.1
         }
+        if extra_body:
+            kwargs["extra_body"] = extra_body
         
-        response = await self.client.chat.completions.create(
-            model=self.config.model,
-            messages=messages,
-            max_tokens=self.config.max_tokens,
-            temperature=self.config.temperature,
-            extra_body=extra_body
-        )
+        response = await self.client.chat.completions.create(**kwargs)
+        
+        reasoning = self._extract_reasoning(response)
         
         return LLMResponse(
             content=response.choices[0].message.content,
             model=response.model,
-            provider=LLMProviderType.QWEN.value,
+            provider=LLMProviderType.OPENROUTER.value,
             usage={
                 "prompt_tokens": response.usage.prompt_tokens if response.usage else 0,
                 "completion_tokens": response.usage.completion_tokens if response.usage else 0,
                 "total_tokens": response.usage.total_tokens if response.usage else 0
             },
-            raw_response=response
-        )
-
-
-class KimiProvider(BaseLLMProvider):
-    """Moonshot Kimi API provider."""
-    
-    def _initialize_client(self):
-        from openai import AsyncOpenAI
-        self._client = AsyncOpenAI(
-            api_key=self.config.api_key,
-            base_url=self.config.base_url or "https://api.moonshot.cn/v1",
-            timeout=self.config.timeout
-        )
-    
-    async def generate(self, prompt: str, system_prompt: Optional[str] = None) -> LLMResponse:
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": prompt})
-        
-        response = await self.client.chat.completions.create(
-            model=self.config.model,
-            messages=messages,
-            max_tokens=self.config.max_tokens,
-            temperature=self.config.temperature
-        )
-        
-        return LLMResponse(
-            content=response.choices[0].message.content,
-            model=response.model,
-            provider=LLMProviderType.KIMI.value,
-            usage={
-                "prompt_tokens": response.usage.prompt_tokens if response.usage else 0,
-                "completion_tokens": response.usage.completion_tokens if response.usage else 0,
-                "total_tokens": response.usage.total_tokens if response.usage else 0
-            },
-            raw_response=response
+            raw_response=response,
+            reasoning=reasoning
         )
     
     async def generate_with_image(
@@ -486,33 +283,38 @@ class KimiProvider(BaseLLMProvider):
             ]
         })
         
-        response = await self.client.chat.completions.create(
-            model=self.config.model,
-            messages=messages,
-            max_tokens=self.config.max_tokens,
-            temperature=self.config.temperature
-        )
+        extra_body = self._build_extra_body()
+        
+        kwargs = {
+            "model": self.config.model,
+            "messages": messages,
+            "temperature": 0.1
+        }
+        if extra_body:
+            kwargs["extra_body"] = extra_body
+        
+        response = await self.client.chat.completions.create(**kwargs)
+        
+        reasoning = self._extract_reasoning(response)
         
         return LLMResponse(
             content=response.choices[0].message.content,
             model=response.model,
-            provider=LLMProviderType.KIMI.value,
+            provider=LLMProviderType.OPENROUTER.value,
             usage={
                 "prompt_tokens": response.usage.prompt_tokens if response.usage else 0,
                 "completion_tokens": response.usage.completion_tokens if response.usage else 0,
                 "total_tokens": response.usage.total_tokens if response.usage else 0
             },
-            raw_response=response
+            raw_response=response,
+            reasoning=reasoning
         )
 
 
 # Provider registry
 PROVIDER_CLASSES: dict[LLMProviderType, type[BaseLLMProvider]] = {
-    LLMProviderType.OPENAI: OpenAIProvider,
     LLMProviderType.GEMINI: GeminiProvider,
     LLMProviderType.OPENROUTER: OpenRouterProvider,
-    LLMProviderType.QWEN: QwenProvider,
-    LLMProviderType.KIMI: KimiProvider,
 }
 
 

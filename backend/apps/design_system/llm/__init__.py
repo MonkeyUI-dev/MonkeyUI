@@ -1,13 +1,14 @@
 """
 LLM provider module for design system generation.
+
+Supported providers:
+- Gemini (direct Google API)
+- OpenRouter (with Gemini 3 Pro and reasoning capabilities)
 """
 from .providers import (
     BaseLLMProvider,
-    OpenAIProvider,
     GeminiProvider,
     OpenRouterProvider,
-    QwenProvider,
-    KimiProvider,
     LLMProviderType,
     LLMConfig,
     LLMResponse,
@@ -16,11 +17,8 @@ from .providers import (
 
 __all__ = [
     'BaseLLMProvider',
-    'OpenAIProvider',
     'GeminiProvider',
     'OpenRouterProvider',
-    'QwenProvider',
-    'KimiProvider',
     'LLMProviderType',
     'LLMConfig',
     'LLMResponse',

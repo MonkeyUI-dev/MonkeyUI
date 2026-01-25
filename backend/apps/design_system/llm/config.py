@@ -3,6 +3,10 @@ LLM Provider configuration management.
 
 This module handles loading and managing LLM provider configurations
 from Django settings or environment variables.
+
+Supported providers:
+- Gemini (direct Google API)
+- OpenRouter (with Gemini 3 Pro and reasoning capabilities)
 """
 import os
 from django.conf import settings
@@ -12,20 +16,14 @@ from .providers import LLMConfig, LLMProviderType
 
 # Default model configurations for each provider
 DEFAULT_MODELS = {
-    LLMProviderType.OPENAI: "gpt-4o",
     LLMProviderType.GEMINI: "gemini-2.0-flash",
-    LLMProviderType.OPENROUTER: "openai/gpt-4o",
-    LLMProviderType.QWEN: "qwen-vl-max",
-    LLMProviderType.KIMI: "moonshot-v1-32k-vision-preview",
+    LLMProviderType.OPENROUTER: "google/gemini-3-pro-preview",
 }
 
 # Vision-capable models for each provider
 VISION_MODELS = {
-    LLMProviderType.OPENAI: "gpt-4o",
     LLMProviderType.GEMINI: "gemini-2.0-flash",
-    LLMProviderType.OPENROUTER: "openai/gpt-4o",
-    LLMProviderType.QWEN: "qwen-vl-max",
-    LLMProviderType.KIMI: "moonshot-v1-32k-vision-preview",
+    LLMProviderType.OPENROUTER: "google/gemini-3-pro-preview",
 }
 
 
@@ -53,11 +51,8 @@ def get_provider_config(
     
     # Environment variable names for each provider
     env_key_mapping = {
-        LLMProviderType.OPENAI: 'OPENAI_API_KEY',
         LLMProviderType.GEMINI: 'GEMINI_API_KEY',
         LLMProviderType.OPENROUTER: 'OPENROUTER_API_KEY',
-        LLMProviderType.QWEN: 'QWEN_API_KEY',
-        LLMProviderType.KIMI: 'KIMI_API_KEY',
     }
     
     # Get API key
@@ -70,14 +65,16 @@ def get_provider_config(
     model_dict = VISION_MODELS if for_vision else DEFAULT_MODELS
     model = provider_settings.get('model') or model_dict.get(provider_type)
     
+    # Enable reasoning by default for OpenRouter
+    enable_reasoning = provider_settings.get('enable_reasoning', True)
+    
     return LLMConfig(
         provider_type=provider_type,
         api_key=api_key,
         model=model,
         base_url=provider_settings.get('base_url'),
-        max_tokens=provider_settings.get('max_tokens', 4096),
-        temperature=provider_settings.get('temperature', 0.7),
-        timeout=provider_settings.get('timeout', 120)
+        timeout=provider_settings.get('timeout', 300),
+        enable_reasoning=enable_reasoning
     )
 
 
@@ -85,12 +82,9 @@ def get_default_provider(for_vision: bool = False) -> Optional[LLMConfig]:
     """
     Get the default (first available) LLM provider configuration.
     
-    Checks providers in priority order:
-    1. OpenAI
-    2. Gemini
-    3. OpenRouter
-    4. Qwen
-    5. Kimi
+    Priority order:
+    1. OpenRouter (preferred - supports Gemini 3 Pro with reasoning)
+    2. Gemini (direct API)
     
     Args:
         for_vision: If True, use vision-capable model
@@ -109,13 +103,10 @@ def get_default_provider(for_vision: bool = False) -> Optional[LLMConfig]:
         except ValueError:
             pass
     
-    # Try providers in priority order
+    # Try providers in priority order (OpenRouter first for Gemini 3 Pro support)
     priority_order = [
-        LLMProviderType.OPENAI,
-        LLMProviderType.GEMINI,
         LLMProviderType.OPENROUTER,
-        LLMProviderType.QWEN,
-        LLMProviderType.KIMI,
+        LLMProviderType.GEMINI,
     ]
     
     for provider_type in priority_order:
@@ -141,7 +132,8 @@ def list_available_providers() -> list[dict]:
             available.append({
                 'type': provider_type.value,
                 'model': config.model,
-                'has_vision': get_provider_config(provider_type, for_vision=True) is not None
+                'has_vision': get_provider_config(provider_type, for_vision=True) is not None,
+                'enable_reasoning': config.enable_reasoning
             })
     
     return available

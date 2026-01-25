@@ -4,10 +4,10 @@ Celery tasks for async design system generation.
 This module provides Celery tasks for generating design systems from images
 using LLM providers with progress tracking.
 
-Workflow Steps:
-1. Visual Style Detection - Quickly identify the dominant visual pattern
-2. Style-Specific Analysis - Deep analysis with customized prompts
-3. Result Merging & Finalization - Combine results and save to database
+Single-Step Workflow:
+1. Initialization - Set up LLM provider and validate inputs (10%)
+2. Single-Step Analysis - Comprehensive analysis with HTML output (50%)
+3. Finalization - Add metadata and save to database (100%)
 """
 import json
 import logging
@@ -23,25 +23,18 @@ from json_repair import repair_json
 
 from .llm import create_llm_provider, LLMProviderType
 from .llm.config import get_provider_config, get_default_provider
-from .prompts import (
-    get_image_analysis_prompt,
-    get_visual_style_detection_prompt,
-    get_style_specific_prompt,
-    get_style_guidelines
-)
+from .prompts import get_single_step_analysis_prompt
 
 logger = logging.getLogger(__name__)
 
 
 # =============================================================================
-# Workflow Step Constants
+# Workflow Step Constants (Single-Step)
 # =============================================================================
 
 WORKFLOW_STEPS = {
-    "initialization": {"name": "Initialization", "weight": 5},
-    "style_detection": {"name": "Visual Style Detection", "weight": 15},
-    "style_analysis": {"name": "Style-Specific Analysis", "weight": 60},
-    "merging": {"name": "Merging Results", "weight": 10},
+    "initialization": {"name": "Initialization", "weight": 10},
+    "analysis": {"name": "Single-Step Analysis", "weight": 80},
     "finalization": {"name": "Finalization", "weight": 10},
 }
 
@@ -149,12 +142,10 @@ def generate_design_system_task(
     """
     Celery task to generate a design system from uploaded images.
     
-    Multi-step Workflow:
+    Single-Step Workflow:
     1. Initialization - Set up LLM provider and validate inputs
-    2. Visual Style Detection - Quickly identify dominant visual pattern
-    3. Style-Specific Analysis - Deep analysis with customized prompts
-    4. Merging Results - Combine analysis results
-    5. Finalization - Add metadata and save to database
+    2. Single-Step Analysis - Comprehensive analysis using the single-step prompt
+    3. Finalization - Add metadata and save to database
     
     Args:
         task_id: Unique task identifier for progress tracking
@@ -170,7 +161,7 @@ def generate_design_system_task(
     import asyncio
     import base64
     
-    total_steps = 5  # Fixed workflow steps
+    total_steps = 3  # Simplified to 3 steps
     
     try:
         # =================================================================
@@ -184,11 +175,11 @@ def generate_design_system_task(
         update_task_progress(
             task_id=task_id,
             status=TaskStatus.PROCESSING,
-            progress=5,
+            progress=10,
             current_step="initialization",
             current_step_number=1,
             total_steps=total_steps,
-            message=_("Initializing design system analysis...")
+            message=_("Setting up AI vision model...")
         )
         
         # Get LLM provider configuration
@@ -218,80 +209,24 @@ def generate_design_system_task(
         logger.info(f"[Task {task_id[:8]}] Image prepared: {image_name} ({mime_type}, {len(image_bytes)} bytes)")
         
         # =================================================================
-        # STEP 2: Visual Style Detection
+        # STEP 2: Single-Step Analysis
         # =================================================================
         logger.info(f"-" * 60)
-        logger.info(f"[Task {task_id[:8]}] STEP 2: Visual Style Detection")
+        logger.info(f"[Task {task_id[:8]}] STEP 2: Single-Step Analysis")
         logger.info(f"-" * 60)
         
         update_task_progress(
             task_id=task_id,
             status=TaskStatus.PROCESSING,
-            progress=15,
-            current_step="style_detection",
+            progress=30,
+            current_step="analysis",
             current_step_number=2,
             total_steps=total_steps,
-            message=_("Detecting visual style pattern...")
+            message=_("AI is extracting colors, typography, and spacing...")
         )
         
-        # Get style detection prompt and run analysis
-        style_detection_prompt = get_visual_style_detection_prompt()
-        logger.info(f"[Task {task_id[:8]}] Sending image to LLM for style detection...")
-        
-        style_start_time = time.time()
-        style_response = asyncio.run(
-            provider.generate_with_image(
-                prompt=style_detection_prompt,
-                image_data=image_bytes,
-                image_mime_type=mime_type
-            )
-        )
-        style_elapsed = time.time() - style_start_time
-        logger.info(f"[Task {task_id[:8]}] Style detection completed in {style_elapsed:.2f}s")
-        logger.info(f"[Task {task_id[:8]}] Response length: {len(style_response.content)} chars")
-        
-        # Parse style detection result
-        detected_style = "general"
-        style_confidence = 0.5
-        try:
-            style_result = _parse_llm_json(style_response.content)
-            detected_style = style_result.get("detected_style", "general")
-            style_confidence = style_result.get("confidence", 0.5)
-            key_features = style_result.get("key_features", [])
-            
-            logger.info(f"[Task {task_id[:8]}] ✓ Detected Style: {detected_style.upper()}")
-            logger.info(f"[Task {task_id[:8]}] ✓ Confidence: {style_confidence:.0%}")
-            if key_features:
-                logger.info(f"[Task {task_id[:8]}] ✓ Key Features: {', '.join(key_features[:3])}")
-        except (ValueError, KeyError) as e:
-            logger.warning(f"[Task {task_id[:8]}] Failed to parse style detection JSON: {e}")
-            logger.warning(f"[Task {task_id[:8]}] Raw response preview: {style_response.content[:200]}...")
-            # Fall back to text-based detection
-            detected_style = _extract_style_from_text(style_response.content)
-            logger.info(f"[Task {task_id[:8]}] Fallback style detection: {detected_style}")
-        
-        # Small delay to avoid rate limiting
-        time.sleep(1.0)
-        
-        # =================================================================
-        # STEP 3: Style-Specific Deep Analysis
-        # =================================================================
-        logger.info(f"-" * 60)
-        logger.info(f"[Task {task_id[:8]}] STEP 3: Style-Specific Analysis ({detected_style})")
-        logger.info(f"-" * 60)
-        
-        update_task_progress(
-            task_id=task_id,
-            status=TaskStatus.PROCESSING,
-            progress=35,
-            current_step="style_analysis",
-            current_step_number=3,
-            total_steps=total_steps,
-            message=_("Performing deep analysis with {} style guidelines...").format(detected_style)
-        )
-        
-        # Get style-specific prompt
-        analysis_prompt = get_style_specific_prompt(detected_style)
+        # Get single-step analysis prompt
+        analysis_prompt = get_single_step_analysis_prompt()
         
         # Add context from vibe name/description
         if vibe_name or vibe_description:
@@ -302,8 +237,7 @@ def generate_design_system_task(
                 context += f"- Style Description: {vibe_description}\n"
             analysis_prompt = analysis_prompt + context
         
-        logger.info(f"[Task {task_id[:8]}] Prompt customized for {detected_style} style")
-        logger.info(f"[Task {task_id[:8]}] Sending image for deep analysis...")
+        logger.info(f"[Task {task_id[:8]}] Sending image for single-step analysis...")
         
         analysis_start_time = time.time()
         analysis_response = asyncio.run(
@@ -314,58 +248,31 @@ def generate_design_system_task(
             )
         )
         analysis_elapsed = time.time() - analysis_start_time
-        logger.info(f"[Task {task_id[:8]}] Deep analysis completed in {analysis_elapsed:.2f}s")
+        logger.info(f"[Task {task_id[:8]}] Analysis completed in {analysis_elapsed:.2f}s")
         logger.info(f"[Task {task_id[:8]}] Response length: {len(analysis_response.content)} chars")
         
-        # Parse analysis result
-        try:
-            analysis_result = _parse_llm_json(analysis_response.content)
-            logger.info(f"[Task {task_id[:8]}] ✓ Successfully parsed design tokens JSON")
-            
-            # Log key extracted values
-            if "styleName" in analysis_result:
-                logger.info(f"[Task {task_id[:8]}] ✓ Style Name: {analysis_result['styleName']}")
-            if "colors" in analysis_result:
-                colors = analysis_result["colors"]
-                logger.info(f"[Task {task_id[:8]}] ✓ Colors extracted: primary={colors.get('primary')}, secondary={colors.get('secondary')}")
-            if "borderRadius" in analysis_result:
-                logger.info(f"[Task {task_id[:8]}] ✓ Border Radius: {analysis_result['borderRadius']}")
-                
-        except (ValueError, KeyError) as e:
-            logger.warning(f"[Task {task_id[:8]}] Failed to parse analysis JSON: {e}")
-            logger.warning(f"[Task {task_id[:8]}] Raw response preview: {analysis_response.content[:500]}...")
-            analysis_result = {"raw_response": analysis_response.content}
-        
-        # =================================================================
-        # STEP 4: Merge Results
-        # =================================================================
-        logger.info(f"-" * 60)
-        logger.info(f"[Task {task_id[:8]}] STEP 4: Merging Results")
-        logger.info(f"-" * 60)
-        
+        # Update progress after LLM completes
         update_task_progress(
             task_id=task_id,
             status=TaskStatus.PROCESSING,
             progress=80,
-            current_step="merging_results",
-            current_step_number=4,
+            current_step="analysis",
+            current_step_number=2,
             total_steps=total_steps,
-            message=_("Merging analysis results...")
+            message=_("Generating design tokens and HTML preview...")
         )
         
-        # Add detected style info to the result
-        if isinstance(analysis_result, dict) and "raw_response" not in analysis_result:
-            analysis_result["detectedPattern"] = detected_style
-            analysis_result["styleConfidence"] = style_confidence
-        
-        merged_result = analysis_result
-        logger.info(f"[Task {task_id[:8]}] Results merged successfully")
+        # The response should contain HTML output
+        analysis_result = {
+            "html_output": analysis_response.content
+        }
+        logger.info(f"[Task {task_id[:8]}] ✓ HTML output captured")
         
         # =================================================================
-        # STEP 5: Finalization
+        # STEP 3: Finalization
         # =================================================================
         logger.info(f"-" * 60)
-        logger.info(f"[Task {task_id[:8]}] STEP 5: Finalization")
+        logger.info(f"[Task {task_id[:8]}] STEP 3: Finalization")
         logger.info(f"-" * 60)
         
         update_task_progress(
@@ -373,24 +280,22 @@ def generate_design_system_task(
             status=TaskStatus.PROCESSING,
             progress=90,
             current_step="finalizing",
-            current_step_number=5,
+            current_step_number=3,
             total_steps=total_steps,
-            message=_("Finalizing design system...")
+            message=_("Saving design system to database...")
         )
         
         # Add metadata
         final_result = {
-            **merged_result,
+            **analysis_result,
             "metadata": {
                 "name": vibe_name or "Untitled Design System",
                 "description": vibe_description or "",
                 "provider": config.provider_type.value,
                 "model": config.model,
-                "detected_style": detected_style,
-                "style_confidence": style_confidence,
                 "images_analyzed": len(image_data_list),
                 "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-                "workflow_version": "2.0"
+                "workflow_version": "3.0"
             }
         }
         
@@ -410,8 +315,7 @@ def generate_design_system_task(
         # Mark completed
         logger.info(f"=" * 60)
         logger.info(f"[Task {task_id[:8]}] ✅ ANALYSIS COMPLETED SUCCESSFULLY")
-        logger.info(f"[Task {task_id[:8]}] Detected Style: {detected_style} ({style_confidence:.0%} confidence)")
-        logger.info(f"[Task {task_id[:8]}] Total Time: {time.time() - analysis_start_time + style_elapsed:.2f}s")
+        logger.info(f"[Task {task_id[:8]}] Total Time: {analysis_elapsed:.2f}s")
         logger.info(f"=" * 60)
         
         update_task_progress(
@@ -421,7 +325,7 @@ def generate_design_system_task(
             current_step="completed",
             current_step_number=total_steps,
             total_steps=total_steps,
-            message=_("Design system generation completed!"),
+            message=_("Analysis complete! Your design system is ready."),
             result=final_result
         )
         
@@ -445,7 +349,7 @@ def generate_design_system_task(
             current_step="error",
             current_step_number=0,
             total_steps=total_steps,
-            message=_("Design system generation failed"),
+            message=_("Analysis failed. Please check the error details."),
             error=str(e)
         )
         
@@ -629,16 +533,17 @@ def create_analysis_task(
         Task ID for progress tracking
     """
     task_id = str(uuid.uuid4())
+    total_steps = 3  # Single-step workflow: initialization, analysis, finalization
     
     # Initialize progress
     update_task_progress(
         task_id=task_id,
         status=TaskStatus.PENDING,
-        progress=0,
+        progress=5,
         current_step="queued",
         current_step_number=0,
-        total_steps=len(images) + 2,
-        message=_("Task queued, waiting to start...")
+        total_steps=total_steps,
+        message=_("Task queued, analysis will begin shortly...")
     )
     
     # Queue the task

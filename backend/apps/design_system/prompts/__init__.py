@@ -249,6 +249,18 @@ def get_image_analysis_prompt() -> str:
     return load_prompt("image_analysis")
 
 
+def get_single_step_analysis_prompt() -> str:
+    """
+    Get the single-step design system analysis prompt.
+    
+    This prompt instructs the LLM to:
+    - Use three-point sampling for accurate color extraction
+    - Extract typography, buttons, cards, spacing, and iconography
+    - Generate an HTML verification page with CSS variables
+    """
+    return load_prompt("design_system_single_step")
+
+
 def get_design_system_prompt() -> str:
     """Get the base design system prompt template."""
     return load_prompt("design_system_analysis")

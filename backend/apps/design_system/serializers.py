@@ -146,12 +146,6 @@ class ImageUploadSerializer(serializers.Serializer):
 
 class StartAnalysisSerializer(serializers.Serializer):
     """Serializer for starting design system analysis."""
-    provider = serializers.ChoiceField(
-        choices=['openai', 'gemini', 'openrouter', 'qwen', 'kimi'],
-        required=False,
-        allow_null=True,
-        help_text="LLM provider to use. If not specified, uses default provider."
-    )
     images = ImageUploadSerializer(
         many=True,
         required=False,

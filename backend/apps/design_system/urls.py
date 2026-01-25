@@ -16,32 +16,6 @@ urlpatterns = [
     # Design system CRUD and management (ViewSet)
     path('systems/', include(router.urls)),
     
-    # Legacy endpoints for backward compatibility
-    path(
-        'generate/',
-        views.generate_design_system,
-        name='generate'
-    ),
-    
-    # Task management
-    path(
-        'tasks/<str:task_id>/',
-        views.get_task_status,
-        name='task-status'
-    ),
-    path(
-        'tasks/<str:task_id>/cancel/',
-        views.cancel_task,
-        name='task-cancel'
-    ),
-    
-    # Provider information
-    path(
-        'providers/',
-        views.list_providers,
-        name='list-providers'
-    ),
-    
     # MCP endpoints
     path(
         'mcp/<str:design_system_id>/tools/',

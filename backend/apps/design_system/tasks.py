@@ -21,8 +21,8 @@ from django.core.cache import cache
 from django.utils.translation import gettext as _
 from json_repair import repair_json
 
-from .llm import create_llm_provider, LLMProviderType
-from .llm.config import get_provider_config, get_default_provider
+from .llm import create_llm_provider
+from .llm.config import get_default_provider
 from .prompts import get_single_step_analysis_prompt
 
 logger = logging.getLogger(__name__)
@@ -134,7 +134,6 @@ def generate_design_system_task(
     self,
     task_id: str,
     image_data_list: list[dict],  # [{'data': base64, 'mime_type': 'image/png', 'name': 'file.png'}]
-    provider_type: Optional[str] = None,
     vibe_name: Optional[str] = None,
     vibe_description: Optional[str] = None,
     design_system_id: Optional[str] = None
@@ -150,7 +149,6 @@ def generate_design_system_task(
     Args:
         task_id: Unique task identifier for progress tracking
         image_data_list: List of image data dicts with base64 data and mime types
-        provider_type: Optional specific LLM provider to use
         vibe_name: Name of the vibe/design system being created
         vibe_description: Description of the desired style
         design_system_id: Optional UUID of the DesignSystem model to update
@@ -182,18 +180,10 @@ def generate_design_system_task(
             message=_("Setting up AI vision model...")
         )
         
-        # Get LLM provider configuration
+        # Get LLM provider configuration (from environment variables)
         logger.info(f"[Task {task_id[:8]}] Configuring LLM provider...")
-        if provider_type:
-            try:
-                provider_enum = LLMProviderType(provider_type)
-                config = get_provider_config(provider_enum, for_vision=True)
-                logger.info(f"[Task {task_id[:8]}] Using specified provider: {provider_type}")
-            except ValueError:
-                raise ValueError(f"Unsupported provider type: {provider_type}")
-        else:
-            config = get_default_provider(for_vision=True)
-            logger.info(f"[Task {task_id[:8]}] Using default provider: {config.provider_type.value if config else 'None'}")
+        config = get_default_provider(for_vision=True)
+        logger.info(f"[Task {task_id[:8]}] Using default provider: {config.provider_type.value if config else 'None'}")
         
         if not config:
             raise ValueError(_("No LLM provider configured. Please set up at least one provider."))
@@ -514,7 +504,6 @@ def merge_color_dicts(color_dicts: list[dict]) -> dict:
 
 def create_analysis_task(
     images: list[dict],
-    provider_type: Optional[str] = None,
     vibe_name: Optional[str] = None,
     vibe_description: Optional[str] = None,
     design_system_id: Optional[str] = None
@@ -524,7 +513,6 @@ def create_analysis_task(
     
     Args:
         images: List of image data dicts with base64 data and mime types
-        provider_type: Optional specific LLM provider to use
         vibe_name: Name of the vibe/design system
         vibe_description: Description of the desired style
         design_system_id: Optional UUID of the DesignSystem model to update
@@ -550,7 +538,6 @@ def create_analysis_task(
     generate_design_system_task.delay(
         task_id=task_id,
         image_data_list=images,
-        provider_type=provider_type,
         vibe_name=vibe_name,
         vibe_description=vibe_description,
         design_system_id=design_system_id

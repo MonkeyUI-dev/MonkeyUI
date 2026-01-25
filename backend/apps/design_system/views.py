@@ -3,20 +3,16 @@ API views for design system generation and management.
 """
 import base64
 from rest_framework import status, viewsets
-from rest_framework.decorators import api_view, permission_classes, action
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.utils.translation import gettext as _
-from django.utils import timezone
-from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 
-from .models import DesignSystem, DesignSystemImage, DesignSystemStatus
+from .models import DesignSystem, DesignSystemStatus
 from .serializers import (
-    GenerateDesignSystemRequestSerializer,
     CreateTaskResponseSerializer,
     TaskStatusResponseSerializer,
-    AvailableProvidersResponseSerializer,
     DesignSystemListSerializer,
     DesignSystemDetailSerializer,
     DesignSystemCreateSerializer,
@@ -24,8 +20,8 @@ from .serializers import (
     StartAnalysisSerializer,
     ImageUploadSerializer,
 )
-from .tasks import create_analysis_task, get_task_progress, TaskStatus
-from .llm.config import list_available_providers, get_default_provider
+from .tasks import create_analysis_task, get_task_progress
+from .llm.config import get_default_provider
 
 
 # =============================================================================
@@ -40,7 +36,6 @@ class DesignSystemViewSet(viewsets.ModelViewSet):
     - Start analysis on a design system
     - Check analysis status
     - Upload images
-    - Enable/disable MCP
     """
     permission_classes = [IsAuthenticated]
     
@@ -154,15 +149,13 @@ class DesignSystemViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Check LLM provider
-        provider = serializer.validated_data.get('provider')
-        if not provider:
-            default_config = get_default_provider(for_vision=True)
-            if not default_config:
-                return Response(
-                    {"error": _("No LLM provider configured. Please configure at least one provider.")},
-                    status=status.HTTP_503_SERVICE_UNAVAILABLE
-                )
+        # Check LLM provider is configured
+        default_config = get_default_provider(for_vision=True)
+        if not default_config:
+            return Response(
+                {"error": _("No LLM provider configured. Please configure at least one provider.")},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
         
         # Prepare image data for the task
         image_data_list = []
@@ -178,7 +171,6 @@ class DesignSystemViewSet(viewsets.ModelViewSet):
         # Create and queue the task
         task_id = create_analysis_task(
             images=image_data_list,
-            provider_type=provider,
             vibe_name=design_system.name,
             vibe_description=design_system.description,
             design_system_id=str(design_system.id)
@@ -304,204 +296,5 @@ class DesignSystemViewSet(viewsets.ModelViewSet):
         return Response({
             "message": _("Image deleted successfully")
         })
-    
-    # TODO: MCP toggle functionality - requires mcp_enabled and mcp_api_key fields in model
-    # @extend_schema(
-    #     responses={200: OpenApiResponse(description="MCP configuration updated")},
-    #     description="Toggle MCP exposure for a design system",
-    #     tags=["Design System Management"]
-    # )
-    # @action(detail=True, methods=['post'])
-    # def toggle_mcp(self, request, pk=None):
-    #     """Enable or disable MCP exposure for a design system."""
-    #     import secrets
-    #     design_system = self.get_object()
-    #     
-    #     # Toggle MCP status
-    #     design_system.mcp_enabled = not design_system.mcp_enabled
-    #     
-    #     # Generate API key if enabling and none exists
-    #     if design_system.mcp_enabled and not design_system.mcp_api_key:
-    #         design_system.mcp_api_key = secrets.token_urlsafe(32)
-    #     
-    #     design_system.save(update_fields=['mcp_enabled', 'mcp_api_key', 'updated_at'])
-    #     
-    #     return Response({
-    #         "mcp_enabled": design_system.mcp_enabled,
-    #         "mcp_api_key": design_system.mcp_api_key if design_system.mcp_enabled else None,
-    #         "message": _("MCP enabled") if design_system.mcp_enabled else _("MCP disabled")
-    #     })
 
 
-# =============================================================================
-# Legacy API Views (for backward compatibility)
-# =============================================================================
-
-@extend_schema(
-    request=GenerateDesignSystemRequestSerializer,
-    responses={
-        202: CreateTaskResponseSerializer,
-        400: OpenApiResponse(description="Invalid request data"),
-        503: OpenApiResponse(description="No LLM provider configured"),
-    },
-    description="Start async design system generation from uploaded images",
-    tags=["Design System"]
-)
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def generate_design_system(request):
-    """
-    Start an async task to generate a design system from uploaded images.
-    
-    This endpoint queues a Celery task that analyzes the provided images
-    using an LLM to extract design system tokens. The frontend can poll
-    the task status endpoint to track progress.
-    
-    Returns a task_id that can be used to track progress and retrieve results.
-    """
-    serializer = GenerateDesignSystemRequestSerializer(data=request.data)
-    
-    if not serializer.is_valid():
-        return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
-    # Check if any LLM provider is available
-    provider = serializer.validated_data.get('provider')
-    if not provider:
-        default_config = get_default_provider(for_vision=True)
-        if not default_config:
-            return Response(
-                {"error": _("No LLM provider configured. Please configure at least one provider.")},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE
-            )
-    
-    # Create and queue the task
-    task_id = create_analysis_task(
-        images=serializer.validated_data['images'],
-        provider_type=provider,
-        vibe_name=serializer.validated_data.get('vibe_name'),
-        vibe_description=serializer.validated_data.get('vibe_description')
-    )
-    
-    return Response(
-        {
-            "task_id": task_id,
-            "message": _("Design system generation started. Use the task_id to track progress.")
-        },
-        status=status.HTTP_202_ACCEPTED
-    )
-
-
-@extend_schema(
-    responses={
-        200: TaskStatusResponseSerializer,
-        404: OpenApiResponse(description="Task not found"),
-    },
-    description="Get the status and progress of a design system generation task",
-    tags=["Design System"]
-)
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def get_task_status(request, task_id: str):
-    """
-    Get the status and progress of a design system generation task.
-    
-    The frontend can poll this endpoint to track progress and retrieve
-    the final result when the task is completed.
-    
-    Returns:
-        - status: pending | processing | completed | failed
-        - progress: 0-100 percentage
-        - current_step: Description of current processing step
-        - message: User-friendly status message
-        - result: Design system data (when completed)
-        - error: Error message (if failed)
-    """
-    progress = get_task_progress(task_id)
-    
-    if not progress:
-        return Response(
-            {"error": _("Task not found or expired")},
-            status=status.HTTP_404_NOT_FOUND
-        )
-    
-    return Response(progress)
-
-
-@extend_schema(
-    responses={
-        200: AvailableProvidersResponseSerializer,
-    },
-    description="List all available (configured) LLM providers",
-    tags=["Design System"]
-)
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def list_providers(request):
-    """
-    List all available (configured) LLM providers.
-    
-    Returns information about which providers are configured and available
-    for use in design system generation.
-    """
-    providers = list_available_providers()
-    default_config = get_default_provider(for_vision=True)
-    
-    return Response({
-        "providers": providers,
-        "default_provider": default_config.provider_type.value if default_config else None
-    })
-
-
-@extend_schema(
-    responses={
-        200: OpenApiResponse(description="Task cancelled successfully"),
-        404: OpenApiResponse(description="Task not found"),
-    },
-    description="Cancel a running design system generation task",
-    tags=["Design System"]
-)
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def cancel_task(request, task_id: str):
-    """
-    Cancel a running design system generation task.
-    
-    Note: This only marks the task as cancelled in the cache.
-    The actual Celery task may still run to completion.
-    """
-    from django.core.cache import cache
-    from .tasks import get_task_cache_key, update_task_progress
-    
-    progress = get_task_progress(task_id)
-    
-    if not progress:
-        return Response(
-            {"error": _("Task not found or expired")},
-            status=status.HTTP_404_NOT_FOUND
-        )
-    
-    # Only cancel if not already completed/failed
-    if progress['status'] in [TaskStatus.COMPLETED.value, TaskStatus.FAILED.value]:
-        return Response(
-            {"error": _("Task already finished, cannot cancel")},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
-    # Mark as failed/cancelled
-    update_task_progress(
-        task_id=task_id,
-        status=TaskStatus.FAILED,
-        progress=0,
-        current_step="cancelled",
-        current_step_number=0,
-        total_steps=progress['total_steps'],
-        message=_("Task cancelled by user"),
-        error=_("Cancelled")
-    )
-    
-    return Response({
-        "message": _("Task cancelled successfully")
-    })

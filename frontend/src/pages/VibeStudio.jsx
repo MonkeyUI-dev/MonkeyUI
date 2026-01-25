@@ -368,11 +368,12 @@ export default function VibeStudio({ isNew }) {
           </div>
           
           <div className="flex items-center gap-x-3">
-            {/* MCP Access Button - only show when design system exists */}
+            {/* MCP Access Button - only show when design system exists and is completed */}
             {currentDesignSystem?.id && (
               <Button 
                 variant="outline" 
                 onClick={() => setIsMCPPanelOpen(true)}
+                disabled={currentDesignSystem.status !== DesignSystemStatus.COMPLETED || isAnalyzing}
                 className="gap-x-2"
               >
                 <ServerIcon className="size-4" />

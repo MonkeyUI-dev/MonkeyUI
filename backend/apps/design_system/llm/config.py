@@ -16,13 +16,13 @@ from .providers import LLMConfig, LLMProviderType
 
 # Default model configurations for each provider
 DEFAULT_MODELS = {
-    LLMProviderType.GEMINI: "gemini-2.0-flash",
+    LLMProviderType.GEMINI: "gemini-3-pro-preview",
     LLMProviderType.OPENROUTER: "google/gemini-3-pro-preview",
 }
 
 # Vision-capable models for each provider
 VISION_MODELS = {
-    LLMProviderType.GEMINI: "gemini-2.0-flash",
+    LLMProviderType.GEMINI: "gemini-3-pro-preview",
     LLMProviderType.OPENROUTER: "google/gemini-3-pro-preview",
 }
 
@@ -115,25 +115,3 @@ def get_default_provider(for_vision: bool = False) -> Optional[LLMConfig]:
             return config
     
     return None
-
-
-def list_available_providers() -> list[dict]:
-    """
-    List all available (configured) LLM providers.
-    
-    Returns:
-        List of dicts with provider information
-    """
-    available = []
-    
-    for provider_type in LLMProviderType:
-        config = get_provider_config(provider_type)
-        if config:
-            available.append({
-                'type': provider_type.value,
-                'model': config.model,
-                'has_vision': get_provider_config(provider_type, for_vision=True) is not None,
-                'enable_reasoning': config.enable_reasoning
-            })
-    
-    return available

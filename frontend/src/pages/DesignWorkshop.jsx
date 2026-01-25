@@ -325,7 +325,7 @@ function DesignSystemCard({ system, onSelect, onDelete, progress }) {
         
         {/* Actions */}
         <div className="flex items-center gap-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          {system.mcp_enabled && (
+          {system.mcp_enabled && system.status === DesignSystemStatus.COMPLETED && (
             <div 
               className="p-1.5 rounded-md"
               title={t('designWorkshop.mcpEnabled')}

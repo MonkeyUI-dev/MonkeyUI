@@ -8,20 +8,17 @@ Supports standard MCP protocols:
 Also provides legacy REST API for backward compatibility.
 """
 import json
-import asyncio
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from django.http import StreamingHttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.translation import gettext as _
 from django.conf import settings
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 
-from .server import MCPDesignSystemServer, get_design_system_mcp_config
-from .mcp_server import create_design_system_mcp, get_streamable_http_app
-from asgiref.sync import async_to_sync
+from .server import MCPDesignSystemServer
 
 
 def get_api_key_from_request(request) -> str:

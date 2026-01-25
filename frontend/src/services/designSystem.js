@@ -112,7 +112,6 @@ export const deleteImage = async (designSystemId, imageId) => {
  * Start AI analysis on a design system
  * @param {string} id - Design system UUID
  * @param {Object} [options] - Analysis options
- * @param {string} [options.provider] - LLM provider to use
  * @param {Array<Object>} [options.images] - Additional images to upload
  * @returns {Promise<Object>} Task info with task_id
  */
@@ -190,15 +189,6 @@ export const getMcpConfig = async (id) => {
 };
 
 /**
- * Get available LLM providers
- * @returns {Promise<Object>} Available providers info
- */
-export const getProviders = async () => {
-  const response = await api.get('/design-system/providers/');
-  return response.data;
-};
-
-/**
  * Convert a File object to base64 image data
  * @param {File} file - File object to convert
  * @returns {Promise<Object>} Image data object
@@ -244,7 +234,6 @@ export default {
   pollAnalysisStatus,
   toggleMcp,
   getMcpConfig,
-  getProviders,
   fileToImageData,
   filesToImageData,
   DesignSystemStatus,

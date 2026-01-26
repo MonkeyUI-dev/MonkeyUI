@@ -24,7 +24,6 @@ Please extract from the following dimensions:
 - Brand primary color, secondary color, background color, surface color
 - Text colors (primary/secondary/tertiary/disabled)
 - Border and divider colors
-- Success, warning, error state colors
 - Indicate purpose and confidence level in styleRules
 
 ### Typography Hierarchy
@@ -74,10 +73,7 @@ Return a JSON object with the following structure:
     "textPrimary": "#hexcode - Main text color",
     "textSecondary": "#hexcode - Secondary/muted text color",
     "textTertiary": "#hexcode - Disabled/placeholder text color",
-    "border": "#hexcode - Border/divider color",
-    "success": "#hexcode - Success state color",
-    "warning": "#hexcode - Warning state color",
-    "error": "#hexcode - Error state color"
+    "border": "#hexcode - Border/divider color"
   },
   "typography": {
     "fontFamily": "string - Primary font family stack (e.g., 'Quicksand, sans-serif')",

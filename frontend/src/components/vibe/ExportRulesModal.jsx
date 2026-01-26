@@ -49,7 +49,6 @@ function generateDesignTokensBlock(styleData) {
 - **Surface/Background**: Page: ${colors.background || '#FFFFFF'}, Card: ${colors.surface || '#F5F5F7'}
 - **Text Colors**: Primary: ${colors.textPrimary || '#1D1D1F'}, Secondary: ${colors.textSecondary || '#424245'}, Muted: ${colors.textTertiary || '#86868B'}
 - **Border Color**: ${colors.border || '#E5E5E5'}
-- **Functional Colors**: Success: ${colors.success || '#22C55E'}, Warning: ${colors.warning || '#F59E0B'}, Error: ${colors.error || '#EF4444'}
 - **Border Radius**: Small: ${borderRadius.small || '4px'}, Medium: ${borderRadius.medium || '8px'}, Large: ${borderRadius.large || '12px'}
 - **Shadows**: Level 1: ${shadows.level1 || '0 4px 12px rgba(0,0,0,0.05)'}, Level 2: ${shadows.level2 || '0 8px 20px rgba(0,0,0,0.1)'}
 - **Typography**: Font Family: ${typography.fontFamily || 'Inter, system-ui, sans-serif'}. Heading Weight: ${typography.fontWeightBold || 600}, Body Weight: ${typography.fontWeightRegular || 400}

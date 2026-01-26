@@ -255,9 +255,6 @@ class DesignSystemColorsSerializer(serializers.Serializer):
     textSecondary = serializers.CharField(required=False, help_text="Secondary text color")
     textTertiary = serializers.CharField(required=False, help_text="Tertiary text color")
     border = serializers.CharField(required=False, help_text="Border/divider color")
-    success = serializers.CharField(required=False, help_text="Success state color")
-    warning = serializers.CharField(required=False, help_text="Warning state color")
-    error = serializers.CharField(required=False, help_text="Error state color")
 
 
 class DesignSystemTypographySerializer(serializers.Serializer):

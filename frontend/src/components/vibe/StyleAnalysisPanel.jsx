@@ -110,29 +110,6 @@ function ColorSwatch({ label, color, onChange }) {
   )
 }
 
-// Functional Token Component
-function FunctionalToken({ label, color, icon }) {
-  return (
-    <div 
-      className="flex flex-col items-center gap-y-2 p-3 rounded-lg"
-      style={{ backgroundColor: 'var(--bg-surface)' }}
-    >
-      <div 
-        className="size-8 rounded-full flex items-center justify-center"
-        style={{ backgroundColor: `${color}20` }}
-      >
-        {icon}
-      </div>
-      <span 
-        className="text-xs font-medium"
-        style={{ color: 'var(--text-secondary)' }}
-      >
-        {label}
-      </span>
-    </div>
-  )
-}
-
 export default function StyleAnalysisPanel({ styleData, onStyleDataChange, isEmpty, isAnalyzing }) {
   const { t } = useTranslation()
 
@@ -279,33 +256,6 @@ export default function StyleAnalysisPanel({ styleData, onStyleDataChange, isEmp
               color={styleData.colors.surface}
               onChange={(v) => updateColor('surface', v)}
             />
-          </div>
-          
-          {/* Functional Tokens */}
-          <div>
-            <span 
-              className="text-xs font-medium block mb-3"
-              style={{ color: 'var(--text-tertiary)' }}
-            >
-              {t('vibeStudio.functionalTokens')}
-            </span>
-            <div className="grid grid-cols-3 gap-3">
-              <FunctionalToken 
-                label={t('vibeStudio.success')}
-                color="#22C55E"
-                icon={<span style={{ color: '#22C55E' }}>✓</span>}
-              />
-              <FunctionalToken 
-                label={t('vibeStudio.warning')}
-                color="#F59E0B"
-                icon={<span style={{ color: '#F59E0B' }}>⚠</span>}
-              />
-              <FunctionalToken 
-                label={t('vibeStudio.error')}
-                color="#EF4444"
-                icon={<span style={{ color: '#EF4444' }}>✕</span>}
-              />
-            </div>
           </div>
         </div>
       </CollapsibleSection>

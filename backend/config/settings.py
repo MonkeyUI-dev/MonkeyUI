@@ -120,9 +120,65 @@ LOCALE_PATHS = [
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Media files
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# =============================================================================
+# File Storage Configuration
+# =============================================================================
+FILE_STORAGE_BACKEND = os.getenv('FILE_STORAGE_BACKEND', 'local').lower()
+
+if FILE_STORAGE_BACKEND == 's3':
+    # AWS S3 or S3-compatible storage (CloudFlare R2, MinIO, etc.)
+    # Install: pip install django-storages[s3]
+    
+    # Configure storages for Django 4.2+
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3.S3Storage",
+            "OPTIONS": {
+                "access_key": os.getenv('AWS_ACCESS_KEY_ID'),
+                "secret_key": os.getenv('AWS_SECRET_ACCESS_KEY'),
+                "bucket_name": os.getenv('AWS_STORAGE_BUCKET_NAME'),
+                "region_name": os.getenv('AWS_S3_REGION_NAME', 'us-east-1'),
+                "endpoint_url": os.getenv('AWS_S3_ENDPOINT_URL'),  # For R2/MinIO
+                "custom_domain": os.getenv('AWS_S3_CUSTOM_DOMAIN'),
+                "default_acl": os.getenv('AWS_DEFAULT_ACL', 'private'),
+                "querystring_auth": os.getenv('AWS_QUERYSTRING_AUTH', 'True') == 'True',
+                "file_overwrite": os.getenv('AWS_S3_FILE_OVERWRITE', 'False') == 'True',
+                "object_parameters": {
+                    "CacheControl": os.getenv('AWS_S3_CACHE_CONTROL', 'max-age=86400')
+                },
+                "signature_version": os.getenv('AWS_S3_SIGNATURE_VERSION', 's3v4'),
+            },
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+    
+    # Set MEDIA_URL based on custom domain or bucket URL
+    if os.getenv('AWS_S3_CUSTOM_DOMAIN'):
+        MEDIA_URL = f"https://{os.getenv('AWS_S3_CUSTOM_DOMAIN')}/"
+    elif os.getenv('AWS_S3_ENDPOINT_URL'):
+        # For CloudFlare R2 or other S3-compatible services
+        MEDIA_URL = f"{os.getenv('AWS_S3_ENDPOINT_URL')}/{os.getenv('AWS_STORAGE_BUCKET_NAME')}/"
+    else:
+        # Standard AWS S3 URL
+        bucket = os.getenv('AWS_STORAGE_BUCKET_NAME')
+        region = os.getenv('AWS_S3_REGION_NAME', 'us-east-1')
+        MEDIA_URL = f"https://{bucket}.s3.{region}.amazonaws.com/"
+
+else:
+    # Local file storage (default for development)
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+    
+    MEDIA_URL = os.getenv('MEDIA_URL', '/media/')
+    MEDIA_ROOT = BASE_DIR / os.getenv('MEDIA_ROOT', 'media')
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

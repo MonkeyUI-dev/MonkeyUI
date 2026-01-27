@@ -1,0 +1,619 @@
+import { useState, useCallback, useEffect } from 'react'
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { 
+  ArrowLeftIcon, 
+  ArrowDownTrayIcon, 
+  BookmarkIcon, 
+  PhotoIcon, 
+  XMarkIcon,
+  ServerIcon
+} from '@heroicons/react/24/outline'
+import { Button } from '@/components/ui/button'
+import StyleAnalysisPanel from '@/components/vibe/StyleAnalysisPanel'
+import ExportRulesModal from '@/components/vibe/ExportRulesModal'
+import MCPAccessPanel from '@/components/vibe/MCPAccessPanel'
+import designSystemService, { DesignSystemStatus } from '@/services/designSystem'
+
+// Default style data structure
+const defaultStyleData = {
+  colors: {
+    primary: '#648CBE',
+    secondary: '#4376B2',
+    background: '#F8FAFC',
+    surface: '#FFFFFF'
+  },
+  typography: {
+    fontFamily: 'Inter, SF Pro Display',
+    fontWeight: '400, 600, 700',
+    baseFontSize: '16px'
+  },
+  shadowDepth: 2,
+  designStyle: 'PROFESSIONAL ENTERPRISE',
+  designStyleDescription: 'This design system utilizes high-contrast boundaries, structured typography, and consistent corner rounding to achieve a professional enterprise look.'
+}
+
+export default function VibeStudio({ isNew }) {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const { id } = useParams()
+  const location = useLocation()
+  const [uploadedImages, setUploadedImages] = useState([])
+  const [styleData, setStyleData] = useState(null) // null for new, will be set when loaded
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [analysisProgress, setAnalysisProgress] = useState(null)
+  const [error, setError] = useState(null)
+  const [name, setName] = useState(location.state?.name || 'Untitled Design')
+  const [description, setDescription] = useState(location.state?.description || '')
+  const [isSaving, setIsSaving] = useState(false)
+  const [currentDesignSystem, setCurrentDesignSystem] = useState(null)
+  const [isLoading, setIsLoading] = useState(!isNew)
+  const [isImageExpanded, setIsImageExpanded] = useState(false)
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
+  const [isMCPPanelOpen, setIsMCPPanelOpen] = useState(false)
+
+  // Convert backend style data format to frontend format
+  const convertStyleData = (data) => {
+    return {
+      colors: data.colors || defaultStyleData.colors,
+      typography: data.typography || defaultStyleData.typography,
+      shadowDepth: data.shadows?.level2 ? 2 : 1,
+      designStyle: data.styleName || defaultStyleData.designStyle,
+      designStyleDescription: data.styleDescription || defaultStyleData.designStyleDescription,
+      borderRadius: data.borderRadius,
+      shadows: data.shadows,
+      spacing: data.spacing,
+      visualEffects: data.visualEffects,
+      styleRules: data.styleRules,
+    }
+  }
+
+  // Convert frontend style data format to backend format
+  const convertToBackendFormat = (data) => {
+    return {
+      styleName: data.designStyle,
+      styleDescription: data.designStyleDescription,
+      colors: data.colors,
+      typography: data.typography,
+      borderRadius: data.borderRadius,
+      shadows: data.shadows,
+      spacing: data.spacing,
+      visualEffects: data.visualEffects,
+      styleRules: data.styleRules,
+    }
+  }
+
+  // Load existing design system if editing
+  useEffect(() => {
+    if (!isNew && id) {
+      loadDesignSystem()
+    }
+  }, [isNew, id])
+
+  const loadDesignSystem = async () => {
+    try {
+      setIsLoading(true)
+      const designSystem = await designSystemService.getDesignSystem(id)
+      
+      setName(designSystem.name || 'Untitled Design')
+      setDescription(designSystem.description || '')
+      setCurrentDesignSystem(designSystem)
+      
+      if (designSystem.design_tokens && Object.keys(designSystem.design_tokens).length > 0) {
+        setStyleData(convertStyleData(designSystem.design_tokens))
+      }
+      
+      // Load existing image (one-to-one relationship)
+      if (designSystem.image) {
+        setUploadedImages([{
+          id: designSystem.image.id,
+          url: designSystem.image.url,
+          name: designSystem.image.name,
+          fromServer: true
+        }])
+      }
+      
+      // Only poll if there's an image and status is processing/pending
+      if (designSystem.image && 
+          (designSystem.status === DesignSystemStatus.PROCESSING || 
+           designSystem.status === DesignSystemStatus.PENDING)) {
+        setIsAnalyzing(true)
+        pollAnalysisStatus(designSystem.id)
+      }
+    } catch (err) {
+      console.error('Failed to load design system:', err)
+      setError(err.message)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Poll for analysis status
+  const pollAnalysisStatus = async (systemId) => {
+    const pollId = systemId || currentDesignSystem?.id
+    if (!pollId) return
+    
+    try {
+      setIsAnalyzing(true)
+      await designSystemService.pollAnalysisStatus(
+        pollId,
+        (status) => {
+          setAnalysisProgress(status)
+          if (status.status === 'completed' && status.result) {
+            setStyleData(convertStyleData(status.result))
+            // Update current design system status
+            setCurrentDesignSystem(prev => prev ? { ...prev, status: DesignSystemStatus.COMPLETED } : prev)
+          }
+        }
+      )
+      setIsAnalyzing(false)
+      setAnalysisProgress(null)
+    } catch (err) {
+      setError(err.message)
+      setIsAnalyzing(false)
+    }
+  }
+
+  // Handle file drop
+  const handleDrop = useCallback((e) => {
+    e.preventDefault()
+    const files = Array.from(e.dataTransfer.files).filter(file => 
+      file.type.startsWith('image/')
+    )
+    handleFiles(files)
+  }, [])
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+  }
+
+  const handleFileInput = (e) => {
+    const files = Array.from(e.target.files).filter(file => 
+      file.type.startsWith('image/')
+    )
+    handleFiles(files)
+  }
+
+  const handleFiles = (files) => {
+    // Only allow one image (one-to-one relationship)
+    if (files.length > 0) {
+      const file = files[0]
+      const newImage = {
+        id: Date.now(),
+        file,
+        url: URL.createObjectURL(file),
+        name: file.name,
+        fromServer: false
+      }
+      setUploadedImages([newImage])
+    }
+  }
+
+  const removeImage = async (image) => {
+    if (image.fromServer && currentDesignSystem?.id) {
+      try {
+        await designSystemService.deleteImage(currentDesignSystem.id, image.id)
+      } catch (err) {
+        console.error('Failed to delete image:', err)
+      }
+    }
+    setUploadedImages(prev => prev.filter(img => img.id !== image.id))
+  }
+
+  // Start AI analysis
+  const handleStartAnalysis = async () => {
+    // If this is a new design system, create it first
+    if (isNew || !currentDesignSystem?.id) {
+      try {
+        const created = await designSystemService.createDesignSystem({
+          name,
+          description
+        })
+        setCurrentDesignSystem(created)
+        // Navigate to the edit URL
+        navigate(`/vibe-studio/${created.id}`, { replace: true })
+        // Continue with analysis
+        await performAnalysis(created.id)
+      } catch (err) {
+        console.error('Failed to create design system:', err)
+        setError(err.message)
+        return
+      }
+    } else {
+      await performAnalysis(currentDesignSystem.id)
+    }
+  }
+
+  const performAnalysis = async (systemId) => {
+    if (uploadedImages.length === 0) {
+      setError(t('vibeStudio.noImages'))
+      return
+    }
+    
+    setError(null)
+    setIsAnalyzing(true)
+    setAnalysisProgress({ progress: 0, message: t('vibeStudio.preparingImages') })
+    
+    try {
+      // Convert new local images to base64 and upload
+      const localImages = uploadedImages.filter(img => !img.fromServer && img.file)
+      
+      if (localImages.length > 0) {
+        const imageData = await designSystemService.filesToImageData(
+          localImages.map(img => img.file)
+        )
+        
+        setAnalysisProgress({ progress: 5, message: t('vibeStudio.uploadingImages') })
+        await designSystemService.uploadImages(systemId, imageData)
+        
+        // Mark images as uploaded
+        setUploadedImages(prev => prev.map(img => ({
+          ...img,
+          fromServer: true
+        })))
+      }
+      
+      // Start analysis
+      setAnalysisProgress({ progress: 8, message: t('vibeStudio.startingAnalysis') })
+      await designSystemService.startAnalysis(systemId)
+      
+      // Poll for completion
+      await designSystemService.pollAnalysisStatus(
+        systemId,
+        (status) => {
+          // Only update progress if it's moving forward (prevent visual regression)
+          setAnalysisProgress(prev => {
+            const newProgress = status.progress || 0
+            const prevProgress = prev?.progress || 0
+            // Keep the higher progress value to prevent visual regression
+            if (newProgress >= prevProgress) {
+              return status
+            }
+            return { ...status, progress: prevProgress }
+          })
+          if (status.status === 'completed' && status.result) {
+            setStyleData(convertStyleData(status.result))
+          }
+        }
+      )
+      
+      setIsAnalyzing(false)
+      setAnalysisProgress(null)
+    } catch (err) {
+      console.error('Analysis failed:', err)
+      setError(err.message || t('vibeStudio.analysisFailed'))
+      setIsAnalyzing(false)
+      setAnalysisProgress(null)
+    }
+  }
+
+  const handleExportRules = () => {
+    setIsExportModalOpen(true)
+  }
+
+  const handleSaveVibe = async () => {
+    setIsSaving(true)
+    try {
+      if (isNew || !currentDesignSystem?.id) {
+        // Create new design system
+        const created = await designSystemService.createDesignSystem({
+          name,
+          description,
+          design_tokens: styleData ? convertToBackendFormat(styleData) : null,
+        })
+        setCurrentDesignSystem(created)
+        // Navigate to the edit URL
+        navigate(`/vibe-studio/${created.id}`, { replace: true })
+      } else {
+        // Update existing design system
+        await designSystemService.updateDesignSystem(currentDesignSystem.id, {
+          name,
+          description,
+          design_tokens: styleData ? convertToBackendFormat(styleData) : null,
+        })
+      }
+      // Go back to list
+      navigate('/')
+    } catch (err) {
+      console.error('Save failed:', err)
+      setError(err.message)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-surface)' }}>
+      {/* Header */}
+      <header 
+        className="sticky top-0 z-40 px-6 py-4"
+        style={{ backgroundColor: 'var(--bg-canvas)', borderBottom: '1px solid var(--border-subtle)' }}
+      >
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-x-4">
+            <button
+              onClick={() => navigate('/')}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <ArrowLeftIcon className="size-5" style={{ color: 'var(--text-secondary)' }} />
+            </button>
+            <div className="flex items-center gap-x-3">
+              <div 
+                className="size-10 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: styleData?.colors?.primary || 'var(--accent-blue)' }}
+              >
+                <svg className="size-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                  <path d="M2 17l10 5 10-5" />
+                  <path d="M2 12l10 5 10-5" />
+                </svg>
+              </div>
+              <div>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="text-lg font-bold bg-transparent border-none outline-none"
+                  style={{ color: 'var(--text-primary)', fontWeight: 'var(--font-weight-heading)' }}
+                  placeholder={t('vibeStudio.untitled')}
+                />
+                <p 
+                  className="text-sm"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
+                  {t('vibeStudio.subtitle')}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-x-3">
+            {/* MCP Access Button - only show when design system exists and is completed */}
+            {currentDesignSystem?.id && (
+              <Button 
+                variant="outline" 
+                onClick={() => setIsMCPPanelOpen(true)}
+                disabled={currentDesignSystem.status !== DesignSystemStatus.COMPLETED || isAnalyzing}
+                className="gap-x-2"
+              >
+                <ServerIcon className="size-4" />
+                {t('vibeStudio.mcp.access')}
+              </Button>
+            )}
+            <Button 
+              variant="outline" 
+              onClick={handleExportRules}
+              disabled={!styleData || isAnalyzing}
+              className="gap-x-2"
+            >
+              <ArrowDownTrayIcon className="size-4" />
+              {t('vibeStudio.exportRules')}
+            </Button>
+            <Button 
+              onClick={handleSaveVibe}
+              className="gap-x-2"
+              disabled={isSaving || !styleData || isAnalyzing}
+              style={{ backgroundColor: 'var(--accent-blue)', color: 'var(--text-on-dark)' }}
+            >
+              <BookmarkIcon className="size-4" />
+              {isSaving ? t('common.saving') : t('vibeStudio.saveVibe')}
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Error Banner */}
+      {error && (
+        <div 
+          className="mx-6 mt-4 p-4 rounded-lg flex items-center justify-between max-w-7xl"
+          style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--color-error)' }}
+        >
+          <span style={{ color: 'var(--color-error)' }}>{error}</span>
+          <button onClick={() => setError(null)}>
+            <XMarkIcon className="size-5" style={{ color: 'var(--color-error)' }} />
+          </button>
+        </div>
+      )}
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          {/* Left: Source Material */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-x-2">
+                <PhotoIcon className="size-5" style={{ color: 'var(--text-secondary)' }} />
+                <span 
+                  className="text-xs font-semibold"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
+                  {t('vibeStudio.sourceMaterial')}
+                </span>
+              </div>
+              
+              {/* Analyze Button */}
+              <Button
+                onClick={handleStartAnalysis}
+                disabled={isAnalyzing || uploadedImages.length === 0}
+                size="sm"
+                style={{ 
+                  backgroundColor: isAnalyzing ? 'var(--bg-surface)' : 'var(--accent-blue)', 
+                  color: isAnalyzing ? 'var(--text-secondary)' : 'var(--text-on-dark)' 
+                }}
+              >
+                {isAnalyzing ? t('vibeStudio.analyzing') : t('vibeStudio.analyzeImages')}
+              </Button>
+            </div>
+            
+            {/* Drop Zone */}
+            <div
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              className="relative rounded-xl overflow-hidden"
+              style={{ 
+                backgroundColor: 'var(--bg-canvas)', 
+                border: '2px dashed var(--border-subtle)',
+                height: '600px'
+              }}
+            >
+              {uploadedImages.length === 0 ? (
+                <label className="flex flex-col items-center justify-center h-full min-h-[400px] cursor-pointer hover:bg-gray-50 transition-colors">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileInput}
+                    className="hidden"
+                  />
+                  <PhotoIcon className="size-16 mb-4" style={{ color: 'var(--text-tertiary)' }} />
+                  <p 
+                    className="text-sm font-medium mb-1"
+                    style={{ color: 'var(--text-secondary)' }}
+                  >
+                    {t('vibeStudio.dropImages')}
+                  </p>
+                  <p 
+                    className="text-xs"
+                    style={{ color: 'var(--text-tertiary)' }}
+                  >
+                    {t('vibeStudio.orClickToUpload')}
+                  </p>
+                </label>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center p-4">
+                  {uploadedImages.map((image) => (
+                    <div key={image.id} className="relative group w-full h-full flex flex-col">
+                      <div 
+                        className="flex-1 flex items-center justify-center overflow-hidden rounded-lg cursor-pointer"
+                        onClick={() => setIsImageExpanded(true)}
+                      >
+                        <img
+                          src={image.url}
+                          alt={image.name}
+                          className="max-w-full max-h-full object-contain hover:opacity-90 transition-opacity"
+                          style={{ maxHeight: 'calc(600px - 4rem)' }}
+                        />
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          removeImage(image)
+                        }}
+                        disabled={isAnalyzing}
+                        className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 z-10"
+                      >
+                        <XMarkIcon className="size-4" />
+                      </button>
+                      <p className="text-sm text-center mt-2 text-gray-500" style={{ color: 'var(--text-secondary)' }}>
+                        {image.name}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Loading overlay */}
+              {isAnalyzing && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+                  <div className="text-center max-w-sm px-6">
+                    {/* Circular progress indicator */}
+                    <div className="relative inline-flex items-center justify-center mb-6">
+                      {/* Background circle */}
+                      <svg className="size-32 -rotate-90">
+                        <circle
+                          cx="64"
+                          cy="64"
+                          r="56"
+                          stroke="rgba(255, 255, 255, 0.1)"
+                          strokeWidth="8"
+                          fill="none"
+                        />
+                        {/* Progress circle */}
+                        <circle
+                          cx="64"
+                          cy="64"
+                          r="56"
+                          stroke="var(--accent-blue)"
+                          strokeWidth="8"
+                          fill="none"
+                          strokeLinecap="round"
+                          strokeDasharray={`${2 * Math.PI * 56}`}
+                          strokeDashoffset={`${2 * Math.PI * 56 * (1 - (analysisProgress?.progress || 0) / 100)}`}
+                          style={{ transition: 'stroke-dashoffset 0.5s ease' }}
+                        />
+                      </svg>
+                      {/* Percentage text */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span 
+                          className="text-3xl font-bold"
+                          style={{ color: 'var(--accent-blue)' }}
+                        >
+                          {analysisProgress?.progress || 0}%
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <p 
+                      className="text-base font-medium"
+                      style={{ color: 'white' }}
+                    >
+                      {analysisProgress?.message || t('vibeStudio.analyzing')}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right: Style Analysis */}
+          <StyleAnalysisPanel 
+            styleData={styleData}
+            onStyleDataChange={setStyleData}
+            isEmpty={!styleData && !isAnalyzing}
+            isAnalyzing={isAnalyzing}
+          />
+        </div>
+      </main>
+
+      {/* Image Expanded Modal */}
+      {isImageExpanded && uploadedImages.length > 0 && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-8"
+          onClick={() => setIsImageExpanded(false)}
+        >
+          <button
+            onClick={() => setIsImageExpanded(false)}
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+          >
+            <XMarkIcon className="size-6" />
+          </button>
+          <div className="max-w-7xl max-h-full overflow-auto">
+            <img
+              src={uploadedImages[0].url}
+              alt={uploadedImages[0].name}
+              className="w-full h-auto"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Export Rules Modal */}
+      <ExportRulesModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        styleData={styleData}
+        name={name}
+        description={description}
+      />
+
+      {/* MCP Access Panel */}
+      <MCPAccessPanel
+        isOpen={isMCPPanelOpen}
+        onClose={() => setIsMCPPanelOpen(false)}
+        designSystemId={currentDesignSystem?.id}
+        designSystemName={name}
+        apiKey={currentDesignSystem?.mcp_api_key}
+      />
+    </div>
+  )
+}

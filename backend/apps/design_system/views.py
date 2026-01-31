@@ -1,7 +1,6 @@
 """
 API views for design system generation and management.
 """
-import base64
 import logging
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -167,24 +166,10 @@ class DesignSystemViewSet(viewsets.ModelViewSet):
                 )
             logger.info(f"Using LLM provider: {default_config.provider_type.value}")
             
-            # Prepare image data for the task
-            image_data_list = []
-            img = design_system.image
-            logger.debug(f"Reading image: {img.name}")
-            with img.image.open('rb') as f:
-                image_bytes = f.read()
-                image_data_list.append({
-                    'data': base64.b64encode(image_bytes).decode('utf-8'),
-                    'mime_type': img.mime_type,
-                    'name': img.name
-                })
-            
-            # Create and queue the task
+            # Create and queue the task - only pass design_system_id
+            # The task will load image and other info from database
             logger.info("Creating analysis task")
             task_id = create_analysis_task(
-                images=image_data_list,
-                vibe_name=design_system.name,
-                vibe_description=design_system.description,
                 design_system_id=str(design_system.id)
             )
             logger.info(f"Task created with ID: {task_id}")

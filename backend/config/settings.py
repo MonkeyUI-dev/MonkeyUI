@@ -340,15 +340,7 @@ CACHES = {
 DEFAULT_LLM_PROVIDER = os.getenv('DEFAULT_LLM_PROVIDER', None)
 
 # Provider-specific configuration (optional - can also use environment variables)
-# Environment variables: OPENAI_API_KEY, GEMINI_API_KEY, OPENROUTER_API_KEY, QWEN_API_KEY, KIMI_API_KEY
 LLM_PROVIDERS = {
-    'openai': {
-        'api_key': os.getenv('OPENAI_API_KEY'),
-        'model': os.getenv('OPENAI_MODEL', 'gpt-4o'),
-        'base_url': os.getenv('OPENAI_BASE_URL'),
-        'max_tokens': int(os.getenv('OPENAI_MAX_TOKENS', 4096)),
-        'temperature': float(os.getenv('OPENAI_TEMPERATURE', 0.7)),
-    },
     'gemini': {
         'api_key': os.getenv('GEMINI_API_KEY'),
         'model': os.getenv('GEMINI_MODEL', 'gemini-2.0-flash'),
@@ -361,19 +353,5 @@ LLM_PROVIDERS = {
         'base_url': os.getenv('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1'),
         'max_tokens': int(os.getenv('OPENROUTER_MAX_TOKENS', 4096)),
         'temperature': float(os.getenv('OPENROUTER_TEMPERATURE', 0.7)),
-    },
-    'qwen': {
-        'api_key': os.getenv('QWEN_API_KEY'),
-        'model': os.getenv('QWEN_MODEL', 'qwen-vl-max'),
-        'base_url': os.getenv('QWEN_BASE_URL', 'https://dashscope.aliyuncs.com/compatible-mode/v1'),
-        'max_tokens': int(os.getenv('QWEN_MAX_TOKENS', 4096)),
-        'temperature': float(os.getenv('QWEN_TEMPERATURE', 0.7)),
-    },
-    'kimi': {
-        'api_key': os.getenv('KIMI_API_KEY'),
-        'model': os.getenv('KIMI_MODEL', 'moonshot-v1-32k-vision-preview'),
-        'base_url': os.getenv('KIMI_BASE_URL', 'https://api.moonshot.cn/v1'),
-        'max_tokens': int(os.getenv('KIMI_MAX_TOKENS', 4096)),
-        'temperature': float(os.getenv('KIMI_TEMPERATURE', 0.7)),
-    },
+    }
 }

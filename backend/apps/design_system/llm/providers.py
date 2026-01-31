@@ -243,10 +243,16 @@ class OpenRouterProvider(BaseLLMProvider):
         
         response = await self.client.chat.completions.create(**kwargs)
         
+        # Validate response
+        if not response.choices or len(response.choices) == 0:
+            logger.error(f"OpenRouter returned empty choices. Response: {response}")
+            raise ValueError("OpenRouter returned an empty response. The model may be temporarily unavailable.")
+        
         reasoning = self._extract_reasoning(response)
+        content = response.choices[0].message.content or ""
         
         return LLMResponse(
-            content=response.choices[0].message.content,
+            content=content,
             model=response.model,
             provider=LLMProviderType.OPENROUTER.value,
             usage={
@@ -295,10 +301,16 @@ class OpenRouterProvider(BaseLLMProvider):
         
         response = await self.client.chat.completions.create(**kwargs)
         
+        # Validate response
+        if not response.choices or len(response.choices) == 0:
+            logger.error(f"OpenRouter returned empty choices for image request. Response: {response}")
+            raise ValueError("OpenRouter returned an empty response. The model may have failed to process the image or is temporarily unavailable.")
+        
         reasoning = self._extract_reasoning(response)
+        content = response.choices[0].message.content or ""
         
         return LLMResponse(
-            content=response.choices[0].message.content,
+            content=content,
             model=response.model,
             provider=LLMProviderType.OPENROUTER.value,
             usage={

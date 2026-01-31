@@ -27,6 +27,9 @@ dependencies = [
     # Production server
     "gunicorn>=21.0.0",
     "whitenoise>=6.6.0",
+    # S3-compatible storage
+    "django-storages[s3]>=1.14.0",
+    "boto3>=1.34.0",
 ]
 
 [project.optional-dependencies]

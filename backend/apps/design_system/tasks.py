@@ -133,31 +133,29 @@ def get_task_progress(task_id: str) -> Optional[dict]:
 def generate_design_system_task(
     self,
     task_id: str,
-    image_data_list: list[dict],  # [{'data': base64, 'mime_type': 'image/png', 'name': 'file.png'}]
-    vibe_name: Optional[str] = None,
-    vibe_description: Optional[str] = None,
-    design_system_id: Optional[str] = None
+    design_system_id: str
 ) -> dict:
     """
     Celery task to generate a design system from uploaded images.
     
     Single-Step Workflow:
-    1. Initialization - Set up LLM provider and validate inputs
+    1. Initialization - Load design system from DB, set up LLM provider
     2. Single-Step Analysis - Comprehensive analysis using the single-step prompt
     3. Finalization - Add metadata and save to database
     
+    All information (images, name, description) is loaded from the database
+    using the design_system_id. This keeps the Celery message small and
+    works with any storage backend (local or S3).
+    
     Args:
         task_id: Unique task identifier for progress tracking
-        image_data_list: List of image data dicts with base64 data and mime types
-        vibe_name: Name of the vibe/design system being created
-        vibe_description: Description of the desired style
-        design_system_id: Optional UUID of the DesignSystem model to update
+        design_system_id: UUID of the DesignSystem model to analyze
         
     Returns:
         Dict containing the generated design system or error information
     """
     import asyncio
-    import base64
+    from .models import DesignSystem
     
     total_steps = 3  # Simplified to 3 steps
     
@@ -165,11 +163,6 @@ def generate_design_system_task(
         # =================================================================
         # STEP 1: Initialization
         # =================================================================
-        logger.info(f"=" * 60)
-        logger.info(f"[Task {task_id[:8]}] Starting Design System Analysis")
-        logger.info(f"[Task {task_id[:8]}] Images: {len(image_data_list)}, Vibe: {vibe_name or 'Untitled'}")
-        logger.info(f"=" * 60)
-        
         update_task_progress(
             task_id=task_id,
             status=TaskStatus.PROCESSING,
@@ -179,6 +172,17 @@ def generate_design_system_task(
             total_steps=total_steps,
             message=_("Setting up AI vision model...")
         )
+        
+        # Load design system from database
+        logger.info(f"[Task {task_id[:8]}] Loading design system from database...")
+        design_system = DesignSystem.objects.select_related('image').get(id=design_system_id)
+        vibe_name = design_system.name
+        vibe_description = design_system.description
+        
+        logger.info(f"=" * 60)
+        logger.info(f"[Task {task_id[:8]}] Starting Design System Analysis")
+        logger.info(f"[Task {task_id[:8]}] Vibe: {vibe_name or 'Untitled'}")
+        logger.info(f"=" * 60)
         
         # Get LLM provider configuration (from environment variables)
         logger.info(f"[Task {task_id[:8]}] Configuring LLM provider...")
@@ -191,12 +195,16 @@ def generate_design_system_task(
         provider = create_llm_provider(config)
         logger.info(f"[Task {task_id[:8]}] LLM Provider initialized: {config.provider_type.value} / {config.model}")
         
-        # Prepare image data
-        image_info = image_data_list[0]  # We process one image (one-to-one relationship)
-        image_bytes = base64.b64decode(image_info['data'])
-        mime_type = image_info.get('mime_type', 'image/png')
-        image_name = image_info.get('name', 'image.png')
-        logger.info(f"[Task {task_id[:8]}] Image prepared: {image_name} ({mime_type}, {len(image_bytes)} bytes)")
+        # Load image from storage (works with both local filesystem and S3)
+        if not hasattr(design_system, 'image'):
+            raise ValueError(_("No image found for this design system."))
+        
+        img = design_system.image
+        with img.image.open('rb') as f:
+            image_bytes = f.read()
+        mime_type = img.mime_type
+        image_name = img.name
+        logger.info(f"[Task {task_id[:8]}] Image loaded from storage: {image_name} ({mime_type}, {len(image_bytes)} bytes)")
         
         # =================================================================
         # STEP 2: Single-Step Analysis
@@ -283,7 +291,7 @@ def generate_design_system_task(
                 "description": vibe_description or "",
                 "provider": config.provider_type.value,
                 "model": config.model,
-                "images_analyzed": len(image_data_list),
+                "images_analyzed": 1,
                 "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                 "workflow_version": "3.0"
             }
@@ -291,16 +299,15 @@ def generate_design_system_task(
         
         logger.info(f"[Task {task_id[:8]}] Metadata added to result")
         
-        # Save to database if design_system_id is provided
-        if design_system_id:
-            logger.info(f"[Task {task_id[:8]}] Saving to database (ID: {design_system_id[:8]}...)")
-            save_design_system_result(
-                design_system_id=design_system_id,
-                style_data=final_result,
-                provider=config.provider_type.value,
-                model=config.model
-            )
-            logger.info(f"[Task {task_id[:8]}] ✓ Saved to database successfully")
+        # Save to database
+        logger.info(f"[Task {task_id[:8]}] Saving to database (ID: {design_system_id[:8]}...)")
+        save_design_system_result(
+            design_system_id=design_system_id,
+            style_data=final_result,
+            provider=config.provider_type.value,
+            model=config.model
+        )
+        logger.info(f"[Task {task_id[:8]}] ✓ Saved to database successfully")
         
         # Mark completed
         logger.info(f"=" * 60)
@@ -328,9 +335,8 @@ def generate_design_system_task(
         logger.error(f"=" * 60)
         logger.exception(f"Task {task_id} failed with exception:")
         
-        # Save error to database if design_system_id is provided
-        if design_system_id:
-            save_design_system_error(design_system_id, str(e))
+        # Save error to database
+        save_design_system_error(design_system_id, str(e))
         
         update_task_progress(
             task_id=task_id,
@@ -502,26 +508,24 @@ def merge_color_dicts(color_dicts: list[dict]) -> dict:
     return merged
 
 
-def create_analysis_task(
-    images: list[dict],
-    vibe_name: Optional[str] = None,
-    vibe_description: Optional[str] = None,
-    design_system_id: Optional[str] = None
-) -> str:
+def create_analysis_task(design_system_id: str) -> str:
     """
     Create and queue a design system analysis task.
     
+    The Celery task will load all information (image, name, description)
+    from the database using the design_system_id. This keeps the Redis
+    message small and works with any storage backend.
+    
     Args:
-        images: List of image data dicts with base64 data and mime types
-        vibe_name: Name of the vibe/design system
-        vibe_description: Description of the desired style
-        design_system_id: Optional UUID of the DesignSystem model to update
+        design_system_id: UUID of the DesignSystem model to analyze
         
     Returns:
         Task ID for progress tracking
     """
     task_id = str(uuid.uuid4())
     total_steps = 3  # Single-step workflow: initialization, analysis, finalization
+    
+    logger.info(f"[Task {task_id[:8]}] Creating analysis task for design system {design_system_id[:8]}...")
     
     # Initialize progress
     update_task_progress(
@@ -534,12 +538,9 @@ def create_analysis_task(
         message=_("Task queued, analysis will begin shortly...")
     )
     
-    # Queue the task
+    # Queue the task - only pass IDs, task will load data from DB
     generate_design_system_task.delay(
         task_id=task_id,
-        image_data_list=images,
-        vibe_name=vibe_name,
-        vibe_description=vibe_description,
         design_system_id=design_system_id
     )
     

@@ -1,9 +1,8 @@
 """
-MCP API views for exposing design systems to vibe coding tools.
+MCP API views for exposing design systems to AI coding assistants.
 
-Supports standard MCP protocols:
-- stdio: Via CLI (python -m apps.design_system.mcp.cli)
-- streamable-http: Via HTTP endpoint (POST /mcp/{id}/)
+Supports MCP Streamable HTTP protocol:
+- HTTP endpoint: POST /api/v1/design-systems/mcp/{id}/
 
 Also provides legacy REST API for backward compatibility.
 """
@@ -166,8 +165,8 @@ def mcp_get_config(request, design_system_id: str):
     """
     Get MCP configuration for a design system.
     
-    Returns the configuration needed to connect vibe coding tools
-    to this design system's MCP server via stdio and streamable-http protocols.
+    Returns the configuration needed to connect AI coding tools (VS Code Copilot, Cursor)
+    to this design system's MCP server via Streamable HTTP protocol.
     
     Note: This endpoint requires the owner to be authenticated.
     """
@@ -186,53 +185,47 @@ def mcp_get_config(request, design_system_id: str):
                 host = request.get_host()
                 base_url = f"{scheme}://{host}"
             
+            mcp_url = f"{base_url}/api/v1/design-systems/mcp/{design_system.id}/"
+            server_name = f"monkeyui-{design_system.name.lower().replace(' ', '-')}"
+            
             config = {
                 "designSystemId": str(design_system.id),
                 "designSystemName": design_system.name,
-                "protocols": {
-                    "stdio": {
-                        "description": "For Cursor, Claude Desktop, and local CLI usage",
-                        "command": "python",
-                        "args": [
-                            "-m", "apps.design_system.mcp.cli",
-                            "--design-system-id", str(design_system.id),
-                            "--api-key", "YOUR_API_KEY"
-                        ],
-                        "env": {
-                            "DJANGO_SETTINGS_MODULE": "config.settings"
-                        },
-                        "cursorConfig": {
-                            "mcpServers": {
-                                f"monkeyui-{design_system.name.lower().replace(' ', '-')}": {
-                                    "command": "python",
-                                    "args": [
-                                        "-m", "apps.design_system.mcp.cli",
-                                        "--design-system-id", str(design_system.id),
-                                        "--api-key", "YOUR_API_KEY"
-                                    ],
-                                    "cwd": "/path/to/monkeyui/backend"
+                "mcpEndpoint": mcp_url,
+                "serverName": server_name,
+                "configuration": {
+                    "vscode": {
+                        "description": "VS Code Copilot MCP configuration",
+                        "instructions": "Add to .vscode/mcp.json or user MCP configuration",
+                        "config": {
+                            "servers": {
+                                server_name: {
+                                    "type": "http",
+                                    "url": mcp_url,
+                                    "headers": {
+                                        "Authorization": "Bearer YOUR_API_KEY"
+                                    }
                                 }
                             }
                         }
                     },
-                    "streamableHttp": {
-                        "description": "For web-based clients and remote connections",
-                        "url": f"{base_url}/api/v1/design-systems/mcp/{design_system.id}/",
-                        "method": "POST",
-                        "headers": {
-                            "Content-Type": "application/json",
-                            "Authorization": "Bearer YOUR_API_KEY"
+                    "cursor": {
+                        "description": "Cursor MCP configuration",
+                        "instructions": "Add to ~/.cursor/mcp.json or .cursor/mcp.json",
+                        "config": {
+                            "mcpServers": {
+                                server_name: {
+                                    "url": mcp_url,
+                                    "headers": {
+                                        "Authorization": "Bearer YOUR_API_KEY"
+                                    }
+                                }
+                            }
                         }
                     }
                 },
                 "availableTools": [
-                    {"name": "get_design_system", "description": "Get the complete design system with all tokens"},
-                    {"name": "get_colors", "description": "Get color palette"},
-                    {"name": "get_typography", "description": "Get typography settings"},
-                    {"name": "get_spacing", "description": "Get spacing settings"},
-                    {"name": "get_component_styles", "description": "Get component-specific styles"},
-                    {"name": "get_css_variables", "description": "Get CSS custom properties"},
-                    {"name": "get_tailwind_config", "description": "Get Tailwind CSS configuration"}
+                    {"name": "get_design_system", "description": "Get the complete design system with all tokens"}
                 ]
             }
             

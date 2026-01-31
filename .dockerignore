@@ -1,0 +1,63 @@
+# =============================================================================
+# MonkeyUI Monorepo .dockerignore
+# =============================================================================
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+docs/
+LICENSE
+
+# IDE and editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Frontend - exclude node_modules but include source
+frontend/node_modules/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+frontend/dist/
+
+# Backend - exclude cache and local files
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.py[cod]
+backend/*$py.class
+backend/.venv/
+backend/venv/
+backend/.env
+backend/.env.local
+backend/*.log
+backend/db.sqlite3
+backend/media/
+backend/staticfiles/
+backend/.pytest_cache/
+backend/.coverage
+backend/htmlcov/
+
+# Docker
+docker-compose*.yml
+.docker/
+
+# Fly.io config (will be read separately)
+fly.toml
+
+# Testing
+*.test.js
+*.spec.js
+**/__tests__/
+coverage/
+
+# Misc
+.DS_Store
+Thumbs.db
+*.bak
+*.tmp

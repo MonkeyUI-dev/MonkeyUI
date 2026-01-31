@@ -2,18 +2,13 @@
 MCP (Model Context Protocol) server for exposing design systems.
 
 This module provides an MCP server that exposes design systems as tools
-for vibe coding tools like Cursor, Claude Desktop, etc.
+for AI coding assistants like VS Code Copilot, Cursor, and other MCP-compatible clients.
 
-Supports two official MCP transport protocols:
-- stdio: For local CLI tools (Cursor, Claude Desktop)
-- streamable-http: For web-based clients and remote connections
+Supports Streamable HTTP transport protocol for remote connections.
+For connection instructions, see docs/MCP_CONNECTION.md
 """
 from .server import MCPDesignSystemServer, get_design_system_mcp_config
-from .mcp_server import (
-    create_design_system_mcp,
-    run_stdio_server,
-    get_streamable_http_app
-)
+from .mcp_server import create_design_system_mcp
 
 __all__ = [
     # Legacy REST API server
@@ -21,6 +16,4 @@ __all__ = [
     'get_design_system_mcp_config',
     # Standard MCP protocol server (FastMCP)
     'create_design_system_mcp',
-    'run_stdio_server',
-    'get_streamable_http_app',
 ]

@@ -2,6 +2,7 @@
 API views for design system generation and management.
 """
 import base64
+import logging
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -22,6 +23,8 @@ from .serializers import (
 )
 from .tasks import create_analysis_task, get_task_progress
 from .llm.config import get_default_provider
+
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -125,70 +128,86 @@ class DesignSystemViewSet(viewsets.ModelViewSet):
         This queues a Celery task to analyze the design system's images
         using an LLM to extract design tokens. The analysis runs asynchronously.
         """
-        design_system = self.get_object()
-        serializer = StartAnalysisSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        # Add any new images first
-        new_images = serializer.validated_data.get('images', [])
-        for image_data in new_images:
-            img_serializer = ImageUploadSerializer(data=image_data)
-            if img_serializer.is_valid():
-                # Delete existing image if any (one-to-one relationship)
-                if hasattr(design_system, 'image'):
-                    design_system.image.delete()
-                img_serializer.create_image(design_system)
-        
-        # Refresh from database to get the newly created image
-        design_system.refresh_from_db()
-        
-        # Check if design system has image
-        if not hasattr(design_system, 'image'):
-            return Response(
-                {"error": _("No images to analyze. Please upload at least one image.")},
-                status=status.HTTP_400_BAD_REQUEST
+        try:
+            logger.info(f"Starting analysis for design system {pk}")
+            design_system = self.get_object()
+            serializer = StartAnalysisSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            
+            # Add any new images first
+            new_images = serializer.validated_data.get('images', [])
+            logger.debug(f"Processing {len(new_images)} new images")
+            for image_data in new_images:
+                img_serializer = ImageUploadSerializer(data=image_data)
+                if img_serializer.is_valid():
+                    # Delete existing image if any (one-to-one relationship)
+                    if hasattr(design_system, 'image'):
+                        design_system.image.delete()
+                    img_serializer.create_image(design_system)
+            
+            # Refresh from database to get the newly created image
+            design_system.refresh_from_db()
+            
+            # Check if design system has image
+            if not hasattr(design_system, 'image'):
+                logger.warning(f"No images found for design system {pk}")
+                return Response(
+                    {"error": _("No images to analyze. Please upload at least one image.")},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Check LLM provider is configured
+            logger.debug("Checking LLM provider configuration")
+            default_config = get_default_provider(for_vision=True)
+            if not default_config:
+                logger.error("No LLM provider configured")
+                return Response(
+                    {"error": _("No LLM provider configured. Please configure at least one provider.")},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE
+                )
+            logger.info(f"Using LLM provider: {default_config.provider_type.value}")
+            
+            # Prepare image data for the task
+            image_data_list = []
+            img = design_system.image
+            logger.debug(f"Reading image: {img.name}")
+            with img.image.open('rb') as f:
+                image_bytes = f.read()
+                image_data_list.append({
+                    'data': base64.b64encode(image_bytes).decode('utf-8'),
+                    'mime_type': img.mime_type,
+                    'name': img.name
+                })
+            
+            # Create and queue the task
+            logger.info("Creating analysis task")
+            task_id = create_analysis_task(
+                images=image_data_list,
+                vibe_name=design_system.name,
+                vibe_description=design_system.description,
+                design_system_id=str(design_system.id)
             )
-        
-        # Check LLM provider is configured
-        default_config = get_default_provider(for_vision=True)
-        if not default_config:
+            logger.info(f"Task created with ID: {task_id}")
+            
+            # Update design system status
+            design_system.status = DesignSystemStatus.PENDING
+            design_system.task_id = task_id
+            design_system.analysis_error = None
+            design_system.save(update_fields=['status', 'task_id', 'analysis_error', 'updated_at'])
+            
             return Response(
-                {"error": _("No LLM provider configured. Please configure at least one provider.")},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE
+                {
+                    "task_id": task_id,
+                    "message": _("Design system analysis started. Use the task_id to track progress.")
+                },
+                status=status.HTTP_202_ACCEPTED
             )
-        
-        # Prepare image data for the task
-        image_data_list = []
-        img = design_system.image
-        with img.image.open('rb') as f:
-            image_bytes = f.read()
-            image_data_list.append({
-                'data': base64.b64encode(image_bytes).decode('utf-8'),
-                'mime_type': img.mime_type,
-                'name': img.name
-            })
-        
-        # Create and queue the task
-        task_id = create_analysis_task(
-            images=image_data_list,
-            vibe_name=design_system.name,
-            vibe_description=design_system.description,
-            design_system_id=str(design_system.id)
-        )
-        
-        # Update design system status
-        design_system.status = DesignSystemStatus.PENDING
-        design_system.task_id = task_id
-        design_system.analysis_error = None
-        design_system.save(update_fields=['status', 'task_id', 'analysis_error', 'updated_at'])
-        
-        return Response(
-            {
-                "task_id": task_id,
-                "message": _("Design system analysis started. Use the task_id to track progress.")
-            },
-            status=status.HTTP_202_ACCEPTED
-        )
+        except Exception as e:
+            logger.exception(f"Error analyzing design system {pk}: {str(e)}")
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
     @extend_schema(
         responses={200: TaskStatusResponseSerializer},

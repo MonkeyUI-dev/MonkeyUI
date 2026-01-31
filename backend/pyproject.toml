@@ -12,6 +12,7 @@ dependencies = [
     "psycopg2-binary~=2.9",
     "pgvector~=0.2",
     "python-dotenv~=1.0",
+    "dj-database-url~=2.1",
     "drf-spectacular~=0.27",
     "mcp>=1.25.0",
     "openai>=2.15.0",
@@ -23,11 +24,10 @@ dependencies = [
     "pillow>=10.0.0",
     # JSON parsing utilities - pin major version only per library recommendation
     "json-repair>=0.55.0,<1.0.0",
+    # Production server
+    "gunicorn>=21.0.0",
+    "whitenoise>=6.6.0",
 ]
-
-[project.scripts]
-# MCP CLI entry point for stdio transport
-monkeyui-mcp = "apps.design_system.mcp.cli:main"
 
 [project.optional-dependencies]
 dev = [

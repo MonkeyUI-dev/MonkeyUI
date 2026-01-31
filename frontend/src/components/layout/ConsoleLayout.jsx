@@ -116,7 +116,13 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
 
   const formatDate = (dateString) => {
     if (!dateString) return t('settings.apiKeyManagement.never')
-    return new Date(dateString).toLocaleDateString(i18n.language, {
+    // Map i18n language codes to locale codes for toLocaleDateString
+    const localeMap = {
+      'en': 'en-US',
+      'zh': 'zh-CN'
+    }
+    const locale = localeMap[i18n.language] || 'en-US'
+    return new Date(dateString).toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric'

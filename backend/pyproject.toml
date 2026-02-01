@@ -41,8 +41,8 @@ dev = [
     "watchdog>=3.0.0",  # For auto-reload in development
 ]
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "black",
     "flake8",
     "pytest",

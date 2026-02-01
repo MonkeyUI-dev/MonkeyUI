@@ -77,7 +77,7 @@ def create_design_system_mcp(design_system_id: str, api_key: str) -> FastMCP:
     
     @mcp.tool()
     def get_design_system() -> str:
-        """Get the complete design system including all design tokens (colors, typography, spacing, etc.)"""
+        """Get the complete design system including all design tokens (colors, typography, shadow depth, etc.)"""
         ds = _load_design_system()
         if not ds:
             return json.dumps({"error": "Design system not found"})
@@ -90,11 +90,7 @@ def create_design_system_mcp(design_system_id: str, api_key: str) -> FastMCP:
             "styleDescription": style_data.get("styleDescription"),
             "colors": style_data.get("colors", {}),
             "typography": style_data.get("typography", {}),
-            "spacing": style_data.get("spacing", {}),
-            "borderRadius": style_data.get("borderRadius", {}),
-            "shadows": style_data.get("shadows", {}),
-            "visualEffects": style_data.get("visualEffects", {}),
-            "styleRules": style_data.get("styleRules", []),
+            "shadowDepth": style_data.get("shadowDepth", 0),
         }
         return json.dumps(result, indent=2)
     

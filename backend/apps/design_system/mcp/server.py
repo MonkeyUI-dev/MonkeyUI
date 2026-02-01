@@ -157,7 +157,7 @@ class MCPDesignSystemServer:
             )
     
     def _get_full_design_system(self, style_data: dict, arguments: dict) -> dict:
-        """Get the complete design system."""
+        """Get the complete design system (MVP fields only)."""
         design_system = self._load_design_system()
         return {
             "name": design_system.name,
@@ -166,11 +166,7 @@ class MCPDesignSystemServer:
             "styleDescription": style_data.get("styleDescription"),
             "colors": style_data.get("colors", {}),
             "typography": style_data.get("typography", {}),
-            "spacing": style_data.get("spacing", {}),
-            "borderRadius": style_data.get("borderRadius", {}),
-            "shadows": style_data.get("shadows", {}),
-            "visualEffects": style_data.get("visualEffects", {}),
-            "styleRules": style_data.get("styleRules", []),
+            "shadowDepth": style_data.get("shadowDepth", 0),
         }
 
 

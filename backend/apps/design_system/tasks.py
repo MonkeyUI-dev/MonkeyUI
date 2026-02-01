@@ -2,12 +2,12 @@
 Celery tasks for async design system generation.
 
 This module provides Celery tasks for generating design systems from images
-using LLM providers with progress tracking.
+using LLM providers with progress tracking and structured JSON output.
 
 Single-Step Workflow:
 1. Initialization - Set up LLM provider and validate inputs (10%)
-2. Single-Step Analysis - Comprehensive analysis with HTML output (50%)
-3. Finalization - Add metadata and save to database (100%)
+2. Single-Step Analysis - Comprehensive analysis with JSON output (50%)
+3. Finalization - Validate JSON, add metadata and save to database (100%)
 """
 import json
 import logging
@@ -23,7 +23,13 @@ from json_repair import repair_json
 
 from .llm import create_llm_provider
 from .llm.config import get_default_provider
-from .prompts import get_single_step_analysis_prompt
+from .llm.providers import LLMConfig
+from .prompts import get_json_analysis_prompt
+from .schema import (
+    get_gemini_response_schema,
+    validate_design_system_output,
+    convert_to_frontend_format
+)
 
 logger = logging.getLogger(__name__)
 
@@ -185,15 +191,27 @@ def generate_design_system_task(
         logger.info(f"=" * 60)
         
         # Get LLM provider configuration (from environment variables)
-        logger.info(f"[Task {task_id[:8]}] Configuring LLM provider...")
-        config = get_default_provider(for_vision=True)
-        logger.info(f"[Task {task_id[:8]}] Using default provider: {config.provider_type.value if config else 'None'}")
+        logger.info(f"[Task {task_id[:8]}] Configuring LLM provider with structured output...")
+        base_config = get_default_provider(for_vision=True)
+        logger.info(f"[Task {task_id[:8]}] Using default provider: {base_config.provider_type.value if base_config else 'None'}")
         
-        if not config:
+        if not base_config:
             raise ValueError(_("No LLM provider configured. Please set up at least one provider."))
         
+        # Create new config with structured output enabled
+        config = LLMConfig(
+            provider_type=base_config.provider_type,
+            api_key=base_config.api_key,
+            model=base_config.model,
+            base_url=base_config.base_url,
+            timeout=base_config.timeout,
+            enable_reasoning=base_config.enable_reasoning,
+            structured_output=True,
+            response_schema=get_gemini_response_schema()
+        )
+        
         provider = create_llm_provider(config)
-        logger.info(f"[Task {task_id[:8]}] LLM Provider initialized: {config.provider_type.value} / {config.model}")
+        logger.info(f"[Task {task_id[:8]}] LLM Provider initialized with structured output: {config.provider_type.value} / {config.model}")
         
         # Load image from storage (works with both local filesystem and S3)
         if not hasattr(design_system, 'image'):
@@ -216,15 +234,15 @@ def generate_design_system_task(
         update_task_progress(
             task_id=task_id,
             status=TaskStatus.PROCESSING,
-            progress=30,
+            progress=50,
             current_step="analysis",
             current_step_number=2,
             total_steps=total_steps,
             message=_("AI is extracting colors, typography, and spacing...")
         )
         
-        # Get single-step analysis prompt
-        analysis_prompt = get_single_step_analysis_prompt()
+        # Get JSON analysis prompt (structured output)
+        analysis_prompt = get_json_analysis_prompt()
         
         # Add context from vibe name/description
         if vibe_name or vibe_description:
@@ -235,7 +253,7 @@ def generate_design_system_task(
                 context += f"- Style Description: {vibe_description}\n"
             analysis_prompt = analysis_prompt + context
         
-        logger.info(f"[Task {task_id[:8]}] Sending image for single-step analysis...")
+        logger.info(f"[Task {task_id[:8]}] Sending image for structured JSON analysis...")
         
         analysis_start_time = time.time()
         analysis_response = asyncio.run(
@@ -253,18 +271,38 @@ def generate_design_system_task(
         update_task_progress(
             task_id=task_id,
             status=TaskStatus.PROCESSING,
-            progress=80,
+            progress=85,
             current_step="analysis",
             current_step_number=2,
             total_steps=total_steps,
-            message=_("Generating design tokens and HTML preview...")
+            message=_("Validating and processing design tokens...")
         )
         
-        # The response should contain HTML output
-        analysis_result = {
-            "html_output": analysis_response.content
-        }
-        logger.info(f"[Task {task_id[:8]}] ✓ HTML output captured")
+        # Parse and validate JSON response
+        try:
+            # Try direct JSON parse first (structured output should return clean JSON)
+            raw_json = json.loads(analysis_response.content)
+        except json.JSONDecodeError:
+            # Fallback to json_repair for non-compliant responses
+            logger.warning(f"[Task {task_id[:8]}] Direct JSON parse failed, attempting repair...")
+            repaired = repair_json(analysis_response.content)
+            if isinstance(repaired, str):
+                raw_json = json.loads(repaired)
+            else:
+                raw_json = repaired
+        
+        # Validate against schema
+        try:
+            validated = validate_design_system_output(raw_json)
+            logger.info(f"[Task {task_id[:8]}] ✓ JSON validated successfully")
+        except Exception as validation_error:
+            logger.error(f"[Task {task_id[:8]}] JSON validation failed: {validation_error}")
+            logger.debug(f"[Task {task_id[:8]}] Raw JSON: {raw_json}")
+            raise ValueError(_("Failed to extract design system from image. Please try again with a clearer design image."))
+        
+        # Convert to frontend format
+        analysis_result = convert_to_frontend_format(raw_json)
+        logger.info(f"[Task {task_id[:8]}] ✓ Design tokens extracted: style={analysis_result.get('styleName')}, confidence={analysis_result.get('confidence')}")
         
         # =================================================================
         # STEP 3: Finalization
@@ -293,7 +331,7 @@ def generate_design_system_task(
                 "model": config.model,
                 "images_analyzed": 1,
                 "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-                "workflow_version": "3.0"
+                "workflow_version": "4.0"  # Version 4.0 = structured JSON output
             }
         }
         

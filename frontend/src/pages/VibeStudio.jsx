@@ -10,28 +10,11 @@ import {
   ServerIcon
 } from '@heroicons/react/24/outline'
 import { Button } from '@/components/ui/button'
+import Alert from '@/components/ui/Alert'
 import StyleAnalysisPanel from '@/components/vibe/StyleAnalysisPanel'
 import ExportRulesModal from '@/components/vibe/ExportRulesModal'
 import MCPAccessPanel from '@/components/vibe/MCPAccessPanel'
 import designSystemService, { DesignSystemStatus } from '@/services/designSystem'
-
-// Default style data structure
-const defaultStyleData = {
-  colors: {
-    primary: '#648CBE',
-    secondary: '#4376B2',
-    background: '#F8FAFC',
-    surface: '#FFFFFF'
-  },
-  typography: {
-    fontFamily: 'Inter, SF Pro Display',
-    fontWeight: '400, 600, 700',
-    baseFontSize: '16px'
-  },
-  shadowDepth: 2,
-  designStyle: 'PROFESSIONAL ENTERPRISE',
-  designStyleDescription: 'This design system utilizes high-contrast boundaries, structured typography, and consistent corner rounding to achieve a professional enterprise look.'
-}
 
 export default function VibeStudio({ isNew }) {
   const { t } = useTranslation()
@@ -42,6 +25,7 @@ export default function VibeStudio({ isNew }) {
   const [styleData, setStyleData] = useState(null) // null for new, will be set when loaded
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysisProgress, setAnalysisProgress] = useState(null)
+  const [displayProgress, setDisplayProgress] = useState(0) // Frontend display progress for smooth animation
   const [error, setError] = useState(null)
   const [name, setName] = useState(location.state?.name || 'Untitled Design')
   const [description, setDescription] = useState(location.state?.description || '')
@@ -51,20 +35,30 @@ export default function VibeStudio({ isNew }) {
   const [isImageExpanded, setIsImageExpanded] = useState(false)
   const [isExportModalOpen, setIsExportModalOpen] = useState(false)
   const [isMCPPanelOpen, setIsMCPPanelOpen] = useState(false)
+  const [alert, setAlert] = useState({ show: false, type: 'success', message: '' })
 
   // Convert backend style data format to frontend format
+  // Backend now returns structured JSON directly from AI analysis
+  // MVP fields only: colors, typography, shadowDepth, designStyle, designStyleDescription
   const convertStyleData = (data) => {
+    // If data has the new structured format (from schema.py convert_to_frontend_format)
+    if (data.styleName !== undefined) {
+      return {
+        colors: data.colors,
+        typography: data.typography,
+        shadowDepth: data.shadowDepth,
+        designStyle: data.styleName,
+        designStyleDescription: data.styleDescription,
+      }
+    }
+    
+    // Legacy format fallback (for existing data in database)
     return {
-      colors: data.colors || defaultStyleData.colors,
-      typography: data.typography || defaultStyleData.typography,
-      shadowDepth: data.shadows?.level2 ? 2 : 1,
-      designStyle: data.styleName || defaultStyleData.designStyle,
-      designStyleDescription: data.styleDescription || defaultStyleData.designStyleDescription,
-      borderRadius: data.borderRadius,
-      shadows: data.shadows,
-      spacing: data.spacing,
-      visualEffects: data.visualEffects,
-      styleRules: data.styleRules,
+      colors: data.colors,
+      typography: data.typography,
+      shadowDepth: data.shadows?.level2 ? 2 : (data.shadowDepth || 0),
+      designStyle: data.styleName || data.designStyle,
+      designStyleDescription: data.styleDescription || data.designStyleDescription,
     }
   }
 
@@ -75,11 +69,7 @@ export default function VibeStudio({ isNew }) {
       styleDescription: data.designStyleDescription,
       colors: data.colors,
       typography: data.typography,
-      borderRadius: data.borderRadius,
-      shadows: data.shadows,
-      spacing: data.spacing,
-      visualEffects: data.visualEffects,
-      styleRules: data.styleRules,
+      shadowDepth: data.shadowDepth,
     }
   }
 
@@ -89,6 +79,39 @@ export default function VibeStudio({ isNew }) {
       loadDesignSystem()
     }
   }, [isNew, id])
+
+  // Simulate smooth progress growth on frontend
+  useEffect(() => {
+    if (!isAnalyzing) {
+      setDisplayProgress(0)
+      return
+    }
+
+    const backendProgress = analysisProgress?.progress || 0
+    
+    // If backend progress is higher, jump to it immediately
+    if (backendProgress > displayProgress) {
+      setDisplayProgress(backendProgress)
+    }
+
+    // Slowly increment display progress even if backend hasn't updated
+    const interval = setInterval(() => {
+      setDisplayProgress(prev => {
+        const backend = analysisProgress?.progress || 0
+        
+        // Don't exceed 98% without backend confirmation (leave room for completion)
+        if (prev >= 98) return prev
+        
+        // Don't go more than 10% ahead of backend progress
+        if (prev >= backend + 10 && backend > 0) return prev
+        
+        // Increment slowly (0.5% every 500ms = 1% per second)
+        return Math.min(prev + 0.5, 98)
+      })
+    }, 500)
+
+    return () => clearInterval(interval)
+  }, [isAnalyzing, analysisProgress])
 
   const loadDesignSystem = async () => {
     try {
@@ -202,9 +225,19 @@ export default function VibeStudio({ isNew }) {
 
   // Start AI analysis
   const handleStartAnalysis = async () => {
-    // If this is a new design system, create it first
-    if (isNew || !currentDesignSystem?.id) {
-      try {
+    // Prevent duplicate clicks
+    if (isAnalyzing) {
+      return
+    }
+    
+    // Set analyzing state immediately to disable button
+    setIsAnalyzing(true)
+    setError(null)
+    
+    try {
+      // If this is a new design system, create it first
+      if (isNew || !currentDesignSystem?.id) {
+        setAnalysisProgress({ progress: 0, message: t('vibeStudio.creatingDesignSystem') })
         const created = await designSystemService.createDesignSystem({
           name,
           description
@@ -214,24 +247,26 @@ export default function VibeStudio({ isNew }) {
         navigate(`/vibe-studio/${created.id}`, { replace: true })
         // Continue with analysis
         await performAnalysis(created.id)
-      } catch (err) {
-        console.error('Failed to create design system:', err)
-        setError(err.message)
-        return
+      } else {
+        await performAnalysis(currentDesignSystem.id)
       }
-    } else {
-      await performAnalysis(currentDesignSystem.id)
+    } catch (err) {
+      console.error('Failed to create design system:', err)
+      setError(err.message)
+      setIsAnalyzing(false)
+      setAnalysisProgress(null)
     }
   }
 
   const performAnalysis = async (systemId) => {
     if (uploadedImages.length === 0) {
       setError(t('vibeStudio.noImages'))
+      setIsAnalyzing(false)
+      setAnalysisProgress(null)
       return
     }
     
-    setError(null)
-    setIsAnalyzing(true)
+    // Note: isAnalyzing should already be true from handleStartAnalysis
     setAnalysisProgress({ progress: 0, message: t('vibeStudio.preparingImages') })
     
     try {
@@ -302,7 +337,7 @@ export default function VibeStudio({ isNew }) {
           design_tokens: styleData ? convertToBackendFormat(styleData) : null,
         })
         setCurrentDesignSystem(created)
-        // Navigate to the edit URL
+        // Navigate to the edit URL (so URL reflects the new ID)
         navigate(`/vibe-studio/${created.id}`, { replace: true })
       } else {
         // Update existing design system
@@ -311,12 +346,14 @@ export default function VibeStudio({ isNew }) {
           description,
           design_tokens: styleData ? convertToBackendFormat(styleData) : null,
         })
+        // Stay on current page after saving
       }
-      // Go back to list
-      navigate('/')
+      // Show success alert
+      setAlert({ show: true, type: 'success', message: t('vibeStudio.saveSuccess') })
     } catch (err) {
       console.error('Save failed:', err)
       setError(err.message)
+      setAlert({ show: true, type: 'error', message: err.message || t('vibeStudio.saveFailed') })
     } finally {
       setIsSaving(false)
     }
@@ -324,6 +361,19 @@ export default function VibeStudio({ isNew }) {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-surface)' }}>
+      {/* Alert notification */}
+      {alert.show && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-md w-full px-4">
+          <Alert 
+            type={alert.type}
+            message={alert.message}
+            show={alert.show}
+            onClose={() => setAlert({ ...alert, show: false })}
+            autoClose={5000}
+          />
+        </div>
+      )}
+
       {/* Header */}
       <header 
         className="sticky top-0 z-40 px-6 py-4"
@@ -436,11 +486,35 @@ export default function VibeStudio({ isNew }) {
                 onClick={handleStartAnalysis}
                 disabled={isAnalyzing || uploadedImages.length === 0}
                 size="sm"
+                className="relative"
                 style={{ 
-                  backgroundColor: isAnalyzing ? 'var(--bg-surface)' : 'var(--accent-blue)', 
-                  color: isAnalyzing ? 'var(--text-secondary)' : 'var(--text-on-dark)' 
+                  backgroundColor: isAnalyzing || uploadedImages.length === 0 ? 'var(--bg-surface)' : 'var(--accent-blue)', 
+                  color: isAnalyzing || uploadedImages.length === 0 ? 'var(--text-secondary)' : 'var(--text-on-dark)',
+                  cursor: isAnalyzing || uploadedImages.length === 0 ? 'not-allowed' : 'pointer'
                 }}
               >
+                {isAnalyzing && (
+                  <svg 
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 inline-block" 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    fill="none" 
+                    viewBox="0 0 24 24"
+                  >
+                    <circle 
+                      className="opacity-25" 
+                      cx="12" 
+                      cy="12" 
+                      r="10" 
+                      stroke="currentColor" 
+                      strokeWidth="4"
+                    />
+                    <path 
+                      className="opacity-75" 
+                      fill="currentColor" 
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                )}
                 {isAnalyzing ? t('vibeStudio.analyzing') : t('vibeStudio.analyzeImages')}
               </Button>
             </div>
@@ -493,16 +567,17 @@ export default function VibeStudio({ isNew }) {
                           style={{ maxHeight: 'calc(600px - 4rem)' }}
                         />
                       </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          removeImage(image)
-                        }}
-                        disabled={isAnalyzing}
-                        className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 z-10"
-                      >
-                        <XMarkIcon className="size-4" />
-                      </button>
+                      {!isAnalyzing && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            removeImage(image)
+                          }}
+                          className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                        >
+                          <XMarkIcon className="size-4" />
+                        </button>
+                      )}
                       <p className="text-sm text-center mt-2 text-gray-500" style={{ color: 'var(--text-secondary)' }}>
                         {image.name}
                       </p>
@@ -527,7 +602,7 @@ export default function VibeStudio({ isNew }) {
                           strokeWidth="8"
                           fill="none"
                         />
-                        {/* Progress circle */}
+                        {/* Progress circle with Tailwind animate-pulse */}
                         <circle
                           cx="64"
                           cy="64"
@@ -536,9 +611,12 @@ export default function VibeStudio({ isNew }) {
                           strokeWidth="8"
                           fill="none"
                           strokeLinecap="round"
+                          className="animate-pulse"
                           strokeDasharray={`${2 * Math.PI * 56}`}
-                          strokeDashoffset={`${2 * Math.PI * 56 * (1 - (analysisProgress?.progress || 0) / 100)}`}
-                          style={{ transition: 'stroke-dashoffset 0.5s ease' }}
+                          strokeDashoffset={`${2 * Math.PI * 56 * (1 - displayProgress / 100)}`}
+                          style={{ 
+                            transition: 'stroke-dashoffset 0.5s ease'
+                          }}
                         />
                       </svg>
                       {/* Percentage text */}
@@ -547,7 +625,7 @@ export default function VibeStudio({ isNew }) {
                           className="text-3xl font-bold"
                           style={{ color: 'var(--accent-blue)' }}
                         >
-                          {analysisProgress?.progress || 0}%
+                          {Math.floor(displayProgress)}%
                         </span>
                       </div>
                     </div>
@@ -568,7 +646,7 @@ export default function VibeStudio({ isNew }) {
           <StyleAnalysisPanel 
             styleData={styleData}
             onStyleDataChange={setStyleData}
-            isEmpty={!styleData && !isAnalyzing}
+            isEmpty={!styleData && !isAnalyzing && currentDesignSystem?.status !== DesignSystemStatus.PROCESSING && currentDesignSystem?.status !== DesignSystemStatus.PENDING}
             isAnalyzing={isAnalyzing}
           />
         </div>

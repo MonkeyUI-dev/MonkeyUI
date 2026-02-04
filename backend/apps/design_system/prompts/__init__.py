@@ -261,6 +261,17 @@ def get_single_step_analysis_prompt() -> str:
     return load_prompt("design_system_single_step")
 
 
+def get_json_analysis_prompt() -> str:
+    """
+    Get the JSON-only design system analysis prompt.
+    
+    This prompt instructs the LLM to output structured JSON
+    containing design tokens without any HTML. Used with
+    structured output features of Gemini and OpenRouter.
+    """
+    return load_prompt("design_system_json")
+
+
 def get_design_system_prompt() -> str:
     """Get the base design system prompt template."""
     return load_prompt("design_system_analysis")

@@ -165,11 +165,7 @@ Edit `backend/.env`:
 ```
 SECRET_KEY=your-secret-key-here
 DEBUG=True
-DB_NAME=monkeyui_dev
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_HOST=localhost
-DB_PORT=5432
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/monkeyui_dev
 ```
 
 ## 🤖 GitHub Copilot

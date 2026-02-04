@@ -31,6 +31,8 @@ class LLMConfig:
     base_url: Optional[str] = None
     timeout: int = 300  # seconds - increased for reasoning models
     enable_reasoning: bool = True  # Enable reasoning for supported models
+    structured_output: bool = False  # Enable structured output mode
+    response_schema: Optional[dict] = None  # JSON schema for structured output
 
 
 @dataclass
@@ -105,7 +107,7 @@ class BaseLLMProvider(ABC):
 
 
 class GeminiProvider(BaseLLMProvider):
-    """Google Gemini API provider (direct API access)."""
+    """Google Gemini API provider (direct API access) with thinking mode and structured output support."""
     
     def _initialize_client(self):
         import google.generativeai as genai
@@ -115,11 +117,20 @@ class GeminiProvider(BaseLLMProvider):
     async def generate(self, prompt: str, system_prompt: Optional[str] = None) -> LLMResponse:
         full_prompt = f"{system_prompt}\n\n{prompt}" if system_prompt else prompt
         
+        generation_config = {"temperature": 0.1}
+        
+        # Enable thinking mode for supported models (Gemini 2.0 Flash Thinking)
+        if self.config.enable_reasoning:
+            generation_config["thought"] = True
+        
+        # Add structured output config if enabled
+        if self.config.structured_output and self.config.response_schema:
+            generation_config["response_mime_type"] = "application/json"
+            generation_config["response_schema"] = self.config.response_schema
+        
         response = await self.client.generate_content_async(
             full_prompt,
-            generation_config={
-                "temperature": 0.1
-            }
+            generation_config=generation_config
         )
         
         return LLMResponse(
@@ -147,11 +158,20 @@ class GeminiProvider(BaseLLMProvider):
         image = PIL.Image.open(io.BytesIO(image_data))
         full_prompt = f"{system_prompt}\n\n{prompt}" if system_prompt else prompt
         
+        generation_config = {"temperature": 0.1}
+        
+        # Enable thinking mode for supported models (Gemini 2.0 Flash Thinking)
+        if self.config.enable_reasoning:
+            generation_config["thought"] = True
+        
+        # Add structured output config if enabled
+        if self.config.structured_output and self.config.response_schema:
+            generation_config["response_mime_type"] = "application/json"
+            generation_config["response_schema"] = self.config.response_schema
+        
         response = await self.client.generate_content_async(
             [full_prompt, image],
-            generation_config={
-                "temperature": 0.1
-            }
+            generation_config=generation_config
         )
         
         return LLMResponse(
@@ -169,10 +189,11 @@ class GeminiProvider(BaseLLMProvider):
 
 class OpenRouterProvider(BaseLLMProvider):
     """
-    OpenRouter API provider with reasoning support.
+    OpenRouter API provider with reasoning and structured output support.
     
     Uses OpenAI-compatible API with additional OpenRouter features:
     - Reasoning tokens for Gemini 3 Pro and other reasoning models
+    - Structured JSON output via json_schema response format
     - Multi-provider access through a single API
     """
     
@@ -200,6 +221,20 @@ class OpenRouterProvider(BaseLLMProvider):
             }
         
         return extra_body if extra_body else None
+    
+    def _build_response_format(self) -> Optional[dict]:
+        """Build response_format for structured output."""
+        if not self.config.structured_output or not self.config.response_schema:
+            return None
+        
+        return {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "design_system",
+                "strict": True,
+                "schema": self.config.response_schema
+            }
+        }
     
     def _extract_reasoning(self, response) -> Optional[str]:
         """Extract reasoning from response if available."""
@@ -232,6 +267,7 @@ class OpenRouterProvider(BaseLLMProvider):
         messages.append({"role": "user", "content": prompt})
         
         extra_body = self._build_extra_body()
+        response_format = self._build_response_format()
         
         kwargs = {
             "model": self.config.model,
@@ -240,13 +276,21 @@ class OpenRouterProvider(BaseLLMProvider):
         }
         if extra_body:
             kwargs["extra_body"] = extra_body
+        if response_format:
+            kwargs["response_format"] = response_format
         
         response = await self.client.chat.completions.create(**kwargs)
         
+        # Validate response
+        if not response.choices or len(response.choices) == 0:
+            logger.error(f"OpenRouter returned empty choices. Response: {response}")
+            raise ValueError("OpenRouter returned an empty response. The model may be temporarily unavailable.")
+        
         reasoning = self._extract_reasoning(response)
+        content = response.choices[0].message.content or ""
         
         return LLMResponse(
-            content=response.choices[0].message.content,
+            content=content,
             model=response.model,
             provider=LLMProviderType.OPENROUTER.value,
             usage={
@@ -284,6 +328,7 @@ class OpenRouterProvider(BaseLLMProvider):
         })
         
         extra_body = self._build_extra_body()
+        response_format = self._build_response_format()
         
         kwargs = {
             "model": self.config.model,
@@ -292,13 +337,21 @@ class OpenRouterProvider(BaseLLMProvider):
         }
         if extra_body:
             kwargs["extra_body"] = extra_body
+        if response_format:
+            kwargs["response_format"] = response_format
         
         response = await self.client.chat.completions.create(**kwargs)
         
+        # Validate response
+        if not response.choices or len(response.choices) == 0:
+            logger.error(f"OpenRouter returned empty choices for image request. Response: {response}")
+            raise ValueError("OpenRouter returned an empty response. The model may have failed to process the image or is temporarily unavailable.")
+        
         reasoning = self._extract_reasoning(response)
+        content = response.choices[0].message.content or ""
         
         return LLMResponse(
-            content=response.choices[0].message.content,
+            content=content,
             model=response.model,
             provider=LLMProviderType.OPENROUTER.value,
             usage={

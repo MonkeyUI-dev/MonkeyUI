@@ -192,7 +192,7 @@ export default function StyleAnalysisPanel({ styleData, onStyleDataChange, isEmp
     onStyleDataChange({
       ...styleData,
       colors: {
-        ...styleData.colors,
+        ...(styleData.colors || {}),
         [key]: value
       }
     })
@@ -202,7 +202,7 @@ export default function StyleAnalysisPanel({ styleData, onStyleDataChange, isEmp
     onStyleDataChange({
       ...styleData,
       typography: {
-        ...styleData.typography,
+        ...(styleData.typography || {}),
         [key]: value
       }
     })
@@ -238,22 +238,22 @@ export default function StyleAnalysisPanel({ styleData, onStyleDataChange, isEmp
           <div className="grid grid-cols-2 gap-4">
             <ColorSwatch 
               label={t('vibeStudio.primaryColor')} 
-              color={styleData.colors.primary}
+              color={styleData.colors?.primary || '#000000'}
               onChange={(v) => updateColor('primary', v)}
             />
             <ColorSwatch 
               label={t('vibeStudio.secondaryColor')} 
-              color={styleData.colors.secondary}
+              color={styleData.colors?.secondary || '#000000'}
               onChange={(v) => updateColor('secondary', v)}
             />
             <ColorSwatch 
               label={t('vibeStudio.backgroundColor')} 
-              color={styleData.colors.background}
+              color={styleData.colors?.background || '#FFFFFF'}
               onChange={(v) => updateColor('background', v)}
             />
             <ColorSwatch 
               label={t('vibeStudio.surfaceColor')} 
-              color={styleData.colors.surface}
+              color={styleData.colors?.surface || '#FFFFFF'}
               onChange={(v) => updateColor('surface', v)}
             />
           </div>
@@ -278,7 +278,7 @@ export default function StyleAnalysisPanel({ styleData, onStyleDataChange, isEmp
             </label>
             <input
               type="text"
-              value={styleData.typography.fontFamily}
+              value={styleData.typography?.fontFamily || ''}
               onChange={(e) => updateTypography('fontFamily', e.target.value)}
               className="w-full bg-transparent text-sm outline-none"
               style={{ color: 'var(--text-primary)' }}
@@ -297,7 +297,7 @@ export default function StyleAnalysisPanel({ styleData, onStyleDataChange, isEmp
               </label>
               <input
                 type="text"
-                value={styleData.typography.fontWeight}
+                value={styleData.typography?.fontWeight || ''}
                 onChange={(e) => updateTypography('fontWeight', e.target.value)}
                 className="w-full bg-transparent text-sm outline-none"
                 style={{ color: 'var(--text-primary)' }}
@@ -315,7 +315,7 @@ export default function StyleAnalysisPanel({ styleData, onStyleDataChange, isEmp
               </label>
               <input
                 type="text"
-                value={styleData.typography.baseFontSize}
+                value={styleData.typography?.baseFontSize || ''}
                 onChange={(e) => updateTypography('baseFontSize', e.target.value)}
                 className="w-full bg-transparent text-sm outline-none"
                 style={{ color: 'var(--text-primary)' }}
@@ -345,7 +345,7 @@ export default function StyleAnalysisPanel({ styleData, onStyleDataChange, isEmp
               type="range"
               min="0"
               max="5"
-              value={styleData.shadowDepth}
+              value={styleData.shadowDepth ?? 0}
               onChange={(e) => updateShadow(parseInt(e.target.value))}
               className="flex-1"
             />
@@ -353,7 +353,7 @@ export default function StyleAnalysisPanel({ styleData, onStyleDataChange, isEmp
               className="text-sm font-mono w-8 text-center"
               style={{ color: 'var(--text-primary)' }}
             >
-              {styleData.shadowDepth}
+              {styleData.shadowDepth ?? 0}
             </span>
           </div>
         </div>
@@ -380,7 +380,7 @@ export default function StyleAnalysisPanel({ styleData, onStyleDataChange, isEmp
           </span>
           <input
             type="text"
-            value={styleData.designStyle}
+            value={styleData.designStyle || ''}
             onChange={(e) => onStyleDataChange({ ...styleData, designStyle: e.target.value })}
             className="w-full text-xl font-bold text-center bg-transparent outline-none mb-2"
             style={{ color: 'var(--accent-blue)' }}

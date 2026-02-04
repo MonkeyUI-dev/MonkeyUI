@@ -7,14 +7,13 @@ import {
   CheckIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  CommandLineIcon,
   GlobeAltIcon
 } from '@heroicons/react/24/outline'
 import { Button } from '@/components/ui/button'
 
 /**
- * MCP Access Panel - Displays MCP connection information for vibe coding tools
- * Shows both stdio and streamable-http protocol configurations
+ * MCP Access Panel - Displays MCP connection information for AI coding tools
+ * Shows Streamable HTTP protocol configurations for VS Code Copilot and Cursor
  */
 export default function MCPAccessPanel({ 
   isOpen, 
@@ -25,13 +24,14 @@ export default function MCPAccessPanel({
 }) {
   const { t } = useTranslation()
   const [copiedField, setCopiedField] = useState(null)
-  const [expandedSection, setExpandedSection] = useState('stdio')
+  const [expandedSection, setExpandedSection] = useState('cursor')
 
   if (!isOpen) return null
 
   // Get base URL for API endpoints
   const baseUrl = window.location.origin
   const serverName = `monkeyui-${(designSystemName || 'design-system').toLowerCase().replace(/\s+/g, '-')}`
+  const mcpEndpoint = `${baseUrl}/api/v1/design-systems/mcp/${designSystemId}/`
 
   const handleCopy = async (text, field) => {
     try {
@@ -43,87 +43,55 @@ export default function MCPAccessPanel({
     }
   }
 
-  // stdio protocol - for Cursor, Claude Desktop
-  const stdioCommand = `python -m apps.design_system.mcp.cli \\
-  --design-system-id ${designSystemId} \\
-  --api-key ${apiKey || 'YOUR_API_KEY'}`
+  // VS Code Copilot configuration (Streamable HTTP)
+  const vscodeConfig = `{
+  "servers": {
+    "${serverName}": {
+      "type": "http",
+      "url": "${mcpEndpoint}",
+      "headers": {
+        "Authorization": "Bearer ${apiKey || 'YOUR_API_KEY'}"
+      }
+    }
+  }
+}`
 
-  // Cursor MCP configuration (stdio)
+  // Cursor configuration (Streamable HTTP)
   const cursorConfig = `{
   "mcpServers": {
     "${serverName}": {
-      "command": "python",
-      "args": [
-        "-m", "apps.design_system.mcp.cli",
-        "--design-system-id", "${designSystemId}",
-        "--api-key", "${apiKey || 'YOUR_API_KEY'}"
-      ],
-      "cwd": "/path/to/monkeyui/backend"
+      "url": "${mcpEndpoint}",
+      "headers": {
+        "Authorization": "Bearer ${apiKey || 'YOUR_API_KEY'}"
+      }
     }
   }
 }`
-
-  // Claude Desktop configuration (stdio)
-  const claudeDesktopConfig = `{
-  "mcpServers": {
-    "${serverName}": {
-      "command": "python",
-      "args": [
-        "-m", "apps.design_system.mcp.cli",
-        "--design-system-id", "${designSystemId}",
-        "--api-key", "${apiKey || 'YOUR_API_KEY'}"
-      ],
-      "cwd": "/path/to/monkeyui/backend"
-    }
-  }
-}`
-
-  // Streamable HTTP configuration
-  const streamableHttpUrl = `${baseUrl}/api/v1/design-systems/mcp/${designSystemId}/`
-  
-  const streamableHttpConfig = `# Streamable HTTP Endpoint
-URL: ${streamableHttpUrl}
-
-# Authentication
-Header: Authorization: Bearer ${apiKey || 'YOUR_API_KEY'}
-
-# HTTP Method
-POST (application/json)`
 
   const sections = [
     {
-      id: 'stdio',
-      title: t('vibeStudio.mcp.stdioProtocol'),
-      description: t('vibeStudio.mcp.stdioDesc'),
-      icon: <CommandLineIcon className="size-5" style={{ color: 'var(--accent-blue)' }} />,
+      id: 'cursor',
+      title: t('vibeStudio.mcp.cursorConfig'),
+      description: t('vibeStudio.mcp.cursorDesc'),
+      icon: <GlobeAltIcon className="size-5" style={{ color: 'var(--accent-blue)' }} />,
       subsections: [
         {
-          id: 'stdio-command',
-          title: t('vibeStudio.mcp.cliCommand'),
-          content: stdioCommand
-        },
-        {
-          id: 'cursor',
-          title: t('vibeStudio.mcp.cursorConfig'),
+          id: 'cursor-config',
+          title: t('vibeStudio.mcp.cursorConfigFile'),
           content: cursorConfig
-        },
-        {
-          id: 'claude-desktop',
-          title: t('vibeStudio.mcp.claudeDesktopConfig'),
-          content: claudeDesktopConfig
         }
       ]
     },
     {
-      id: 'streamable-http',
-      title: t('vibeStudio.mcp.streamableHttpProtocol'),
-      description: t('vibeStudio.mcp.streamableHttpDesc'),
+      id: 'copilot',
+      title: t('vibeStudio.mcp.copilotConfig'),
+      description: t('vibeStudio.mcp.copilotDesc'),
       icon: <GlobeAltIcon className="size-5" style={{ color: 'var(--accent-blue)' }} />,
       subsections: [
         {
-          id: 'http-config',
-          title: t('vibeStudio.mcp.httpEndpoint'),
-          content: streamableHttpConfig
+          id: 'copilot-config',
+          title: t('vibeStudio.mcp.copilotConfigFile'),
+          content: vscodeConfig
         }
       ]
     }
@@ -298,12 +266,6 @@ POST (application/json)`
             <div className="grid grid-cols-2 gap-2">
               {[
                 { name: 'get_design_system', desc: t('vibeStudio.mcp.tools.getDesignSystem') },
-                { name: 'get_colors', desc: t('vibeStudio.mcp.tools.getColors') },
-                { name: 'get_typography', desc: t('vibeStudio.mcp.tools.getTypography') },
-                { name: 'get_spacing', desc: t('vibeStudio.mcp.tools.getSpacing') },
-                { name: 'get_component_styles', desc: t('vibeStudio.mcp.tools.getComponentStyles') },
-                { name: 'get_css_variables', desc: t('vibeStudio.mcp.tools.getCssVariables') },
-                { name: 'get_tailwind_config', desc: t('vibeStudio.mcp.tools.getTailwindConfig') },
               ].map((tool) => (
                 <div 
                   key={tool.name}

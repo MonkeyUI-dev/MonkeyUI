@@ -235,7 +235,7 @@ export default function DesignWorkshop() {
 
           {/* Design Systems Grid */}
           {!isLoading && !error && designSystems.length === 0 && (
-            <EmptyState onCreateNew={handleCreateNew} />
+            <EmptyState />
           )}
           
           {!isLoading && !error && designSystems.length > 0 && (
@@ -437,15 +437,11 @@ function EmptyState({ onCreateNew }) {
         {t('designWorkshop.emptyTitle')}
       </h3>
       <p 
-        className="text-sm mb-6 max-w-sm"
+        className="text-sm max-w-sm"
         style={{ color: 'var(--text-secondary)' }}
       >
         {t('designWorkshop.emptyDescription')}
       </p>
-      <Button onClick={onCreateNew} className="gap-x-2">
-        <PlusIcon className="size-4" />
-        {t('designWorkshop.createFirst')}
-      </Button>
     </div>
   )
 }

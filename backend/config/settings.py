@@ -17,7 +17,20 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-change-this-in-production'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+# Fly.io app name (automatically set by Fly.io)
+APP_NAME = os.environ.get("FLY_APP_NAME")
+
+# ALLOWED_HOSTS configuration
+# Automatically includes Fly.io domain when deployed
+allowed_hosts = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+if APP_NAME:
+    allowed_hosts.append(f"{APP_NAME}.fly.dev")
+    # Fly.io internal domains for health checks
+    allowed_hosts.append(f"{APP_NAME}.internal")
+    allowed_hosts.append(".fly.dev")
+    allowed_hosts.append(".internal")
+ALLOWED_HOSTS = allowed_hosts
+
 
 # Application definition
 INSTALLED_APPS = [
@@ -43,6 +56,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Serve static files in production
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -74,15 +88,12 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
+import dj_database_url
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'monkeyui_dev'),
-        'USER': os.getenv('DB_USER', 'postgres'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'postgres'),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '5432'),
-    }
+    'default': dj_database_url.parse(
+        os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/monkeyui_dev')
+    )
 }
 
 # Password validation
@@ -119,6 +130,13 @@ LOCALE_PATHS = [
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+    BASE_DIR / 'staticfiles' / 'frontend',  # React build output
+] if (BASE_DIR / 'staticfiles' / 'frontend').exists() else []
+
+# WhiteNoise configuration for serving static files in production
+WHITENOISE_ROOT = BASE_DIR / 'staticfiles' / 'frontend'  # Serve React app from root
+WHITENOISE_INDEX_FILE = True  # Enable index.html serving
 
 # =============================================================================
 # File Storage Configuration
@@ -180,6 +198,59 @@ else:
     MEDIA_URL = os.getenv('MEDIA_URL', '/media/')
     MEDIA_ROOT = BASE_DIR / os.getenv('MEDIA_ROOT', 'media')
 
+
+# =============================================================================
+# Logging Configuration
+# =============================================================================
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {asctime} {module}: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'apps': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'apps.design_system': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+}
+
+
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -187,11 +258,16 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.User'
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = os.getenv(
+cors_origins = os.getenv(
     'CORS_ALLOWED_ORIGINS',
     'http://localhost:5173,http://127.0.0.1:5173'
 ).split(',')
 
+# Auto-include Fly.io backend domain for local testing
+if APP_NAME and DEBUG:
+    cors_origins.append(f"https://{APP_NAME}.fly.dev")
+
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins if origin.strip()]
 CORS_ALLOW_CREDENTIALS = True
 
 # Django REST Framework
@@ -264,15 +340,7 @@ CACHES = {
 DEFAULT_LLM_PROVIDER = os.getenv('DEFAULT_LLM_PROVIDER', None)
 
 # Provider-specific configuration (optional - can also use environment variables)
-# Environment variables: OPENAI_API_KEY, GEMINI_API_KEY, OPENROUTER_API_KEY, QWEN_API_KEY, KIMI_API_KEY
 LLM_PROVIDERS = {
-    'openai': {
-        'api_key': os.getenv('OPENAI_API_KEY'),
-        'model': os.getenv('OPENAI_MODEL', 'gpt-4o'),
-        'base_url': os.getenv('OPENAI_BASE_URL'),
-        'max_tokens': int(os.getenv('OPENAI_MAX_TOKENS', 4096)),
-        'temperature': float(os.getenv('OPENAI_TEMPERATURE', 0.7)),
-    },
     'gemini': {
         'api_key': os.getenv('GEMINI_API_KEY'),
         'model': os.getenv('GEMINI_MODEL', 'gemini-2.0-flash'),
@@ -285,19 +353,5 @@ LLM_PROVIDERS = {
         'base_url': os.getenv('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1'),
         'max_tokens': int(os.getenv('OPENROUTER_MAX_TOKENS', 4096)),
         'temperature': float(os.getenv('OPENROUTER_TEMPERATURE', 0.7)),
-    },
-    'qwen': {
-        'api_key': os.getenv('QWEN_API_KEY'),
-        'model': os.getenv('QWEN_MODEL', 'qwen-vl-max'),
-        'base_url': os.getenv('QWEN_BASE_URL', 'https://dashscope.aliyuncs.com/compatible-mode/v1'),
-        'max_tokens': int(os.getenv('QWEN_MAX_TOKENS', 4096)),
-        'temperature': float(os.getenv('QWEN_TEMPERATURE', 0.7)),
-    },
-    'kimi': {
-        'api_key': os.getenv('KIMI_API_KEY'),
-        'model': os.getenv('KIMI_MODEL', 'moonshot-v1-32k-vision-preview'),
-        'base_url': os.getenv('KIMI_BASE_URL', 'https://api.moonshot.cn/v1'),
-        'max_tokens': int(os.getenv('KIMI_MAX_TOKENS', 4096)),
-        'temperature': float(os.getenv('KIMI_TEMPERATURE', 0.7)),
-    },
+    }
 }

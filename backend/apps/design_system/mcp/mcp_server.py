@@ -89,7 +89,6 @@ def create_design_system_mcp(design_system_id: str, api_key: str) -> FastMCP:
     )
     
     @mcp.tool(
-        title=f"Design System: {ds.name}" if ds else "Design System",
         annotations=ToolAnnotations(
             title=f"Design System: {ds.name}" if ds else "Design System",
             readOnlyHint=True,
@@ -115,7 +114,6 @@ def create_design_system_mcp(design_system_id: str, api_key: str) -> FastMCP:
         return json.dumps(result, indent=2)
     
     @mcp.tool(
-        title=f"Aesthetic Guidance: {ds.name}" if ds else "Aesthetic Guidance",
         annotations=ToolAnnotations(
             title=f"Aesthetic Guidance: {ds.name}" if ds else "Aesthetic Guidance",
             readOnlyHint=True,

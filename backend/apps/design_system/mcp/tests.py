@@ -159,6 +159,21 @@ class TestMCPDesignSystemServerTools(unittest.TestCase):
             self.assertIn("openWorldHint", serialized)
 
     @patch('apps.design_system.mcp.server.MCPDesignSystemServer._load_design_system')
+    def test_input_schema_no_params_format(self, mock_load):
+        """No-parameter tools should use recommended 2025-11-25 inputSchema format."""
+        mock_load.return_value = self._create_mock_design_system()
+        server = MCPDesignSystemServer("test-uuid", "test-key")
+        tools = server.get_tools()
+
+        for tool in tools:
+            schema = tool.input_schema
+            self.assertEqual(schema["type"], "object")
+            self.assertFalse(schema.get("additionalProperties", True),
+                             f"Tool '{tool.name}' should use additionalProperties: false")
+            self.assertNotIn("properties", schema,
+                             f"Tool '{tool.name}' should omit empty properties per 2025-11-25 spec")
+
+    @patch('apps.design_system.mcp.server.MCPDesignSystemServer._load_design_system')
     def test_get_design_system_tool_present(self, mock_load):
         """get_design_system tool should be in tool list."""
         mock_load.return_value = self._create_mock_design_system()

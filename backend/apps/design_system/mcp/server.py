@@ -142,8 +142,7 @@ class MCPDesignSystemServer:
                 ),
                 input_schema={
                     "type": "object",
-                    "properties": {},
-                    "required": []
+                    "additionalProperties": False
                 },
                 annotations=MCPToolAnnotations(
                     title=f"Design System: {design_system.name}",
@@ -169,8 +168,7 @@ class MCPDesignSystemServer:
                 ),
                 input_schema={
                     "type": "object",
-                    "properties": {},
-                    "required": []
+                    "additionalProperties": False
                 },
                 annotations=MCPToolAnnotations(
                     title=f"Aesthetic Guidance: {design_system.name}",

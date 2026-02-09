@@ -335,7 +335,7 @@ def mcp_streamable_http(request, design_system_id: str):
                     "jsonrpc": "2.0",
                     "id": body.get('id'),
                     "result": {
-                        "protocolVersion": "2025-06-18",
+                        "protocolVersion": "2025-11-25",
                         "capabilities": {
                             "tools": {}
                         },
@@ -433,7 +433,7 @@ def mcp_streamable_http(request, design_system_id: str):
             "name": f"monkeyui-{design_system.name}",
             "version": "1.0.0",
             "protocol": "mcp",
-            "protocolVersion": "2025-06-18",
+            "protocolVersion": "2025-11-25",
             "description": f"MCP server for {design_system.name} design system",
             "capabilities": {
                 "tools": True

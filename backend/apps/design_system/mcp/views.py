@@ -225,7 +225,8 @@ def mcp_get_config(request, design_system_id: str):
                     }
                 },
                 "availableTools": [
-                    {"name": "get_design_system", "description": "Get the complete design system with all tokens"}
+                    {"name": "get_design_system", "description": "Get the complete design system with all tokens"},
+                    {"name": "get_aesthetic_guidance", "description": "Get aesthetic guidance context for generating visually cohesive pages"}
                 ]
             }
             

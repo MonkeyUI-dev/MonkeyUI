@@ -86,8 +86,6 @@ def create_design_system_mcp(design_system_id: str, api_key: str) -> FastMCP:
         result = {
             "name": ds.name,
             "description": ds.description,
-            "styleName": style_data.get("styleName"),
-            "styleDescription": style_data.get("styleDescription"),
             "colors": style_data.get("colors", {}),
             "typography": style_data.get("typography", {}),
             "shadowDepth": style_data.get("shadowDepth", 0),

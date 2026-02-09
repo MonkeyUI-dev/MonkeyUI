@@ -72,6 +72,12 @@ class DesignSystem(TimeStampedModel):
         verbose_name=_("Design Tokens"),
         help_text=_("Generated design tokens: colors, typography, spacing, shadows, etc.")
     )
+    aesthetic_analysis = models.TextField(
+        blank=True,
+        default='',
+        verbose_name=_("Aesthetic Analysis"),
+        help_text=_("LLM-generated aesthetic analysis in Markdown format: design soul invariants, variation knobs, and anti-patterns")
+    )
     
     # Task tracking
     task_id = models.CharField(
@@ -180,18 +186,6 @@ class DesignSystemImage(TimeStampedModel):
         verbose_name=_("File Size"),
         help_text=_("File size in bytes")
     )
-    width = models.PositiveIntegerField(
-        null=True,
-        blank=True,
-        verbose_name=_("Width"),
-        help_text=_("Image width in pixels")
-    )
-    height = models.PositiveIntegerField(
-        null=True,
-        blank=True,
-        verbose_name=_("Height"),
-        help_text=_("Image height in pixels")
-    )
 
     class Meta:
         verbose_name = _("Design System Image")
@@ -203,16 +197,6 @@ class DesignSystemImage(TimeStampedModel):
 
     def save(self, *args, **kwargs):
         """Auto-populate file metadata on save."""
-        if self.image:
-            # Get file size
-            if hasattr(self.image, 'size'):
-                self.file_size = self.image.size
-            # Get image dimensions
-            try:
-                from PIL import Image
-                if hasattr(self.image, 'file'):
-                    img = Image.open(self.image.file)
-                    self.width, self.height = img.size
-            except Exception:
-                pass
+        if self.image and hasattr(self.image, 'size'):
+            self.file_size = self.image.size
         super().save(*args, **kwargs)

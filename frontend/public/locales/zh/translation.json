@@ -150,7 +150,7 @@
     "mcpApiKey": "MCP API 密钥",
     "styleAnalysis": "风格分析",
     "noAnalysisYet": "尚未开始分析此设计系统。",
-    "uploadAndAnalyze": "上传图片并点击"分析图片"以提取设计令牌。",
+    "uploadAndAnalyze": "上传图片并点击「分析图片」以提取设计令牌。",
     "colorPalette": "色彩调色板",
     "primaryColor": "主色",
     "secondaryColor": "辅色",
@@ -169,6 +169,18 @@
     "overallStyle": "整体设计风格",
     "detectedAesthetic": "识别的美学风格",
     "styleDescriptionDefault": "该设计系统采用高对比度边界、结构化排版和一致的圆角处理，呈现专业视觉效果。",
+    "tabs": {
+      "designSystem": "设计系统",
+      "aestheticAnalysis": "美学分析"
+    },
+    "aesthetic": {
+      "noAnalysisYet": "尚无美学分析数据。",
+      "uploadAndAnalyze": "上传图片并运行分析，提取设计灵魂——情绪基调、材质语言、色彩语法和变体旋钮。",
+      "analyzing": "正在提取美学上下文...",
+      "contextPack": "美学上下文包",
+      "preview": "预览",
+      "description": "此上下文包捕捉了设计的灵魂不变量和变体旋钮。用它来生成共享相同视觉灵魂但不克隆参考稿的页面。"
+    },
     "export": {
       "title": "导出设计规则",
       "subtitle": "选择适合您 AI 编程助手的格式",
@@ -195,6 +207,7 @@
       "availableTools": "可用工具",
       "tools": {
         "getDesignSystem": "获取完整设计系统",
+        "getAestheticGuidance": "获取美学指导上下文",
         "getColors": "获取色彩调色板",
         "getTypography": "获取字体排版设置",
         "getSpacing": "获取间距值",

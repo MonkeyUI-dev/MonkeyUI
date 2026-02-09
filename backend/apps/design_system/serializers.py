@@ -65,12 +65,14 @@ class DesignSystemDetailSerializer(serializers.ModelSerializer):
         model = DesignSystem
         fields = [
             'id', 'name', 'description', 'status',
-            'design_tokens', 'task_id', 'analysis_error', 'analyzed_at',
+            'design_tokens', 'aesthetic_analysis',
+            'task_id', 'analysis_error', 'analyzed_at',
             'image', 'initial', 'primary_color',
             'created_at', 'updated_at'
         ]
         read_only_fields = [
-            'id', 'design_tokens', 'task_id', 'analysis_error', 'analyzed_at',
+            'id', 'design_tokens', 'aesthetic_analysis',
+            'task_id', 'analysis_error', 'analyzed_at',
             'created_at', 'updated_at'
         ]
     
@@ -315,8 +317,6 @@ class DesignSystemMetadataSerializer(serializers.Serializer):
 
 class DesignSystemResponseSerializer(serializers.Serializer):
     """Serializer for complete design system response."""
-    styleName = serializers.CharField(required=False, help_text="Style name")
-    styleDescription = serializers.CharField(required=False, help_text="Style description")
     colors = DesignSystemColorsSerializer(required=False)
     typography = DesignSystemTypographySerializer(required=False)
     spacing = DesignSystemSpacingSerializer(required=False)

@@ -99,6 +99,16 @@ This project supports English (default) and Chinese. Language files are located 
 - Frontend: `frontend/src/locales/`
 - Backend: `backend/locale/`
 
+## MCP Integration
+
+MonkeyUI includes MCP (Model Context Protocol) server support for AI coding assistants like GitHub Copilot and Cursor. Each design system can be accessed as an MCP tool.
+
+📚 **For detailed information about MCP tools, see [MCP Tools Documentation](docs/MCP_TOOLS.md)**
+
+Quick overview of available MCP tools:
+- `get_design_system` - Access all design tokens (colors, typography, spacing)
+- `get_aesthetic_guidance` - Get design philosophy and aesthetic principles
+
 ## Contributing
 
 Please read our contributing guidelines before submitting pull requests.

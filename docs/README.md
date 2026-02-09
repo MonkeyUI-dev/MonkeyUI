@@ -170,6 +170,10 @@ See deployment documentation for production setup instructions.
 - Activate pipenv: `pipenv shell`
 - Reinstall dependencies: `pipenv install`
 
+## Additional Documentation
+
+- [MCP Tools Reference](MCP_TOOLS.md) - Complete reference for MCP (Model Context Protocol) tools and AI coding assistant integration
+
 ## Further Reading
 
 - [Django Documentation](https://docs.djangoproject.com/)

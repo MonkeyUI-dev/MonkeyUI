@@ -18,18 +18,17 @@ const EXPORT_FORMATS = {
 /**
  * Generate design system content in the specified format
  */
-function generateExportContent(format, styleData, name, description) {
+function generateExportContent(format, styleData, aestheticAnalysis, name, description) {
   const designTokensBlock = generateDesignTokensBlock(styleData)
-  const styleRulesBlock = generateStyleRulesBlock(styleData)
   
   switch (format) {
     case EXPORT_FORMATS.CURSOR:
-      return generateCursorRules(designTokensBlock, styleRulesBlock, name, description)
+      return generateCursorRules(designTokensBlock, aestheticAnalysis, name, description)
     case EXPORT_FORMATS.COPILOT:
-      return generateCopilotInstructions(designTokensBlock, styleRulesBlock, name, description)
+      return generateCopilotInstructions(designTokensBlock, aestheticAnalysis, name, description)
     case EXPORT_FORMATS.AGENTS:
     default:
-      return generateAgentsMd(designTokensBlock, styleRulesBlock, name, description)
+      return generateAgentsMd(designTokensBlock, aestheticAnalysis, name, description)
   }
 }
 
@@ -38,36 +37,19 @@ function generateDesignTokensBlock(styleData) {
   
   const colors = styleData.colors || {}
   const typography = styleData.typography || {}
-  const borderRadius = styleData.borderRadius || {}
-  const shadows = styleData.shadows || {}
-  const visualEffects = styleData.visualEffects || {}
+  const shadowDepth = styleData.shadowDepth ?? 0
   
   return `<design_tokens>
-- **Style Name**: ${styleData.designStyle || 'Custom Design System'}
-- **Primary Color**: ${colors.primary || '#007AFF'}
-- **Secondary Color**: ${colors.secondary || '#5856D6'}
-- **Surface/Background**: Page: ${colors.background || '#FFFFFF'}, Card: ${colors.surface || '#F5F5F7'}
-- **Text Colors**: Primary: ${colors.textPrimary || '#1D1D1F'}, Secondary: ${colors.textSecondary || '#424245'}, Muted: ${colors.textTertiary || '#86868B'}
-- **Border Color**: ${colors.border || '#E5E5E5'}
-- **Border Radius**: Small: ${borderRadius.small || '4px'}, Medium: ${borderRadius.medium || '8px'}, Large: ${borderRadius.large || '12px'}
-- **Shadows**: Level 1: ${shadows.level1 || '0 4px 12px rgba(0,0,0,0.05)'}, Level 2: ${shadows.level2 || '0 8px 20px rgba(0,0,0,0.1)'}
-- **Typography**: Font Family: ${typography.fontFamily || 'Inter, system-ui, sans-serif'}. Heading Weight: ${typography.fontWeightBold || 600}, Body Weight: ${typography.fontWeightRegular || 400}
-- **Base Font Size**: ${typography.baseFontSize || '16px'}
-- **Visual Effects**: ${visualEffects.glassmorphism ? 'Glassmorphism enabled' : 'Standard effects'}${visualEffects.blur ? `, Blur: ${visualEffects.blur}` : ''}
+- **Primary Color**: ${colors.primary || 'N/A'}
+- **Secondary Color**: ${colors.secondary || 'N/A'}
+- **Background Color**: ${colors.background || 'N/A'}
+- **Surface Color**: ${colors.surface || 'N/A'}
+- **Typography**: Font Family: ${typography.fontFamily || typography.font_family || 'system-ui, sans-serif'}, Font Weight: ${typography.fontWeight || typography.font_weight || '400, 600, 700'}, Base Font Size: ${typography.baseFontSize || typography.base_font_size || '16px'}
+- **Shadow Depth**: ${shadowDepth}/5 (${['Flat, no shadows', 'Very subtle shadows', 'Light shadows', 'Medium shadows', 'Pronounced shadows', 'Heavy/dramatic shadows'][shadowDepth] || 'Unknown'})
 </design_tokens>`
 }
 
-function generateStyleRulesBlock(styleData) {
-  const rules = styleData?.styleRules || []
-  if (rules.length === 0) {
-    return `- Use consistent spacing following an 8px grid system
-- Apply subtle hover states with color opacity changes
-- Maintain visual hierarchy through typography and spacing`
-  }
-  return rules.map(rule => `- ${rule}`).join('\n')
-}
-
-function generateCursorRules(designTokens, styleRules, name, description) {
+function generateCursorRules(designTokens, aestheticAnalysis, name, description) {
   return `# ${name || 'Design System'} - Cursor Rules
 # ${description || 'AI-generated design system for consistent UI development'}
 
@@ -76,27 +58,29 @@ You are an expert Frontend Engineer and UI/UX Designer. You must strictly follow
 
 # Design System Tokens (The "Source of Truth")
 ${designTokens}
+${aestheticAnalysis ? `
+# Aesthetic Guide (The "Design Soul")
+The following aesthetic analysis captures the design's soul, mood, and stylistic DNA. Use this as creative context — pages should FEEL like they belong to the same design family without cloning the reference pixel-for-pixel.
 
+${aestheticAnalysis}
+` : ''}
 # UI Implementation Rules
 1. **No Hardcoding**: Never use hardcoded hex codes or pixel values in components.
    - Use CSS Variables (e.g., \`var(--primary)\`) or Tailwind classes (e.g., \`text-primary\`).
    - If a style is missing in the project config, refer to the <design_tokens> above.
 
 2. **Component Consistency**:
-   - All cards must use the \`Border Radius\` and \`Shadow Level 1\` defined above.
-   - All buttons must have a hover state that is 10% darker/lighter than the Primary Color.
    - Spacing must follow an 8px grid system (e.g., padding: 8px, 16px, 24px).
+   - Apply the Shadow Depth level consistently across cards and elevated elements.
+   - All buttons must have a hover state that is 10% darker/lighter than the Primary Color.
 
-3. **Refusal Policy**:
-   - If I ask you to create a UI that contradicts the <design_tokens>, you must warn me first and ask if I want to deviate from the design system.
+3. **Aesthetic Coherence**:
+   - When generating new UI, always refer to the Aesthetic Guide for mood, material, and layout decisions.
+   - Maintain the design's soul: follow the color grammar, typography rhythm, and layout patterns described above.
+   - Respect the Anti-Patterns — avoid anything that would break the design's visual identity.
 
-4. **Style-Specific Rules**:
-${styleRules}
-
-# Implementation Guide
-- For React/Next.js: Use Tailwind CSS with custom theme configuration.
-- For CSS: Use the variables defined in \`globals.css\` or a dedicated \`design-tokens.css\`.
-- For Vue/Svelte: Adapt Tailwind or use scoped CSS variables.
+4. **Refusal Policy**:
+   - If I ask you to create a UI that contradicts the <design_tokens> or the Aesthetic Guide, you must warn me first and ask if I want to deviate from the design system.
 
 # CSS Variables Template
 \`\`\`css
@@ -106,33 +90,21 @@ ${styleRules}
   --color-secondary: [Secondary Color];
   --color-background: [Background Color];
   --color-surface: [Surface Color];
-  --color-text-primary: [Primary Text];
-  --color-text-secondary: [Secondary Text];
-  --color-border: [Border Color];
   
   /* Typography */
   --font-family: [Font Family];
   --font-size-base: [Base Font Size];
-  --font-weight-regular: [Regular Weight];
-  --font-weight-bold: [Bold Weight];
-  
-  /* Spacing */
-  --spacing-unit: 8px;
-  
-  /* Border Radius */
-  --radius-sm: [Small Radius];
-  --radius-md: [Medium Radius];
-  --radius-lg: [Large Radius];
-  
-  /* Shadows */
-  --shadow-sm: [Shadow Level 1];
-  --shadow-md: [Shadow Level 2];
 }
 \`\`\`
+
+# Implementation Guide
+- For React/Next.js: Use Tailwind CSS with custom theme configuration.
+- For CSS: Use the variables defined in \`globals.css\` or a dedicated \`design-tokens.css\`.
+- For Vue/Svelte: Adapt Tailwind or use scoped CSS variables.
 `
 }
 
-function generateCopilotInstructions(designTokens, styleRules, name, description) {
+function generateCopilotInstructions(designTokens, aestheticAnalysis, name, description) {
   return `# ${name || 'Design System'} - GitHub Copilot Instructions
 # ${description || 'AI-generated design system for consistent UI development'}
 
@@ -141,7 +113,12 @@ You are an expert Frontend Engineer and UI/UX Designer working with GitHub Copil
 
 ## Design System Tokens (The "Source of Truth")
 ${designTokens}
+${aestheticAnalysis ? `
+## Aesthetic Guide (The "Design Soul")
+The following aesthetic analysis captures the design's soul, mood, and stylistic DNA. Use this as creative context — pages should FEEL like they belong to the same design family without cloning the reference pixel-for-pixel.
 
+${aestheticAnalysis}
+` : ''}
 ## UI Implementation Rules
 
 ### 1. No Hardcoding
@@ -150,38 +127,19 @@ Never use hardcoded hex codes or pixel values in components.
 - If a style is missing in the project config, refer to the design tokens above.
 
 ### 2. Component Consistency
-- All cards must use the defined Border Radius and Shadow Level 1.
-- All buttons must have a hover state that is 10% darker/lighter than the Primary Color.
 - Spacing must follow an 8px grid system (e.g., padding: 8px, 16px, 24px).
+- Apply the Shadow Depth level consistently across cards and elevated elements.
+- All buttons must have a hover state that is 10% darker/lighter than the Primary Color.
 
-### 3. Refusal Policy
-If asked to create a UI that contradicts the design tokens, warn first and ask if deviation from the design system is intended.
+### 3. Aesthetic Coherence
+- When generating new UI, always refer to the Aesthetic Guide for mood, material, and layout decisions.
+- Maintain the design's soul: follow the color grammar, typography rhythm, and layout patterns described above.
+- Respect the Anti-Patterns — avoid anything that would break the design's visual identity.
 
-### 4. Style-Specific Rules
-${styleRules}
+### 4. Refusal Policy
+If asked to create a UI that contradicts the design tokens or the Aesthetic Guide, warn first and ask if deviation from the design system is intended.
 
-## Implementation Guide
-
-### React/Next.js with Tailwind CSS
-\`\`\`jsx
-// Example component following design system
-export function Card({ children, className }) {
-  return (
-    <div className={\`
-      bg-surface 
-      rounded-lg 
-      shadow-sm 
-      p-6
-      border border-border
-      \${className}
-    \`}>
-      {children}
-    </div>
-  );
-}
-\`\`\`
-
-### CSS Variables Setup
+## CSS Variables Setup
 \`\`\`css
 :root {
   /* Colors */
@@ -189,67 +147,38 @@ export function Card({ children, className }) {
   --color-secondary: [Secondary Color];
   --color-background: [Background Color];
   --color-surface: [Surface Color];
-  --color-text-primary: [Primary Text];
-  --color-text-secondary: [Secondary Text];
-  --color-border: [Border Color];
   
   /* Typography */
   --font-family: [Font Family];
   --font-size-base: [Base Font Size];
-  
-  /* Border Radius */
-  --radius-sm: [Small Radius];
-  --radius-md: [Medium Radius];
-  --radius-lg: [Large Radius];
-  
-  /* Shadows */
-  --shadow-sm: [Shadow Level 1];
-  --shadow-md: [Shadow Level 2];
 }
 \`\`\`
 
-### Tailwind Config Extension
-\`\`\`javascript
-// tailwind.config.js
-module.exports = {
-  theme: {
-    extend: {
-      colors: {
-        primary: 'var(--color-primary)',
-        secondary: 'var(--color-secondary)',
-        background: 'var(--color-background)',
-        surface: 'var(--color-surface)',
-        border: 'var(--color-border)',
-      },
-      borderRadius: {
-        sm: 'var(--radius-sm)',
-        md: 'var(--radius-md)',
-        lg: 'var(--radius-lg)',
-      },
-      boxShadow: {
-        sm: 'var(--shadow-sm)',
-        md: 'var(--shadow-md)',
-      },
-    },
-  },
-}
-\`\`\`
+## Implementation Guide
+- For React/Next.js: Use Tailwind CSS with custom theme configuration.
+- For CSS: Use the variables defined in \`globals.css\` or a dedicated \`design-tokens.css\`.
+- For Vue/Svelte: Adapt Tailwind or use scoped CSS variables.
 `
 }
 
-function generateAgentsMd(designTokens, styleRules, name, description) {
+function generateAgentsMd(designTokens, aestheticAnalysis, name, description) {
   return `# ${name || 'Design System'} - AI Agent Instructions
 # ${description || 'AI-generated design system for consistent UI development'}
 
 ## Overview
-This document defines the design system tokens and implementation rules for AI coding assistants. Follow these guidelines strictly when generating UI code.
+This document defines the design system tokens, aesthetic guide, and implementation rules for AI coding assistants. Follow these guidelines strictly when generating UI code.
 
 ## Role & Context
 You are an expert Frontend Engineer and UI/UX Designer. You must strictly follow the defined Design System for every component, page, and style you generate.
 
 ## Design System Tokens
 ${designTokens}
+${aestheticAnalysis ? `
+## Aesthetic Guide (The "Design Soul")
+The following aesthetic analysis captures the design's soul, mood, and stylistic DNA. Use this as creative context — pages should FEEL like they belong to the same design family without cloning the reference pixel-for-pixel.
 
+${aestheticAnalysis}
+` : ''}
 ## Implementation Rules
 
 ### Rule 1: No Hardcoding
@@ -258,17 +187,19 @@ Never use hardcoded hex codes or pixel values in components.
 - ❌ Avoid: \`#007AFF\`, \`color: blue\`
 
 ### Rule 2: Component Consistency
-- Cards: Use defined Border Radius + Shadow Level 1
-- Buttons: Hover state = 10% darker/lighter than Primary
 - Spacing: Follow 8px grid (8px, 16px, 24px, 32px)
+- Apply the Shadow Depth level consistently across cards and elevated elements
+- Buttons: Hover state = 10% darker/lighter than Primary
 
-### Rule 3: Refusal Policy
-If asked to create UI contradicting design tokens:
+### Rule 3: Aesthetic Coherence
+- When generating new UI, always refer to the Aesthetic Guide for mood, material, and layout decisions
+- Maintain the design's soul: follow the color grammar, typography rhythm, and layout patterns
+- Respect the Anti-Patterns — avoid anything that would break the design's visual identity
+
+### Rule 4: Refusal Policy
+If asked to create UI contradicting design tokens or the Aesthetic Guide:
 1. Warn about the deviation
 2. Ask for confirmation before proceeding
-
-### Rule 4: Style-Specific Rules
-${styleRules}
 
 ## Quick Reference
 
@@ -279,15 +210,6 @@ ${styleRules}
 | Secondary | Supporting elements, secondary actions |
 | Background | Page background |
 | Surface | Card/panel backgrounds |
-| Border | Dividers, input borders |
-
-### Typography
-| Element | Weight | Size |
-|---------|--------|------|
-| H1 | Bold | 2.5rem |
-| H2 | Bold | 2rem |
-| Body | Regular | 1rem |
-| Caption | Regular | 0.875rem |
 
 ### Spacing Scale
 | Level | Value |
@@ -299,29 +221,22 @@ ${styleRules}
 | 5 | 32px |
 | 6 | 48px |
 
-## Framework Examples
-
-### React + Tailwind
-\`\`\`jsx
-<Button className="bg-primary hover:bg-primary/90 rounded-md px-4 py-2">
-  Click me
-</Button>
-\`\`\`
-
-### Vue + CSS Variables
-\`\`\`vue
-<template>
-  <button class="btn-primary">Click me</button>
-</template>
-
-<style scoped>
-.btn-primary {
-  background: var(--color-primary);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-2) var(--spacing-4);
+## CSS Variables Template
+\`\`\`css
+:root {
+  --color-primary: [Primary Color];
+  --color-secondary: [Secondary Color];
+  --color-background: [Background Color];
+  --color-surface: [Surface Color];
+  --font-family: [Font Family];
+  --font-size-base: [Base Font Size];
 }
-</style>
 \`\`\`
+
+## Implementation Guide
+- For React/Next.js: Use Tailwind CSS with custom theme configuration.
+- For CSS: Use the variables defined in \`globals.css\` or a dedicated \`design-tokens.css\`.
+- For Vue/Svelte: Adapt Tailwind or use scoped CSS variables.
 `
 }
 
@@ -342,14 +257,14 @@ function getExportFileInfo(format, designName) {
   }
 }
 
-export default function ExportRulesModal({ isOpen, onClose, styleData, name, description }) {
+export default function ExportRulesModal({ isOpen, onClose, styleData, aestheticAnalysis, name, description }) {
   const { t } = useTranslation()
   const [selectedFormat, setSelectedFormat] = useState(EXPORT_FORMATS.CURSOR)
   const [copied, setCopied] = useState(false)
 
   if (!isOpen) return null
 
-  const content = generateExportContent(selectedFormat, styleData, name, description)
+  const content = generateExportContent(selectedFormat, styleData, aestheticAnalysis, name, description)
   const fileInfo = getExportFileInfo(selectedFormat, name)
 
   const handleDownload = () => {
@@ -524,7 +439,7 @@ export default function ExportRulesModal({ isOpen, onClose, styleData, name, des
                 color: 'var(--text-secondary)'
               }}
             >
-              <pre className="whitespace-pre-wrap">{content.slice(0, 1500)}...</pre>
+              <pre className="whitespace-pre-wrap">{content}</pre>
             </div>
           </div>
         </div>

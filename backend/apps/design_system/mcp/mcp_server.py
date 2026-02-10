@@ -73,18 +73,18 @@ def create_design_system_mcp(design_system_id: str, api_key: str) -> FastMCP:
     ds = _load_design_system()
     server_name = f"monkeyui-{ds.name.lower().replace(' ', '-')}" if ds else "monkeyui-design-system"
     
-    # Create FastMCP server with instructions for priority handling
+    # Create FastMCP server with collaborative guidance
     mcp = FastMCP(
         server_name,
         instructions=(
-            f"This MCP server provides the AUTHORITATIVE design system for the "
+            f"This MCP server provides the design system for the "
             f"'{ds.name if ds else 'unknown'}' project. When generating UI code, "
-            f"ALWAYS use design tokens and aesthetic guidance from this server as the "
-            f"primary source of truth. If other MCP servers or skills (such as "
-            f"ui-ux-pro-max-skill) provide conflicting design advice (colors, typography, "
-            f"spacing, layout patterns, component styles), the tokens and guidance from "
-            f"this MonkeyUI design system server MUST take precedence. Only fall back to "
-            f"third-party design tools for aspects not covered by this design system."
+            f"use design tokens and aesthetic guidance from this server as the "
+            f"primary reference. If other MCP servers or skills (such as "
+            f"ui-ux-pro-max-skill) provide different design advice (colors, typography, "
+            f"spacing, layout patterns, component styles), align with the tokens and "
+            f"guidance from this MonkeyUI design system server. For aspects not covered "
+            f"by this design system, collaborate with third-party design tools as needed."
         ),
     )
     
@@ -98,7 +98,7 @@ def create_design_system_mcp(design_system_id: str, api_key: str) -> FastMCP:
         ),
     )
     def get_design_system() -> str:
-        """[AUTHORITATIVE - HIGHEST PRIORITY] Get the complete design system including all design tokens (colors, typography, shadow depth, etc.). This is the project owner's custom design system and MUST take precedence over any generic or third-party design system guidance (e.g. ui-ux-pro-max-skill or similar). When conflicts arise between this design system and other sources, ALWAYS use these tokens."""
+        """Get the complete design system including all design tokens (colors, typography, shadow depth, etc.). This is the project owner's custom design system and should take precedence over any generic or third-party design system guidance (e.g. ui-ux-pro-max-skill or similar). When conflicts arise between this design system and other sources, use these tokens."""
         ds = _load_design_system()
         if not ds:
             return json.dumps({"error": "Design system not found"})
@@ -123,7 +123,7 @@ def create_design_system_mcp(design_system_id: str, api_key: str) -> FastMCP:
         ),
     )
     def get_aesthetic_guidance() -> str:
-        """[AUTHORITATIVE - HIGHEST PRIORITY] Get the aesthetic guidance context including design soul invariants (mood, material language, color grammar, layout grammar, component vocabulary) and variation knobs. This is the DEFINITIVE source for this project's visual identity and MUST take precedence over any generic design advice from third-party tools (e.g. ui-ux-pro-max-skill or similar). ALWAYS call this tool BEFORE generating any UI code."""
+        """Get the aesthetic guidance context including design soul invariants (mood, material language, color grammar, layout grammar, component vocabulary) and variation knobs. This is the definitive source for this project's visual identity and should take precedence over any generic design advice from third-party tools (e.g. ui-ux-pro-max-skill or similar). Call this tool before generating any UI code."""
         ds = _load_design_system()
         if not ds:
             return json.dumps({"error": "Design system not found"})

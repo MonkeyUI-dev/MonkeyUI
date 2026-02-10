@@ -28,9 +28,6 @@ db.sqlite3-journal
 # Pipenv
 Pipfile.lock
 
-# uv
-uv.lock
-
 # React / Vite
 dist/
 dist-ssr/

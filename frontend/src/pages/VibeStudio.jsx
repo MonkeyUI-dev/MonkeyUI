@@ -739,6 +739,7 @@ export default function VibeStudio({ isNew }) {
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
         styleData={styleData}
+        aestheticAnalysis={aestheticData}
         name={name}
         description={description}
       />

@@ -170,6 +170,18 @@
     "overallStyle": "Overall design style",
     "detectedAesthetic": "Detected aesthetic",
     "styleDescriptionDefault": "This design system utilizes high-contrast boundaries, structured typography, and consistent corner rounding to achieve a professional look.",
+    "tabs": {
+      "designSystem": "Design system",
+      "aestheticAnalysis": "Aesthetic analysis"
+    },
+    "aesthetic": {
+      "noAnalysisYet": "No aesthetic analysis available yet.",
+      "uploadAndAnalyze": "Upload an image and run analysis to extract the design soul — mood, material language, color grammar, and variation knobs.",
+      "analyzing": "Extracting aesthetic context...",
+      "contextPack": "Aesthetic context pack",
+      "preview": "Preview",
+      "description": "This context pack captures the design's soul invariants and variation knobs. Use it to generate pages that share the same visual soul without cloning the reference."
+    },
     "export": {
       "title": "Export design rules",
       "subtitle": "Choose a format for your AI coding assistant",
@@ -196,6 +208,7 @@
       "availableTools": "Available tools",
       "tools": {
         "getDesignSystem": "Get complete design system",
+        "getAestheticGuidance": "Get aesthetic guidance context",
         "getColors": "Get color palette",
         "getTypography": "Get typography settings",
         "getSpacing": "Get spacing values",

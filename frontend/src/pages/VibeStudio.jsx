@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button'
 import Alert from '@/components/ui/Alert'
 import StyleAnalysisPanel from '@/components/vibe/StyleAnalysisPanel'
+import AestheticAnalysisPanel from '@/components/vibe/AestheticAnalysisPanel'
 import ExportRulesModal from '@/components/vibe/ExportRulesModal'
 import MCPAccessPanel from '@/components/vibe/MCPAccessPanel'
 import designSystemService, { DesignSystemStatus } from '@/services/designSystem'
@@ -36,19 +37,19 @@ export default function VibeStudio({ isNew }) {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false)
   const [isMCPPanelOpen, setIsMCPPanelOpen] = useState(false)
   const [alert, setAlert] = useState({ show: false, type: 'success', message: '' })
+  const [activeTab, setActiveTab] = useState('designSystem')
+  const [aestheticData, setAestheticData] = useState(null)
 
   // Convert backend style data format to frontend format
   // Backend now returns structured JSON directly from AI analysis
-  // MVP fields only: colors, typography, shadowDepth, designStyle, designStyleDescription
+  // MVP fields only: colors, typography, shadowDepth
   const convertStyleData = (data) => {
     // If data has the new structured format (from schema.py convert_to_frontend_format)
-    if (data.styleName !== undefined) {
+    if (data.colors !== undefined) {
       return {
         colors: data.colors,
         typography: data.typography,
         shadowDepth: data.shadowDepth,
-        designStyle: data.styleName,
-        designStyleDescription: data.styleDescription,
       }
     }
     
@@ -57,16 +58,12 @@ export default function VibeStudio({ isNew }) {
       colors: data.colors,
       typography: data.typography,
       shadowDepth: data.shadows?.level2 ? 2 : (data.shadowDepth || 0),
-      designStyle: data.styleName || data.designStyle,
-      designStyleDescription: data.styleDescription || data.designStyleDescription,
     }
   }
 
   // Convert frontend style data format to backend format
   const convertToBackendFormat = (data) => {
     return {
-      styleName: data.designStyle,
-      styleDescription: data.designStyleDescription,
       colors: data.colors,
       typography: data.typography,
       shadowDepth: data.shadowDepth,
@@ -126,6 +123,11 @@ export default function VibeStudio({ isNew }) {
         setStyleData(convertStyleData(designSystem.design_tokens))
       }
       
+      // Load aesthetic analysis if available
+      if (designSystem.aesthetic_analysis) {
+        setAestheticData(designSystem.aesthetic_analysis)
+      }
+      
       // Load existing image (one-to-one relationship)
       if (designSystem.image) {
         setUploadedImages([{
@@ -166,6 +168,12 @@ export default function VibeStudio({ isNew }) {
             setStyleData(convertStyleData(status.result))
             // Update current design system status
             setCurrentDesignSystem(prev => prev ? { ...prev, status: DesignSystemStatus.COMPLETED } : prev)
+            // Fetch full design system to get aesthetic_analysis
+            designSystemService.getDesignSystem(pollId).then(ds => {
+              if (ds.aesthetic_analysis) {
+                setAestheticData(ds.aesthetic_analysis)
+              }
+            }).catch(err => console.error('Failed to load aesthetic analysis:', err))
           }
         }
       )
@@ -308,6 +316,12 @@ export default function VibeStudio({ isNew }) {
           })
           if (status.status === 'completed' && status.result) {
             setStyleData(convertStyleData(status.result))
+            // Fetch full design system to get aesthetic_analysis
+            designSystemService.getDesignSystem(systemId).then(ds => {
+              if (ds.aesthetic_analysis) {
+                setAestheticData(ds.aesthetic_analysis)
+              }
+            }).catch(err => console.error('Failed to load aesthetic analysis:', err))
           }
         }
       )
@@ -329,6 +343,7 @@ export default function VibeStudio({ isNew }) {
   const handleSaveVibe = async () => {
     setIsSaving(true)
     try {
+      let systemId
       if (isNew || !currentDesignSystem?.id) {
         // Create new design system
         const created = await designSystemService.createDesignSystem({
@@ -336,18 +351,23 @@ export default function VibeStudio({ isNew }) {
           description,
           design_tokens: styleData ? convertToBackendFormat(styleData) : null,
         })
-        setCurrentDesignSystem(created)
+        systemId = created.id
         // Navigate to the edit URL (so URL reflects the new ID)
-        navigate(`/vibe-studio/${created.id}`, { replace: true })
+        navigate(`/vibe-studio/${systemId}`, { replace: true })
       } else {
         // Update existing design system
-        await designSystemService.updateDesignSystem(currentDesignSystem.id, {
+        systemId = currentDesignSystem.id
+        await designSystemService.updateDesignSystem(systemId, {
           name,
           description,
           design_tokens: styleData ? convertToBackendFormat(styleData) : null,
         })
-        // Stay on current page after saving
       }
+      
+      // Reload the design system to get the latest status (especially after analysis completes)
+      const updated = await designSystemService.getDesignSystem(systemId)
+      setCurrentDesignSystem(updated)
+      
       // Show success alert
       setAlert({ show: true, type: 'success', message: t('vibeStudio.saveSuccess') })
     } catch (err) {
@@ -642,13 +662,52 @@ export default function VibeStudio({ isNew }) {
             </div>
           </div>
 
-          {/* Right: Style Analysis */}
-          <StyleAnalysisPanel 
-            styleData={styleData}
-            onStyleDataChange={setStyleData}
-            isEmpty={!styleData && !isAnalyzing && currentDesignSystem?.status !== DesignSystemStatus.PROCESSING && currentDesignSystem?.status !== DesignSystemStatus.PENDING}
-            isAnalyzing={isAnalyzing}
-          />
+          {/* Right: Tabbed Analysis Panel */}
+          <div className="space-y-4">
+            {/* Tab Navigation */}
+            <div 
+              className="flex rounded-lg p-1 gap-1"
+              style={{ backgroundColor: 'var(--bg-canvas)', border: '1px solid var(--border-subtle)' }}
+            >
+              <button
+                onClick={() => setActiveTab('designSystem')}
+                className="flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                style={{
+                  backgroundColor: activeTab === 'designSystem' ? 'var(--btn-primary-bg)' : 'transparent',
+                  color: activeTab === 'designSystem' ? 'var(--btn-primary-fg)' : 'var(--text-secondary)',
+                }}
+              >
+                {t('vibeStudio.tabs.designSystem')}
+              </button>
+              <button
+                onClick={() => setActiveTab('aesthetic')}
+                className="flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                style={{
+                  backgroundColor: activeTab === 'aesthetic' ? 'var(--btn-primary-bg)' : 'transparent',
+                  color: activeTab === 'aesthetic' ? 'var(--btn-primary-fg)' : 'var(--text-secondary)',
+                }}
+              >
+                {t('vibeStudio.tabs.aestheticAnalysis')}
+              </button>
+            </div>
+
+            {/* Tab Content */}
+            {activeTab === 'designSystem' ? (
+              <StyleAnalysisPanel 
+                styleData={styleData}
+                onStyleDataChange={setStyleData}
+                isEmpty={!styleData && !isAnalyzing && currentDesignSystem?.status !== DesignSystemStatus.PROCESSING && currentDesignSystem?.status !== DesignSystemStatus.PENDING}
+                isAnalyzing={isAnalyzing}
+              />
+            ) : (
+              <AestheticAnalysisPanel
+                aestheticData={aestheticData}
+                isEmpty={!aestheticData && !isAnalyzing && currentDesignSystem?.status !== DesignSystemStatus.PROCESSING && currentDesignSystem?.status !== DesignSystemStatus.PENDING}
+                isAnalyzing={isAnalyzing}
+                onAestheticDataChange={setAestheticData}
+              />
+            )}
+          </div>
         </div>
       </main>
 

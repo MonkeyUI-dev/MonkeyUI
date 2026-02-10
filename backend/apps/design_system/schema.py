@@ -8,7 +8,7 @@ MVP Fields (per PRD):
 - Colors: primary, secondary, background, surface
 - Typography: font_family, font_weight, base_font_size
 - Shadow Depth: 0-5 integer
-- Design Style: style_name, style_description
+
 """
 from pydantic import BaseModel, Field
 
@@ -36,14 +36,7 @@ class DesignSystemOutput(BaseModel):
     - Colors (4 required)
     - Typography (3 required)
     - Shadow depth (1 required)
-    - Design style name and description (2 required)
     """
-    style_name: str = Field(
-        description="Name of the detected design style in UPPERCASE (e.g., 'MINIMALIST MODERN', 'PROFESSIONAL ENTERPRISE')"
-    )
-    style_description: str = Field(
-        description="A detailed description of the overall design aesthetic and key characteristics"
-    )
     colors: ColorPalette = Field(
         description="Extracted color palette from the design"
     )
@@ -79,14 +72,6 @@ def get_gemini_response_schema() -> dict:
     return {
         "type": "object",
         "properties": {
-            "style_name": {
-                "type": "string",
-                "description": "Name of the detected design style in UPPERCASE"
-            },
-            "style_description": {
-                "type": "string",
-                "description": "Detailed description of the design aesthetic"
-            },
             "colors": {
                 "type": "object",
                 "properties": {
@@ -114,8 +99,7 @@ def get_gemini_response_schema() -> dict:
             }
         },
         "required": [
-            "style_name", "style_description", "colors", 
-            "typography", "shadow_depth"
+            "colors", "typography", "shadow_depth"
         ]
     }
 
@@ -164,7 +148,6 @@ def convert_to_frontend_format(data: dict) -> dict:
     - colors: primary, secondary, background, surface
     - typography: fontFamily, fontWeight, baseFontSize
     - shadowDepth: integer 0-5
-    - styleName, styleDescription
     
     Args:
         data: Validated design system dict from LLM
@@ -176,8 +159,6 @@ def convert_to_frontend_format(data: dict) -> dict:
     typography = data.get("typography", {})
     
     return {
-        "styleName": data.get("style_name"),
-        "styleDescription": data.get("style_description"),
         "colors": {
             "primary": colors.get("primary"),
             "secondary": colors.get("secondary"),

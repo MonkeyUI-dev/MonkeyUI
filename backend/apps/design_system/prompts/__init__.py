@@ -269,7 +269,19 @@ def get_json_analysis_prompt() -> str:
     containing design tokens without any HTML. Used with
     structured output features of Gemini and OpenRouter.
     """
-    return load_prompt("design_system_json")
+    return load_prompt("design_system")
+
+
+def get_aesthetic_analysis_prompt() -> str:
+    """
+    Get the aesthetic analysis prompt for extracting design soul context.
+    
+    This prompt instructs the LLM to extract high-level aesthetic invariants
+    (mood, material language, color grammar, layout grammar, etc.) and
+    variation knobs for generative use — following the "Context not Control"
+    philosophy. The output is a Markdown aesthetic context document.
+    """
+    return load_prompt("aesthetic_analysis")
 
 
 def get_design_system_prompt() -> str:

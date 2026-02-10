@@ -24,7 +24,7 @@ from json_repair import repair_json
 from .llm import create_llm_provider
 from .llm.config import get_default_provider
 from .llm.providers import LLMConfig
-from .prompts import get_json_analysis_prompt
+from .prompts import get_json_analysis_prompt, get_aesthetic_analysis_prompt
 from .schema import (
     get_gemini_response_schema,
     validate_design_system_output,
@@ -225,10 +225,10 @@ def generate_design_system_task(
         logger.info(f"[Task {task_id[:8]}] Image loaded from storage: {image_name} ({mime_type}, {len(image_bytes)} bytes)")
         
         # =================================================================
-        # STEP 2: Single-Step Analysis
+        # STEP 2: Parallel Analysis (Design Tokens + Aesthetic Analysis)
         # =================================================================
         logger.info(f"-" * 60)
-        logger.info(f"[Task {task_id[:8]}] STEP 2: Single-Step Analysis")
+        logger.info(f"[Task {task_id[:8]}] STEP 2: Parallel Analysis (Design Tokens + Aesthetic)")
         logger.info(f"-" * 60)
         
         update_task_progress(
@@ -238,34 +238,103 @@ def generate_design_system_task(
             current_step="analysis",
             current_step_number=2,
             total_steps=total_steps,
-            message=_("AI is extracting colors, typography, and spacing...")
+            message=_("AI is extracting design tokens and aesthetic analysis...")
         )
         
-        # Get JSON analysis prompt (structured output)
-        analysis_prompt = get_json_analysis_prompt()
+        # Get prompts for both analyses
+        design_token_prompt = get_json_analysis_prompt()
+        aesthetic_prompt = get_aesthetic_analysis_prompt()
         
-        # Add context from vibe name/description
+        # Add context from vibe name/description to both prompts
         if vibe_name or vibe_description:
             context = f"\n\n# Additional Context\n"
             if vibe_name:
                 context += f"- Design System Name: {vibe_name}\n"
             if vibe_description:
                 context += f"- Style Description: {vibe_description}\n"
-            analysis_prompt = analysis_prompt + context
+            design_token_prompt = design_token_prompt + context
+            aesthetic_prompt = aesthetic_prompt + context
         
-        logger.info(f"[Task {task_id[:8]}] Sending image for structured JSON analysis...")
+        logger.info(f"[Task {task_id[:8]}] Sending image for parallel analysis (design tokens + aesthetic)...")
+        
+        # Use threading to run both LLM calls concurrently
+        import threading
+        
+        design_token_result = {"response": None, "error": None}
+        aesthetic_result = {"response": None, "error": None}
+        
+        def run_design_token_analysis():
+            """Thread target for design token extraction."""
+            try:
+                design_token_result["response"] = asyncio.run(
+                    provider.generate_with_image(
+                        prompt=design_token_prompt,
+                        image_data=image_bytes,
+                        image_mime_type=mime_type
+                    )
+                )
+            except Exception as e:
+                design_token_result["error"] = e
+                logger.error(f"[Task {task_id[:8]}] Design token analysis failed: {e}")
+        
+        def run_aesthetic_analysis():
+            """Thread target for aesthetic analysis extraction."""
+            try:
+                # Create a separate provider instance for the aesthetic analysis thread
+                # to avoid sharing async state across threads
+                aesthetic_config = LLMConfig(
+                    provider_type=base_config.provider_type,
+                    api_key=base_config.api_key,
+                    model=base_config.model,
+                    base_url=base_config.base_url,
+                    timeout=base_config.timeout,
+                    enable_reasoning=base_config.enable_reasoning,
+                    structured_output=False,  # Aesthetic analysis uses free-form JSON
+                    response_schema=None
+                )
+                aesthetic_provider = create_llm_provider(aesthetic_config)
+                aesthetic_result["response"] = asyncio.run(
+                    aesthetic_provider.generate_with_image(
+                        prompt=aesthetic_prompt,
+                        image_data=image_bytes,
+                        image_mime_type=mime_type
+                    )
+                )
+            except Exception as e:
+                aesthetic_result["error"] = e
+                logger.error(f"[Task {task_id[:8]}] Aesthetic analysis failed: {e}")
         
         analysis_start_time = time.time()
-        analysis_response = asyncio.run(
-            provider.generate_with_image(
-                prompt=analysis_prompt,
-                image_data=image_bytes,
-                image_mime_type=mime_type
-            )
-        )
+        
+        # Start both threads
+        design_token_thread = threading.Thread(target=run_design_token_analysis, name="design-token-analysis")
+        aesthetic_thread = threading.Thread(target=run_aesthetic_analysis, name="aesthetic-analysis")
+        
+        design_token_thread.start()
+        aesthetic_thread.start()
+        
+        # Wait for both to complete
+        design_token_thread.join()
+        aesthetic_thread.join()
+        
         analysis_elapsed = time.time() - analysis_start_time
-        logger.info(f"[Task {task_id[:8]}] Analysis completed in {analysis_elapsed:.2f}s")
-        logger.info(f"[Task {task_id[:8]}] Response length: {len(analysis_response.content)} chars")
+        logger.info(f"[Task {task_id[:8]}] Parallel analysis completed in {analysis_elapsed:.2f}s")
+        
+        # Check design token result (required)
+        if design_token_result["error"]:
+            raise design_token_result["error"]
+        
+        analysis_response = design_token_result["response"]
+        logger.info(f"[Task {task_id[:8]}] Design token response length: {len(analysis_response.content)} chars")
+        
+        # Process aesthetic result (optional — non-fatal if it fails)
+        # Aesthetic analysis is now Markdown text, no JSON parsing needed
+        aesthetic_analysis_data = None
+        if aesthetic_result["response"]:
+            aesthetic_analysis_data = aesthetic_result["response"].content.strip()
+            logger.info(f"[Task {task_id[:8]}] ✓ Aesthetic analysis extracted ({len(aesthetic_analysis_data)} chars)")
+        elif aesthetic_result["error"]:
+            logger.warning(f"[Task {task_id[:8]}] Aesthetic analysis failed (non-fatal): {aesthetic_result['error']}")
         
         # Update progress after LLM completes
         update_task_progress(
@@ -302,7 +371,7 @@ def generate_design_system_task(
         
         # Convert to frontend format
         analysis_result = convert_to_frontend_format(raw_json)
-        logger.info(f"[Task {task_id[:8]}] ✓ Design tokens extracted: style={analysis_result.get('styleName')}, confidence={analysis_result.get('confidence')}")
+        logger.info(f"[Task {task_id[:8]}] ✓ Design tokens extracted: confidence={analysis_result.get('confidence')}")
         
         # =================================================================
         # STEP 3: Finalization
@@ -331,17 +400,18 @@ def generate_design_system_task(
                 "model": config.model,
                 "images_analyzed": 1,
                 "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-                "workflow_version": "4.0"  # Version 4.0 = structured JSON output
+                "workflow_version": "5.0"  # Version 5.0 = parallel design tokens + aesthetic analysis
             }
         }
         
         logger.info(f"[Task {task_id[:8]}] Metadata added to result")
         
-        # Save to database
+        # Save to database (design tokens + aesthetic analysis)
         logger.info(f"[Task {task_id[:8]}] Saving to database (ID: {design_system_id[:8]}...)")
         save_design_system_result(
             design_system_id=design_system_id,
             style_data=final_result,
+            aesthetic_analysis=aesthetic_analysis_data,
             provider=config.provider_type.value,
             model=config.model
         )
@@ -589,7 +659,8 @@ def save_design_system_result(
     design_system_id: str,
     style_data: dict,
     provider: str,
-    model: str
+    model: str,
+    aesthetic_analysis: str = None
 ):
     """
     Save the analysis result to the database.
@@ -599,6 +670,7 @@ def save_design_system_result(
         style_data: The generated style data (stored as design_tokens)
         provider: LLM provider used
         model: LLM model used
+        aesthetic_analysis: Optional aesthetic analysis Markdown text
     """
     from django.utils import timezone
     from .models import DesignSystem, DesignSystemStatus
@@ -616,11 +688,17 @@ def save_design_system_result(
         design_system.status = DesignSystemStatus.COMPLETED
         design_system.analyzed_at = timezone.now()
         design_system.analysis_error = None
-        design_system.save(update_fields=[
-            'design_tokens', 'status', 
+        
+        # Save aesthetic analysis if provided
+        if aesthetic_analysis is not None:
+            design_system.aesthetic_analysis = aesthetic_analysis
+        
+        update_fields = [
+            'design_tokens', 'aesthetic_analysis', 'status', 
             'analyzed_at', 'analysis_error', 'updated_at'
-        ])
-        logger.info(f"Saved design system result for {design_system_id}")
+        ]
+        design_system.save(update_fields=update_fields)
+        logger.info(f"Saved design system result for {design_system_id} (aesthetic_analysis: {'yes' if aesthetic_analysis else 'no'})")
     except DesignSystem.DoesNotExist:
         logger.error(f"DesignSystem {design_system_id} not found when saving result")
     except Exception as e:

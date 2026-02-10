@@ -279,6 +279,21 @@ function DesignSystemCard({ system, onSelect, onDelete, progress }) {
   const { t } = useTranslation()
   const isProcessing = system.status === DesignSystemStatus.PROCESSING || system.status === DesignSystemStatus.PENDING
   
+  // Check if color is light (needs border)
+  const isLightColor = (hexColor) => {
+    if (!hexColor) return false
+    // Remove # if present
+    const hex = hexColor.replace('#', '')
+    // Convert to RGB
+    const r = parseInt(hex.substr(0, 2), 16)
+    const g = parseInt(hex.substr(2, 2), 16)
+    const b = parseInt(hex.substr(4, 2), 16)
+    // Calculate luminance (perceived brightness)
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+    // If luminance > 0.9, it's a light color
+    return luminance > 0.9
+  }
+  
   // Get status badge color
   const getStatusColor = (status) => {
     switch (status) {
@@ -317,7 +332,10 @@ function DesignSystemCard({ system, onSelect, onDelete, progress }) {
           className="flex size-12 items-center justify-center rounded-lg text-lg font-bold"
           style={{ 
             backgroundColor: system.primary_color || 'var(--bg-surface)',
-            color: system.primary_color ? 'var(--text-on-dark)' : 'var(--text-secondary)'
+            color: system.primary_color 
+              ? (isLightColor(system.primary_color) ? 'var(--text-primary)' : 'var(--text-on-dark)')
+              : 'var(--text-secondary)',
+            border: isLightColor(system.primary_color) ? '1px solid var(--border-default)' : 'none'
           }}
         >
           {system.initial || system.name?.charAt(0).toUpperCase()}

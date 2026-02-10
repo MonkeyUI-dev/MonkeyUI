@@ -266,6 +266,7 @@ export default function MCPAccessPanel({
             <div className="grid grid-cols-2 gap-2">
               {[
                 { name: 'get_design_system', desc: t('vibeStudio.mcp.tools.getDesignSystem') },
+                { name: 'get_aesthetic_guidance', desc: t('vibeStudio.mcp.tools.getAestheticGuidance') },
               ].map((tool) => (
                 <div 
                   key={tool.name}

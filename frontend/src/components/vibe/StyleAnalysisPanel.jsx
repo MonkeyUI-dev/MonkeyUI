@@ -31,15 +31,16 @@ function ShadowIcon({ className }) {
   )
 }
 
-function StyleIcon({ className }) {
+function StyleIcon({ className, ...props }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
       <path d="M12 2L2 7l10 5 10-5-10-5z" />
       <path d="M2 17l10 5 10-5" />
       <path d="M2 12l10 5 10-5" />
     </svg>
   )
 }
+
 
 // Collapsible Section Component
 function CollapsibleSection({ title, icon: Icon, children, defaultOpen = false }) {
@@ -356,41 +357,6 @@ export default function StyleAnalysisPanel({ styleData, onStyleDataChange, isEmp
               {styleData.shadowDepth ?? 0}
             </span>
           </div>
-        </div>
-      </CollapsibleSection>
-
-      {/* Overall Design Style Section */}
-      <CollapsibleSection 
-        title={t('vibeStudio.overallStyle')} 
-        icon={StyleIcon}
-        defaultOpen={true}
-      >
-        <div 
-          className="p-6 rounded-lg text-center"
-          style={{ 
-            backgroundColor: 'var(--bg-surface)', 
-            border: '1px solid var(--border-subtle)' 
-          }}
-        >
-          <span 
-            className="text-xs font-medium block mb-2"
-            style={{ color: 'var(--text-tertiary)' }}
-          >
-            {t('vibeStudio.detectedAesthetic')}
-          </span>
-          <input
-            type="text"
-            value={styleData.designStyle || ''}
-            onChange={(e) => onStyleDataChange({ ...styleData, designStyle: e.target.value })}
-            className="w-full text-xl font-bold text-center bg-transparent outline-none mb-2"
-            style={{ color: 'var(--accent-blue)' }}
-          />
-          <p 
-            className="text-sm"
-            style={{ color: 'var(--text-secondary)' }}
-          >
-            {styleData.designStyleDescription || t('vibeStudio.styleDescriptionDefault')}
-          </p>
         </div>
       </CollapsibleSection>
     </div>

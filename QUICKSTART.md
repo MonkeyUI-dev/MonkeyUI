@@ -31,7 +31,7 @@ npm install
 
 ```bash
 cd backend
-pipenv install --dev
+uv sync
 cp .env.example .env
 # Edit .env with your database credentials
 ```
@@ -50,9 +50,8 @@ psql monkeyui_dev -c 'CREATE EXTENSION vector;'
 
 ```bash
 cd backend
-pipenv shell
-python manage.py migrate
-python manage.py createsuperuser
+uv run python manage.py migrate
+uv run python manage.py createsuperuser
 ```
 
 ## 🏃 Running the Application
@@ -69,8 +68,7 @@ Frontend will be available at: http://localhost:5173
 **Terminal 2 - Backend:**
 ```bash
 cd backend
-pipenv shell
-python manage.py runserver
+uv run python manage.py runserver
 ```
 Backend API will be available at: http://localhost:8000
 
@@ -188,8 +186,7 @@ This project includes GitHub Copilot instructions at `.github/copilot-instructio
 - Check Node.js version: `node --version` (should be 18+)
 
 ### Backend Import Error
-- Activate virtual environment: `pipenv shell`
-- Reinstall dependencies: `pipenv install`
+- Reinstall dependencies: `uv sync`
 
 ## 💡 Next Steps
 

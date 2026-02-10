@@ -5,9 +5,9 @@
 ### Prerequisites
 
 - Node.js 18+ and npm
-- Python 3.11+
+- Python 3.14+
 - PostgreSQL 15+ with pgvector
-- Pipenv
+- uv
 
 ### Installation
 
@@ -28,8 +28,7 @@
 3. **Setup Backend:**
    ```bash
    cd backend
-   pipenv install
-   pipenv shell
+   uv sync
    cp .env.example .env
    # Update .env with your database credentials
    
@@ -37,9 +36,9 @@
    createdb monkeyui_dev
    psql monkeyui_dev -c 'CREATE EXTENSION vector;'
    
-   python manage.py migrate
-   python manage.py createsuperuser
-   python manage.py runserver
+   uv run python manage.py migrate
+   uv run python manage.py createsuperuser
+   uv run python manage.py runserver
    ```
 
 ## Architecture
@@ -56,7 +55,7 @@
 - Django 5.0
 - Django REST Framework
 - PostgreSQL with pgvector
-- Pipenv for dependency management
+- uv for dependency management
 - drf-spectacular for API documentation
 
 ## Features
@@ -115,12 +114,11 @@ npm run lint      # Run ESLint
 
 ```bash
 cd backend
-pipenv shell
-python manage.py runserver          # Start dev server
-python manage.py makemigrations     # Create migrations
-python manage.py migrate            # Apply migrations
-python manage.py createsuperuser    # Create admin user
-python manage.py test               # Run tests
+uv run python manage.py runserver          # Start dev server
+uv run python manage.py makemigrations     # Create migrations
+uv run python manage.py migrate            # Apply migrations
+uv run python manage.py createsuperuser    # Create admin user
+uv run pytest                              # Run tests
 ```
 
 ### i18n Workflow
@@ -147,8 +145,7 @@ npm test
 ### Backend
 ```bash
 cd backend
-pipenv shell
-pytest
+uv run pytest
 ```
 
 ## Deployment
@@ -167,8 +164,7 @@ See deployment documentation for production setup instructions.
 - Check Node.js version: `node --version` (should be 18+)
 
 ### Backend Import Errors
-- Activate pipenv: `pipenv shell`
-- Reinstall dependencies: `pipenv install`
+- Reinstall dependencies: `cd backend && uv sync`
 
 ## Further Reading
 

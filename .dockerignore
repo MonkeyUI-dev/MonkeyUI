@@ -47,9 +47,6 @@ backend/htmlcov/
 docker-compose*.yml
 .docker/
 
-# Fly.io config (will be read separately)
-fly.toml
-
 # Testing
 *.test.js
 *.spec.js

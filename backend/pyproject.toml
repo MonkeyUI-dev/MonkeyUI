@@ -1,7 +1,7 @@
 [project]
-name = "monkeyui-backend"
+name = "designmonkey-backend"
 version = "0.1.0"
-description = "MonkeyUI Backend API"
+description = "designmonkey Backend API"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [

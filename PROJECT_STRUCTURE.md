@@ -1,7 +1,7 @@
-# MonkeyUI Project Structure
+# designmonkey Project Structure
 
 ```
-monkeyui/
+designmonkey/
 ├── .github/
 │   ├── agent.md                    # AI agent instructions & project conventions
 │   └── workflows/
@@ -96,7 +96,7 @@ monkeyui/
 ├── QUICKSTART.md                  # Quick start guide
 ├── LICENSE
 ├── package.json                   # Root package.json (npm workspaces)
-├── monkeyui.code-workspace        # VS Code workspace config
+├── designmonkey.code-workspace    # VS Code workspace config
 ├── setup.sh                       # Setup script
 └── setup-auth.sh                  # Auth setup script
 ```

@@ -1,6 +1,6 @@
 {
   "welcome": {
-    "title": "欢迎来到 MonkeyUI",
+    "title": "欢迎来到 designmonkey",
     "description": "使用 React 和 Django 构建的现代全栈应用",
     "counter": "点击次数",
     "techStack": "使用现代技术栈构建"
@@ -39,7 +39,7 @@
     },
     "register": {
       "title": "新用户注册",
-      "subtitle": "开始使用MonkeyUI",
+      "subtitle": "开始使用designmonkey",
       "submit": "立即注册",
       "hasAccount": "已有账号？",
       "loginLink": "返回登录",
@@ -67,7 +67,7 @@
       "description": "管理用于 MCP 和外部集成的 API 密钥",
       "createNew": "创建新密钥",
       "noKeys": "还没有 API 密钥",
-      "noKeysDescription": "创建你的第一个 API 密钥，通过 MCP 或外部工具访问 MonkeyUI",
+      "noKeysDescription": "创建你的第一个 API 密钥，通过 MCP 或外部工具访问 designmonkey",
       "keyName": "密钥名称",
       "keyNamePlaceholder": "例如：Cursor MCP、Claude Desktop",
       "created": "创建时间",

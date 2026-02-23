@@ -1,5 +1,5 @@
 """
-ASGI config for MonkeyUI backend.
+ASGI config for designmonkey backend.
 """
 import os
 

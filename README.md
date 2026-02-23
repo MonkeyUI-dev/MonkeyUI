@@ -1,11 +1,11 @@
-# MonkeyUI
+# designmonkey
 
 A modern full-stack application built with React and Django.
 
 ## Project Structure
 
 ```
-monkeyui/
+designmonkey/
 ├── frontend/          # React + Vite frontend application
 ├── backend/           # Django + DRF backend API
 └── docs/              # Documentation
@@ -73,8 +73,8 @@ brew install postgresql pgvector
 brew services start postgresql
 
 # Create database
-createdb monkeyui_dev
-psql monkeyui_dev -c 'CREATE EXTENSION vector;'
+createdb designmonkey_dev
+psql designmonkey_dev -c 'CREATE EXTENSION vector;'
 ```
 
 2. Update backend `.env` file with your database credentials.

@@ -1,4 +1,4 @@
-# MonkeyUI Documentation
+# designmonkey Documentation
 
 ## Quick Start
 
@@ -14,7 +14,7 @@
 1. **Clone the repository:**
    ```bash
    git clone <repository-url>
-   cd monkeyui
+   cd designmonkey
    ```
 
 2. **Setup Frontend:**
@@ -34,8 +34,8 @@
    # Update .env with your database credentials
    
    # Setup database
-   createdb monkeyui_dev
-   psql monkeyui_dev -c 'CREATE EXTENSION vector;'
+   createdb designmonkey_dev
+   psql designmonkey_dev -c 'CREATE EXTENSION vector;'
    
    python manage.py migrate
    python manage.py createsuperuser

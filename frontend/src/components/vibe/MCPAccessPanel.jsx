@@ -30,7 +30,7 @@ export default function MCPAccessPanel({
 
   // Get base URL for API endpoints
   const baseUrl = window.location.origin
-  const serverName = `monkeyui-${(designSystemName || 'design-system').toLowerCase().replace(/\s+/g, '-')}`
+  const serverName = `designmonkey-${(designSystemName || 'design-system').toLowerCase().replace(/\s+/g, '-')}`
   const mcpEndpoint = `${baseUrl}/api/v1/design-systems/mcp/${designSystemId}/`
 
   const handleCopy = async (text, field) => {

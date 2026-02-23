@@ -1,5 +1,5 @@
 """
-Django settings for MonkeyUI backend.
+Django settings for designmonkey backend.
 """
 import os
 from pathlib import Path
@@ -92,7 +92,7 @@ import dj_database_url
 
 DATABASES = {
     'default': dj_database_url.parse(
-        os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/monkeyui_dev')
+        os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/designmonkey_dev')
     )
 }
 
@@ -286,8 +286,8 @@ REST_FRAMEWORK = {
 
 # API Documentation
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'MonkeyUI API',
-    'DESCRIPTION': 'API documentation for MonkeyUI backend',
+    'TITLE': 'designmonkey API',
+    'DESCRIPTION': 'API documentation for designmonkey backend',
     'VERSION': '0.1.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }

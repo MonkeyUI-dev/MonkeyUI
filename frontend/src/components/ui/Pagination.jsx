@@ -3,7 +3,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid'
 
 /**
  * Pagination Component
- * A minimalist pagination component following MonkeyUI design system
+ * A minimalist pagination component following designmonkey design system
  * 
  * @param {Object} props
  * @param {number} props.currentPage - Current page number (1-indexed)

@@ -60,7 +60,7 @@ export default function CreateVibeModal({ isOpen, onClose, onGoToStudio }) {
                 {/* Close button */}
                 <button
                   onClick={handleClose}
-                  className="absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="absolute top-4 right-4 p-2 rounded-full hover:bg-[#F5F0FF] transition-colors"
                 >
                   <XMarkIcon className="size-5" style={{ color: 'var(--text-secondary)' }} />
                 </button>
@@ -90,7 +90,7 @@ export default function CreateVibeModal({ isOpen, onClose, onGoToStudio }) {
                       value={vibeName}
                       onChange={(e) => setVibeName(e.target.value)}
                       placeholder={t('vibeStudio.vibeNamePlaceholder')}
-                      className="w-full px-4 py-3 rounded-lg text-sm outline-none transition-all focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 rounded-2xl text-sm outline-none transition-all focus:ring-2 focus:ring-[#6B52E1]"
                       style={{ 
                         backgroundColor: 'var(--bg-surface)', 
                         border: '1px solid var(--border-subtle)',
@@ -114,7 +114,7 @@ export default function CreateVibeModal({ isOpen, onClose, onGoToStudio }) {
                       onChange={(e) => setStyleDescription(e.target.value)}
                       placeholder={t('vibeStudio.styleDescriptionPlaceholder')}
                       rows={5}
-                      className="w-full px-4 py-3 rounded-lg text-sm outline-none resize-y transition-all focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 rounded-2xl text-sm outline-none resize-y transition-all focus:ring-2 focus:ring-[#6B52E1]"
                       style={{ 
                         backgroundColor: 'var(--bg-surface)', 
                         border: '1px solid var(--border-subtle)',

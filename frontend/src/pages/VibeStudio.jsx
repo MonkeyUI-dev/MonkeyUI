@@ -403,7 +403,7 @@ export default function VibeStudio({ isNew }) {
           <div className="flex items-center gap-x-4">
             <button
               onClick={() => navigate('/')}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-2 rounded-full hover:bg-[#F5F0FF] transition-colors"
             >
               <ArrowLeftIcon className="size-5" style={{ color: 'var(--text-secondary)' }} />
             </button>
@@ -551,7 +551,7 @@ export default function VibeStudio({ isNew }) {
               }}
             >
               {uploadedImages.length === 0 ? (
-                <label className="flex flex-col items-center justify-center h-full min-h-[400px] cursor-pointer hover:bg-gray-50 transition-colors">
+                <label className="flex flex-col items-center justify-center h-full min-h-[400px] cursor-pointer hover:bg-[#F5F0FF] transition-colors">
                   <input
                     type="file"
                     accept="image/*"
@@ -598,7 +598,7 @@ export default function VibeStudio({ isNew }) {
                           <XMarkIcon className="size-4" />
                         </button>
                       )}
-                      <p className="text-sm text-center mt-2 text-gray-500" style={{ color: 'var(--text-secondary)' }}>
+                      <p className="text-sm text-center mt-2" style={{ color: 'var(--text-secondary)' }}>
                         {image.name}
                       </p>
                     </div>

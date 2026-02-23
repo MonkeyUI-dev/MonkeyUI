@@ -133,7 +133,7 @@ export default function MCPAccessPanel({
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-full hover:bg-[#F5F0FF] transition-colors"
           >
             <XMarkIcon className="size-5" style={{ color: 'var(--text-secondary)' }} />
           </button>
@@ -173,7 +173,7 @@ export default function MCPAccessPanel({
               >
                 <button
                   onClick={() => setExpandedSection(expandedSection === section.id ? null : section.id)}
-                  className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center justify-between p-4 hover:bg-[#F5F0FF] transition-colors"
                   style={{ backgroundColor: 'var(--bg-canvas)' }}
                 >
                   <div className="flex items-center gap-3">
@@ -221,7 +221,7 @@ export default function MCPAccessPanel({
                           </span>
                           <button
                             onClick={() => handleCopy(subsection.content, subsection.id)}
-                            className="flex items-center gap-1.5 text-xs px-2 py-1 rounded hover:bg-gray-200 transition-colors"
+                            className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-full hover:bg-[#F5F0FF] transition-colors"
                             style={{ color: 'var(--accent-blue)' }}
                           >
                             {copiedField === subsection.id ? (

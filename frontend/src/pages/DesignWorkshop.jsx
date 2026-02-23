@@ -211,7 +211,7 @@ export default function DesignWorkshop() {
           {/* Loading State */}
           {isLoading && (
             <div className="flex items-center justify-center py-16">
-              <div className="animate-spin size-8 border-2 border-blue-500 border-t-transparent rounded-full" />
+              <div className="animate-spin size-8 border-2 border-[#6B52E1] border-t-transparent rounded-full" />
             </div>
           )}
 
@@ -353,7 +353,7 @@ function DesignSystemCard({ system, onSelect, onDelete, progress }) {
           )}
           <button
             onClick={onDelete}
-            className="p-1.5 rounded-md hover:bg-red-50 transition-colors"
+            className="p-1.5 rounded-md hover:bg-[#FFF0F0] transition-colors"
             title={t('common.delete')}
           >
             <TrashIcon className="size-4" style={{ color: 'var(--color-error)' }} />
@@ -363,7 +363,7 @@ function DesignSystemCard({ system, onSelect, onDelete, progress }) {
 
       {/* Content */}
       <h3 
-        className="text-base font-semibold mb-1 group-hover:text-black transition-colors"
+        className="text-base font-semibold mb-1 group-hover:text-[#6B52E1] transition-colors"
         style={{ color: 'var(--text-primary)' }}
       >
         {system.name}

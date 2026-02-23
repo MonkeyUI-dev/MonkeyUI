@@ -203,14 +203,19 @@ class Document(models.Model):
 
 ## Design System
 
-MonkeyUI follows a **minimalist black-and-white design aesthetic** inspired by Notion, with carefully chosen accent colors for emphasis. All generated UI components should adhere to this design language.
+MonkeyUI follows a **Playful Vibrant Academy** design aesthetic — a joyful, creative, and approachable design language inspired by a "sticker-book" aesthetic with high-energy colors, organic shapes, and whimsical details. All generated UI components should adhere to this design language.
 
 ### Design Principles
-- **Minimalism First**: Clean, uncluttered interfaces with generous whitespace
-- **High Contrast**: Strong black-on-white contrast for readability
-- **Selective Accent**: Use vibrant accent colors (red, yellow, blue) sparingly for emphasis and CTAs
-- **Subtle Depth**: Prefer borders over heavy shadows; use subtle shadows only when needed
-- **Modern Typography**: Sans-serif fonts with clear hierarchy (extra-bold headings, regular body text)
+- **Curated Play**: A digital playground that blends structured learning with the organic, messy joy of a child's scrapbook
+- **Warmth & Human Touch**: Communicates trust through warmth, not sterility — like a friendly teacher who sits on the floor with students
+- **High-Energy Color**: Vibrant, high-contrast, candy-like palette with Electric Violet and Marigold Yellow as the primary power pair
+- **Soft & Rounded**: No sharp corners — everything is softened with large border radii (24px+), pill-shaped buttons, and organic photo masks
+- **Bouncy Motion**: Hover states should feel like pressing a physical button or lifting a sticker; elastic, bouncy transitions
+
+### Material & Lighting
+- Surfaces feel like **matte paper and soft plastics** — flat, clean color blocks with a "cut-out" paper feel
+- Uniform, high-key lighting; shadows are very soft and diffuse (sticker-lift effect)
+- Depth is achieved through **overlap and layering** (2.5D collage approach), not heavy shadows
 
 ### CSS Variables Reference
 
@@ -221,90 +226,94 @@ Apply these CSS custom properties in your components to maintain visual consiste
   /* =========================================================
    * Brand Colors
    * ========================================================= */
-  --brand-primary: #000000;    /* Pure black for primary brand */
-  --brand-secondary: #2A99D3;  /* Blue accent for secondary elements */
+  --brand-primary: #6B52E1;    /* Electric Violet */
+  --brand-secondary: #FFD560;  /* Marigold Yellow */
 
   /* =========================================================
    * Neutral Colors
    * ========================================================= */
-  --bg-canvas: #FFFFFF;        /* Main background (pure white) */
-  --bg-surface: #F8F8F8;       /* Secondary surface (subtle gray) */
+  --bg-canvas: #FFFFFF;        /* Main background (white paper) */
+  --bg-surface: #F5F0FF;       /* Secondary surface (pale lilac) */
   
-  --border-subtle: #E8E8E8;    /* Light borders/dividers */
-  --border-default: #E0E0E0;   /* Default borders */
+  --border-subtle: #E8DFF5;    /* Light violet borders/dividers */
+  --border-default: #D4C8F0;   /* Default violet borders */
   
-  --text-primary: #101010;     /* Main text (near-black) */
-  --text-secondary: #525252;   /* Secondary text (medium gray) */
-  --text-tertiary: #737373;    /* Tertiary text (light gray) */
+  --text-primary: #2D1B69;     /* Main text (deep indigo, never pure black) */
+  --text-secondary: #6B5B8A;   /* Secondary text (medium violet-gray) */
+  --text-tertiary: #9B8FBB;    /* Tertiary text (light violet-gray) */
   --text-on-dark: #FFFFFF;     /* Text on dark backgrounds */
 
   /* =========================================================
-   * Accent Colors (Use Sparingly)
+   * Accent Colors (High Saturation, Candy-like)
    * ========================================================= */
-  --accent-red: #F8534E;       /* Red for highlights/illustrations */
-  --accent-yellow: #FBC113;    /* Yellow for warnings/highlights */
-  --accent-blue: #2A99D3;      /* Blue for icons/interactive elements */
+  --accent-violet: #6B52E1;    /* Electric Violet for primary accents */
+  --accent-yellow: #FFD560;    /* Marigold Yellow for highlights */
+  --accent-pink: #FF6B9D;      /* Playful pink for illustrations */
+  --accent-blue: #6B52E1;      /* Alias to primary for backward compat */
 
   /* =========================================================
    * Functional Colors
    * ========================================================= */
   --color-success: #22C55E;    /* Success states */
-  --color-warning: #F59E0B;    /* Warning states */
-  --color-error: #EF4444;      /* Error states */
-  --color-info: #3B82F6;       /* Info states */
+  --color-warning: #FFD560;    /* Warning states (marigold) */
+  --color-error: #FF6B6B;      /* Error states (soft playful red) */
+  --color-info: #6B52E1;       /* Info states (primary violet) */
 
   /* =========================================================
    * Typography
    * ========================================================= */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans";
+  --font-sans: "Nunito", "Quicksand", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-accent: "Caveat", cursive;  /* Handwritten brush script for emotional words */
   
   --font-weight-heading: 800;  /* Extra-bold for headings */
+  --font-weight-subheading: 700;
   --font-weight-body: 400;     /* Regular for body text */
   
-  --text-h1-size: 4rem;        /* ~64px for hero headings */
-  --text-h1-line: 1.05;
-  --text-body-size: 1.125rem;  /* ~18px for body text */
+  --text-h1-size: 3.5rem;      /* ~56px for hero headings */
+  --text-h1-line: 1.1;
+  --text-body-size: 1rem;      /* 16px base font size */
   --text-body-line: 1.6;
 
   /* =========================================================
    * Spacing & Radius
    * ========================================================= */
-  --radius-md: 10px;           /* Medium border radius for buttons/cards */
+  --radius-md: 24px;           /* Large border radius for cards/buttons */
+  --radius-pill: 9999px;       /* Fully rounded pill shapes */
 
   /* =========================================================
-   * Elevation (Shadows)
+   * Elevation (Shadows - Soft, Diffuse, Violet-tinted)
    * ========================================================= */
   --shadow-none: none;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);      /* Subtle hover states */
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);     /* Dropdowns/popovers */
-  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.16);    /* Modals (use sparingly) */
+  --shadow-sm: 0 2px 8px rgba(107, 82, 225, 0.08);      /* Subtle sticker-lift */
+  --shadow-md: 0 8px 24px rgba(107, 82, 225, 0.12);     /* Floating cards */
+  --shadow-lg: 0 16px 48px rgba(107, 82, 225, 0.16);    /* Modals (use sparingly) */
 
   /* =========================================================
    * Component Semantics
    * ========================================================= */
-  --btn-primary-bg: #101010;   /* Primary button background */
+  --btn-primary-bg: #6B52E1;   /* Primary button background (Electric Violet) */
   --btn-primary-fg: #FFFFFF;   /* Primary button text */
-  --link-default: #2A99D3;     /* Default link color */
+  --link-default: #6B52E1;     /* Default link color */
 
   /* =========================================================
    * Shadcn/ui Compatibility Layer (HSL format)
    * ========================================================= */
   --background: 0 0% 100%;
-  --foreground: 0 0% 6%;
-  --primary: 0 0% 6%;
+  --foreground: 259 58% 26%;
+  --primary: 252 69% 60%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 97%;
-  --secondary-foreground: 0 0% 32%;
-  --muted: 0 0% 97%;
-  --muted-foreground: 0 0% 32%;
-  --accent: 0 0% 97%;
-  --accent-foreground: 0 0% 6%;
-  --destructive: 0 85% 60%;
+  --secondary: 44 100% 69%;
+  --secondary-foreground: 259 58% 26%;
+  --muted: 260 100% 97%;
+  --muted-foreground: 262 20% 45%;
+  --accent: 260 100% 97%;
+  --accent-foreground: 259 58% 26%;
+  --destructive: 0 100% 71%;
   --destructive-foreground: 0 0% 100%;
-  --border: 0 0% 91%;
-  --input: 0 0% 91%;
-  --ring: 0 0% 6%;
-  --radius: 10px;
+  --border: 260 52% 92%;
+  --input: 260 52% 92%;
+  --ring: 252 69% 60%;
+  --radius: 24px;
 }
 ```
 
@@ -314,28 +323,42 @@ When Tailwind classes align with our design system, prefer them. Otherwise, use 
 
 ```jsx
 // ✅ Good: Using CSS variables for custom colors
-<div className="bg-white border" style={{ borderColor: 'var(--border-subtle)' }}>
+<div className="bg-white" style={{ borderColor: 'var(--border-subtle)' }}>
   <h1 style={{ color: 'var(--text-primary)', fontWeight: 'var(--font-weight-heading)' }}>
     {t('hero.title')}
   </h1>
 </div>
 
-// ✅ Good: Using Tailwind for standard utilities
-<Button className="rounded-xl bg-black text-white px-6 py-3">
+// ✅ Good: Pill-shaped button with primary violet
+<Button className="rounded-full bg-primary text-white px-6 py-3">
   {t('common.getStarted')}
 </Button>
 
+// ✅ Good: Using font-accent for handwritten words
+<span className="font-accent text-2xl" style={{ color: 'var(--accent-yellow)' }}>
+  {t('hero.playful')}
+</span>
+
 // ❌ Avoid: Hardcoding colors
 <div className="bg-[#F8F8F8]">...</div>
+
+// ❌ Avoid: Sharp corners (use rounded-2xl or rounded-full)
+<div className="rounded-sm">...</div>
 ```
 
 ### Component Design Guidelines
 
-1. **Buttons**: Use `--btn-primary-bg` with `--radius-md` for primary CTAs
-2. **Text Hierarchy**: H1 should use `--font-weight-heading` (800), body uses `--font-weight-body` (400)
-3. **Spacing**: Embrace whitespace; use generous padding around key sections
-4. **Borders Over Shadows**: Prefer subtle borders (`--border-subtle`) to separate sections
-5. **Accent Colors**: Reserve for interactive elements, icons, and key highlights only
+1. **Buttons**: Pill-shaped (`rounded-full`) with `--btn-primary-bg` (Electric Violet); include bouncy `active:scale-[0.97]` effect
+2. **Cards**: Massive border radii (24px+), use solid color backgrounds (`--bg-surface` pale lilac) rather than outlines; treat as "islands"
+3. **Text Hierarchy**: Headings use `--font-weight-heading` (800) with Nunito; for emotional/marketing words, use `--font-accent` (Caveat handwritten)
+4. **Spacing**: Asymmetric and breathing — elements float in open space with generous padding
+5. **Color Usage**: Use violet and yellow in large solid blocks (card backgrounds, highlighter strokes); never use Corporate Blue/Grey palettes
+6. **Photos**: Never use raw rectangular photos — mask into circles, arches, or organic blobs
+7. **Decorative Elements**: Use hand-drawn doodles (arrows, spirals, dots, sparkles) sparingly to add motion and whimsy
+8. **Navigation**: Minimal and pill-shaped; active states use rounded capsules
+9. **No Sharp Corners**: No 90-degree angles on buttons, cards, or images
+10. **No Dark Mode**: This aesthetic relies on the "white paper" brightness
+11. **No Serif Fonts**: Do not use traditional serifs — they feel too academic for this vibe
 
 ## i18n Implementation
 
@@ -444,4 +467,8 @@ uv run python -m pytest apps/design_system/mcp/tests.py -v  # Run MCP tests
 5. Write self-documenting code with clear variable names
 6. Add comments for complex logic only
 7. Ensure code is production-ready and follows best practices
-8. **Visual Consistency**: Generated UI should reflect the minimalist Notion-inspired aesthetic
+8. **Visual Consistency**: Generated UI should reflect the Playful Vibrant Academy aesthetic — joyful, rounded, high-energy, and whimsical
+9. **No Sharp Corners**: All buttons use `rounded-full`, cards use `rounded-3xl` or `--radius-md` (24px)
+10. **Color Palette**: Electric Violet (#6B52E1) + Marigold Yellow (#FFD560) — never use corporate blue/grey palettes
+11. **Typography**: Use Nunito/Quicksand for UI, Caveat (handwritten) for playful accents
+12. **Anti-Patterns**: No pure black text, no rectangular photos, no serif fonts, no dark mode

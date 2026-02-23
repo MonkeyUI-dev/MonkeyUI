@@ -336,7 +336,7 @@ export default function ExportRulesModal({ isOpen, onClose, styleData, aesthetic
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-full hover:bg-[#F5F0FF] transition-colors"
           >
             <XMarkIcon className="size-5" style={{ color: 'var(--text-secondary)' }} />
           </button>
@@ -360,7 +360,7 @@ export default function ExportRulesModal({ isOpen, onClose, styleData, aesthetic
                   className={`flex items-start gap-4 p-4 rounded-lg text-left transition-all ${
                     selectedFormat === option.id 
                       ? 'ring-2 ring-offset-2' 
-                      : 'hover:bg-gray-50'
+                      : 'hover:bg-[#F5F0FF]'
                   }`}
                   style={{ 
                     backgroundColor: selectedFormat === option.id ? 'var(--bg-surface)' : 'var(--bg-canvas)',
@@ -370,7 +370,7 @@ export default function ExportRulesModal({ isOpen, onClose, styleData, aesthetic
                 >
                   <div 
                     className={`size-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                      selectedFormat === option.id ? 'border-blue-500 bg-blue-500' : 'border-gray-300'
+                      selectedFormat === option.id ? 'border-[#6B52E1] bg-[#6B52E1]' : 'border-[#D4C8F0]'
                     }`}
                   >
                     {selectedFormat === option.id && (
@@ -415,7 +415,7 @@ export default function ExportRulesModal({ isOpen, onClose, styleData, aesthetic
               </label>
               <button
                 onClick={handleCopy}
-                className="flex items-center gap-1.5 text-sm px-2 py-1 rounded hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-1.5 text-sm px-2 py-1 rounded-full hover:bg-[#F5F0FF] transition-colors"
                 style={{ color: 'var(--accent-blue)' }}
               >
                 {copied ? (

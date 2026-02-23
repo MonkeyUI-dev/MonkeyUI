@@ -1,10 +1,10 @@
 #!/bin/bash
-# Development startup script for MonkeyUI backend
+# Development startup script for designmonkey backend
 # This script starts Django and Celery with auto-reload on code changes
 
 set -e
 
-echo "🚀 Starting MonkeyUI Backend Services..."
+echo "🚀 Starting designmonkey Backend Services..."
 
 # Colors for output
 RED='\033[0;31m'

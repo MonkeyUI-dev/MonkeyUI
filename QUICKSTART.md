@@ -1,6 +1,6 @@
-# MonkeyUI - Quick Start Guide
+# designmonkey - Quick Start Guide
 
-Welcome to MonkeyUI! This guide will help you get started quickly.
+Welcome to designmonkey! This guide will help you get started quickly.
 
 ## 🚀 Automated Setup
 
@@ -40,10 +40,10 @@ cp .env.example .env
 
 ```bash
 # Create database
-createdb monkeyui_dev
+createdb designmonkey_dev
 
 # Enable pgvector extension
-psql monkeyui_dev -c 'CREATE EXTENSION vector;'
+psql designmonkey_dev -c 'CREATE EXTENSION vector;'
 ```
 
 ### 4. Django Setup
@@ -135,7 +135,7 @@ npx shadcn-ui@latest add table
 ## 🔍 Project Structure
 
 ```
-monkeyui/
+designmonkey/
 ├── frontend/          # React + Vite application
 ├── backend/           # Django + DRF API
 ├── docs/              # Documentation
@@ -165,7 +165,7 @@ Edit `backend/.env`:
 ```
 SECRET_KEY=your-secret-key-here
 DEBUG=True
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/monkeyui_dev
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/designmonkey_dev
 ```
 
 ## 🤖 GitHub Copilot
@@ -203,7 +203,7 @@ This project includes GitHub Copilot instructions at `.github/copilot-instructio
 
 ## 🎉 You're All Set!
 
-Start building amazing features with MonkeyUI!
+Start building amazing features with designmonkey!
 
 For questions or issues, please refer to the documentation or open an issue.
 

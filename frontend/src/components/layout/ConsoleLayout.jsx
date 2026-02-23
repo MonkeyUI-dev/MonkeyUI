@@ -177,7 +177,7 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
                   className="text-xl font-bold"
                   style={{ color: 'var(--text-primary)', fontWeight: 'var(--font-weight-heading)' }}
                 >
-                  MonkeyUI
+                  designmonkey
                 </span>
               </div>
               <nav className="relative flex flex-1 flex-col">
@@ -215,7 +215,7 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
               className="text-xl font-bold"
               style={{ color: 'var(--text-primary)', fontWeight: 'var(--font-weight-heading)' }}
             >
-              MonkeyUI
+              designmonkey
             </span>
           </div>
           <nav className="flex flex-1 flex-col">

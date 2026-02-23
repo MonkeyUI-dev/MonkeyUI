@@ -1,5 +1,5 @@
 """
-MonkeyUI Django configuration.
+designmonkey Django configuration.
 
 This module initializes the Celery app when Django starts.
 """

@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# MonkeyUI Setup Script
-# This script sets up the development environment for MonkeyUI
+# designmonkey Setup Script
+# This script sets up the development environment for designmonkey
 
 set -e
 
-echo "🐒 MonkeyUI Setup Script"
+echo "🐒 designmonkey Setup Script"
 echo "========================"
 echo ""
 
@@ -104,8 +104,8 @@ echo "📝 Next Steps:"
 echo "=============="
 echo ""
 echo "1. Setup PostgreSQL database:"
-echo "   createdb monkeyui_dev"
-echo "   psql monkeyui_dev -c 'CREATE EXTENSION vector;'"
+echo "   createdb designmonkey_dev"
+echo "   psql designmonkey_dev -c 'CREATE EXTENSION vector;'"
 echo ""
 echo "2. Update backend/.env with your database credentials"
 echo ""

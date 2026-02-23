@@ -1,6 +1,6 @@
 # Frontend
 
-React + Vite frontend application for MonkeyUI.
+React + Vite frontend application for designmonkey.
 
 ## Setup
 

@@ -2,10 +2,10 @@ services:
   # PostgreSQL Database
   db:
     image: pgvector/pgvector:pg16
-    container_name: monkeyui-db
+    container_name: designmonkey-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: monkeyui_dev
+      POSTGRES_DB: designmonkey_dev
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
@@ -21,7 +21,7 @@ services:
   # Redis (Message Queue for Celery)
   redis:
     image: redis:7-alpine
-    container_name: monkeyui-redis
+    container_name: designmonkey-redis
     restart: unless-stopped
     ports:
       - "6379:6379"
@@ -38,12 +38,12 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: monkeyui-backend
+    container_name: designmonkey-backend
     restart: unless-stopped
     environment:
       - DEBUG=True
       - SECRET_KEY=django-insecure-docker-dev-key-change-in-production
-      - DB_NAME=monkeyui_dev
+      - DB_NAME=designmonkey_dev
       - DB_USER=postgres
       - DB_PASSWORD=postgres
       - DB_HOST=db
@@ -72,12 +72,12 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: monkeyui-celery
+    container_name: designmonkey-celery
     restart: unless-stopped
     environment:
       - DEBUG=True
       - SECRET_KEY=django-insecure-docker-dev-key-change-in-production
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/monkeyui_dev
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/designmonkey_dev
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     volumes:
@@ -97,7 +97,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: monkeyui-frontend
+    container_name: designmonkey-frontend
     restart: unless-stopped
     environment:
       - VITE_API_URL=http://localhost:8000/api

@@ -198,11 +198,11 @@ export default function Register() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl px-6 py-3 text-base font-semibold transition-all"
+              className="w-full rounded-full px-6 py-3 text-base font-semibold transition-all"
               style={{ 
                 backgroundColor: 'var(--btn-primary-bg)',
                 color: 'var(--btn-primary-fg)',
-                borderRadius: 'var(--radius-md)'
+                borderRadius: 'var(--radius-pill)'
               }}
             >
               {loading ? t('common.loading') : t('auth.register.submit')}

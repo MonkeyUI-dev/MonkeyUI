@@ -53,7 +53,7 @@ function CollapsibleSection({ title, icon: Icon, children, defaultOpen = false }
     >
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+        className="w-full flex items-center justify-between p-4 hover:bg-[#F5F0FF] transition-colors"
       >
         <div className="flex items-center gap-x-3">
           <Icon className="size-5" style={{ color: 'var(--accent-blue)' }} />
@@ -172,7 +172,7 @@ export default function StyleAnalysisPanel({ styleData, onStyleDataChange, isEmp
           className="rounded-xl p-12 flex flex-col items-center justify-center min-h-[400px]"
           style={{ backgroundColor: 'var(--bg-canvas)', border: '1px solid var(--border-subtle)' }}
         >
-          <div className="animate-spin size-8 border-2 border-blue-500 border-t-transparent rounded-full mb-4" />
+          <div className="animate-spin size-8 border-2 border-[#6B52E1] border-t-transparent rounded-full mb-4" />
           <p 
             className="text-sm font-medium"
             style={{ color: 'var(--text-secondary)' }}

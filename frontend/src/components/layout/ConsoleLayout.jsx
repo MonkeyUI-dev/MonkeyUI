@@ -237,7 +237,7 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
               <li className="mt-auto">
                 <button
                   onClick={() => setSettingsOpen(true)}
-                  className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold transition-colors hover:bg-gray-50 w-full"
+                  className="group -mx-2 flex gap-x-3 rounded-2xl p-2 text-sm/6 font-semibold transition-colors hover:bg-[#F5F0FF] w-full"
                   style={{ color: 'var(--text-secondary)' }}
                 >
                   <Cog6ToothIcon className="size-6 shrink-0" />
@@ -364,7 +364,7 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
                   <MenuItem>
                     <button
                       onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-sm data-focus:bg-gray-50"
+                      className="block w-full text-left px-4 py-2 text-sm data-focus:bg-[#F5F0FF]"
                       style={{ color: 'var(--text-primary)' }}
                     >
                       {t('common.logout')}
@@ -452,7 +452,7 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
                     setSettingsOpen(false)
                     setActiveSettingTab('general')
                   }}
-                  className="p-1 rounded-md hover:bg-gray-100"
+                  className="p-1 rounded-full hover:bg-[#F5F0FF]"
                   style={{ color: 'var(--text-secondary)' }}
                 >
                   <XMarkIcon className="size-5" />
@@ -782,7 +782,7 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
                   </code>
                   <button
                     onClick={() => copyToClipboard(newlyCreatedKey?.key)}
-                    className="p-1.5 rounded hover:bg-gray-200"
+                    className="p-1.5 rounded-full hover:bg-[#F5F0FF]"
                     style={{ color: 'var(--text-secondary)' }}
                   >
                     <ClipboardDocumentIcon className="size-4" />

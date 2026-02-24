@@ -1,4 +1,4 @@
-# Agent Instructions for designmonkey
+# Agent Instructions for MonkeyUI
 
 ## Project Overview
 This is a monorepo full-stack application with a React frontend and Django backend, focused on design system creation powered by AI/LLM.
@@ -203,7 +203,7 @@ class Document(models.Model):
 
 ## Design System
 
-designmonkey follows a **Playful Vibrant Academy** design aesthetic — a joyful, creative, and approachable design language inspired by a "sticker-book" aesthetic with high-energy colors, organic shapes, and whimsical details. All generated UI components should adhere to this design language.
+MonkeyUI follows a **Playful Vibrant Academy** design aesthetic — a joyful, creative, and approachable design language inspired by a "sticker-book" aesthetic with high-energy colors, organic shapes, and whimsical details. All generated UI components should adhere to this design language.
 
 ### Design Principles
 - **Curated Play**: A digital playground that blends structured learning with the organic, messy joy of a child's scrapbook

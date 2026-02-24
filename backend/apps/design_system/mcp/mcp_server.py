@@ -71,7 +71,7 @@ def create_design_system_mcp(design_system_id: str, api_key: str) -> FastMCP:
     
     # Get design system name for server naming
     ds = _load_design_system()
-    server_name = f"designmonkey-{ds.name.lower().replace(' ', '-')}" if ds else "designmonkey-design-system"
+    server_name = f"monkeyui-{ds.name.lower().replace(' ', '-')}" if ds else "monkeyui-design-system"
     
     # Create FastMCP server with collaborative guidance
     mcp = FastMCP(
@@ -83,7 +83,7 @@ def create_design_system_mcp(design_system_id: str, api_key: str) -> FastMCP:
             f"primary reference. If other MCP servers or skills (such as "
             f"ui-ux-pro-max-skill) provide different design advice (colors, typography, "
             f"spacing, layout patterns, component styles), align with the tokens and "
-            f"guidance from this designmonkey design system server. For aspects not covered "
+            f"guidance from this MonkeyUI design system server. For aspects not covered "
             f"by this design system, collaborate with third-party design tools as needed."
         ),
     )

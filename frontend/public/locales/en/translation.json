@@ -1,6 +1,6 @@
 {
   "welcome": {
-    "title": "Welcome to designmonkey",
+    "title": "Welcome to MonkeyUI",
     "description": "A modern full-stack application built with React and Django",
     "counter": "Click count",
     "techStack": "Built with modern technologies"
@@ -41,7 +41,7 @@
     },
     "register": {
       "title": "Create new account",
-      "subtitle": "Get started with designmonkey",
+      "subtitle": "Get started with MonkeyUI",
       "submit": "Register",
       "hasAccount": "Already have an account?",
       "loginLink": "Sign in",
@@ -69,7 +69,7 @@
       "description": "Manage your API keys for MCP and external integrations",
       "createNew": "Create new key",
       "noKeys": "No API keys yet",
-      "noKeysDescription": "Create your first API key to access designmonkey via MCP or external tools",
+      "noKeysDescription": "Create your first API key to access MonkeyUI via MCP or external tools",
       "keyName": "Key name",
       "keyNamePlaceholder": "e.g. Cursor MCP, Claude Desktop",
       "created": "Created",

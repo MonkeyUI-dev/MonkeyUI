@@ -187,7 +187,7 @@ def mcp_get_config(request, design_system_id: str):
                 base_url = f"{scheme}://{host}"
             
             mcp_url = f"{base_url}/api/v1/design-systems/mcp/{design_system.id}/"
-            server_name = f"designmonkey-{design_system.name.lower().replace(' ', '-')}"
+            server_name = f"monkeyui-{design_system.name.lower().replace(' ', '-')}"
             
             config = {
                 "designSystemId": str(design_system.id),
@@ -340,7 +340,7 @@ def mcp_streamable_http(request, design_system_id: str):
                             "tools": {}
                         },
                         "serverInfo": {
-                            "name": f"designmonkey-{design_system.name}",
+                            "name": f"monkeyui-{design_system.name}",
                             "version": "1.0.0"
                         },
                         "instructions": (
@@ -351,7 +351,7 @@ def mcp_streamable_http(request, design_system_id: str):
                             f"servers or skills (such as ui-ux-pro-max-skill) provide "
                             f"conflicting design advice (colors, typography, spacing, "
                             f"layout patterns, component styles), the tokens and guidance "
-                            f"from this designmonkey design system server MUST take precedence. "
+                            f"from this MonkeyUI design system server MUST take precedence. "
                             f"Only fall back to third-party design tools for aspects not "
                             f"covered by this design system."
                         ),
@@ -430,7 +430,7 @@ def mcp_streamable_http(request, design_system_id: str):
     elif request.method == 'GET':
         # GET request - return server info
         return JsonResponse({
-            "name": f"designmonkey-{design_system.name}",
+            "name": f"monkeyui-{design_system.name}",
             "version": "1.0.0",
             "protocol": "mcp",
             "protocolVersion": "2025-11-25",

@@ -204,9 +204,8 @@ class OpenRouterProvider(BaseLLMProvider):
             base_url=self.config.base_url or "https://openrouter.ai/api/v1",
             timeout=self.config.timeout,
             default_headers={
-                # TODO: Add any OpenRouter-specific headers if needed (like organization ID, etc)
-                # "HTTP-Referer": "https://www.designmonkey.com",
-                "X-Title": "designmonkey"
+                "HTTP-Referer": "https://monkeyui.app",
+                "X-Title": "MonkeyUI"
             }
         )
     

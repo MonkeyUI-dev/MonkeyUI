@@ -1,6 +1,6 @@
 # Backend
 
-Django + DRF backend API for designmonkey.
+Django + DRF backend API for MonkeyUI.
 
 ## Setup
 
@@ -31,10 +31,10 @@ cp .env.example .env
 5. Setup PostgreSQL database:
 ```bash
 # Create database
-createdb designmonkey_dev
+createdb monkeyui_dev
 
 # Enable pgvector extension
-psql designmonkey_dev -c 'CREATE EXTENSION vector;'
+psql monkeyui_dev -c 'CREATE EXTENSION vector;'
 ```
 
 6. Run migrations:

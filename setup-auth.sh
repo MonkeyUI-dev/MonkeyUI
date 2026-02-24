@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# designmonkey Authentication Setup Script
+# MonkeyUI Authentication Setup Script
 # This script helps you set up the authentication system
 
 set -e
 
 echo "=================================================="
-echo "designmonkey Authentication System Setup"
+echo "MonkeyUI Authentication System Setup"
 echo "=================================================="
 echo ""
 

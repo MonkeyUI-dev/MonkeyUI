@@ -1,6 +1,6 @@
-# Contributing to designmonkey
+# Contributing to MonkeyUI
 
-Thank you for your interest in contributing to designmonkey! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to MonkeyUI! This document provides guidelines and instructions for contributing.
 
 ## Code of Conduct
 

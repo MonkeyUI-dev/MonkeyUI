@@ -1,5 +1,5 @@
 """
-WSGI config for designmonkey backend.
+WSGI config for MonkeyUI backend.
 """
 import os
 

@@ -289,7 +289,7 @@ def get_design_system_mcp_config(design_system_id: str) -> Optional[dict]:
             return None
         
         return {
-            "name": f"designmonkey-{design_system.name.lower().replace(' ', '-')}",
+            "name": f"monkeyui-{design_system.name.lower().replace(' ', '-')}",
             "description": f"Design system: {design_system.name}",
             "api_key": api_key.key,
             "endpoints": {

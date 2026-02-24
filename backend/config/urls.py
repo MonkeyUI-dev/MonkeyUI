@@ -1,5 +1,5 @@
 """
-URL configuration for designmonkey backend.
+URL configuration for MonkeyUI backend.
 """
 from django.conf import settings
 from django.conf.urls.static import static
@@ -21,7 +21,7 @@ def serve_media(request, path):
 
 def health_check(request):
     """Health check endpoint for Fly.io and load balancers."""
-    return JsonResponse({"status": "healthy", "service": "designmonkey-backend"})
+    return JsonResponse({"status": "healthy", "service": "monkeyui-backend"})
 
 
 def serve_spa(request, path=''):

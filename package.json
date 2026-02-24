@@ -1,8 +1,8 @@
 {
-  "name": "designmonkey",
+  "name": "monkeyui",
   "version": "0.1.0",
   "private": true,
-  "description": "designmonkey - A modern full-stack application",
+  "description": "MonkeyUI - A modern full-stack application",
   "workspaces": [
     "frontend"
   ],

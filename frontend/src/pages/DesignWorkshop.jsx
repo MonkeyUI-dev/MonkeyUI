@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { PlusIcon, SwatchIcon, TrashIcon, EllipsisVerticalIcon, LinkIcon } from '@heroicons/react/24/outline'
 import ConsoleLayout from '@/components/layout/ConsoleLayout'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
 import Pagination from '@/components/ui/Pagination'
 import CreateVibeModal from '@/components/vibe/CreateVibeModal'
 import designSystemService, { DesignSystemStatus } from '@/services/designSystem'
@@ -338,18 +340,18 @@ function DesignSystemCard({ system, onSelect, onDelete, progress }) {
     return luminance > 0.5
   }
   
-  // Get status badge color
-  const getStatusColor = (status) => {
+  // Get status badge variant
+  const getStatusBadgeVariant = (status) => {
     switch (status) {
       case DesignSystemStatus.COMPLETED:
-        return 'var(--color-success)'
+        return 'success'
       case DesignSystemStatus.PROCESSING:
       case DesignSystemStatus.PENDING:
-        return 'var(--accent-blue)'
+        return 'info'
       case DesignSystemStatus.FAILED:
-        return 'var(--color-error)'
+        return 'error'
       default:
-        return 'var(--text-tertiary)'
+        return 'muted'
     }
   }
   
@@ -426,22 +428,15 @@ function DesignSystemCard({ system, onSelect, onDelete, progress }) {
             <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
               {progress.message || t('designWorkshop.analyzing')}
             </span>
-            <span className="text-xs font-medium" style={{ color: 'var(--accent-blue)' }}>
+            <span className="text-xs font-medium" style={{ color: 'var(--color-info)' }}>
               {progress.progress || 0}%
             </span>
           </div>
-          <div 
-            className="w-full h-1.5 rounded-full overflow-hidden"
-            style={{ backgroundColor: 'var(--bg-surface)' }}
-          >
-            <div 
-              className="h-full transition-all duration-500 ease-out"
-              style={{ 
-                width: `${progress.progress || 0}%`,
-                backgroundColor: 'var(--accent-blue)'
-              }}
-            />
-          </div>
+          <Progress
+            value={progress.progress || 0}
+            className="bg-[var(--bg-surface)]"
+            indicatorClassName="bg-[var(--color-info)]"
+          />
         </div>
       )}
 
@@ -455,15 +450,9 @@ function DesignSystemCard({ system, onSelect, onDelete, progress }) {
         </div>
         
         {/* Status badge */}
-        <div 
-          className="px-2 py-0.5 rounded-full text-xs font-medium"
-          style={{ 
-            backgroundColor: `${getStatusColor(system.status)}15`,
-            color: getStatusColor(system.status)
-          }}
-        >
+        <Badge variant={getStatusBadgeVariant(system.status)}>
           {t(`designWorkshop.status.${system.status}`)}
-        </div>
+        </Badge>
       </div>
 
       {/* Hover overlay */}

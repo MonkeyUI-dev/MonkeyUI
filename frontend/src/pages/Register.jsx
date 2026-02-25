@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
 
 export default function Register() {
   const { t } = useTranslation();
@@ -86,15 +88,9 @@ export default function Register() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label 
-              htmlFor="name" 
-              className="block text-sm font-medium mb-2"
-              style={{ color: 'var(--text-primary)' }}
-            >
-              {t('auth.fields.name')}
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="name">{t('auth.fields.name')}</Label>
+            <Input
               id="name"
               name="name"
               type="text"
@@ -102,26 +98,13 @@ export default function Register() {
               autoComplete="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="block w-full rounded-xl px-4 py-3 text-base outline-none transition-all"
-              style={{ 
-                backgroundColor: 'var(--bg-surface)',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--border-default)',
-                borderRadius: 'var(--radius-md)'
-              }}
               placeholder={t('auth.fields.namePlaceholder')}
             />
           </div>
 
-          <div>
-            <label 
-              htmlFor="email" 
-              className="block text-sm font-medium mb-2"
-              style={{ color: 'var(--text-primary)' }}
-            >
-              {t('auth.fields.email')}
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="email">{t('auth.fields.email')}</Label>
+            <Input
               id="email"
               name="email"
               type="email"
@@ -129,26 +112,13 @@ export default function Register() {
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="block w-full rounded-xl px-4 py-3 text-base outline-none transition-all"
-              style={{ 
-                backgroundColor: 'var(--bg-surface)',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--border-default)',
-                borderRadius: 'var(--radius-md)'
-              }}
               placeholder={t('auth.fields.emailPlaceholder')}
             />
           </div>
 
-          <div>
-            <label 
-              htmlFor="password" 
-              className="block text-sm font-medium mb-2"
-              style={{ color: 'var(--text-primary)' }}
-            >
-              {t('auth.fields.password')}
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="password">{t('auth.fields.password')}</Label>
+            <Input
               id="password"
               name="password"
               type="password"
@@ -156,26 +126,13 @@ export default function Register() {
               autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="block w-full rounded-xl px-4 py-3 text-base outline-none transition-all"
-              style={{ 
-                backgroundColor: 'var(--bg-surface)',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--border-default)',
-                borderRadius: 'var(--radius-md)'
-              }}
               placeholder={t('auth.fields.passwordPlaceholder')}
             />
           </div>
 
-          <div>
-            <label 
-              htmlFor="passwordConfirm" 
-              className="block text-sm font-medium mb-2"
-              style={{ color: 'var(--text-primary)' }}
-            >
-              {t('auth.fields.passwordConfirm')}
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="passwordConfirm">{t('auth.fields.passwordConfirm')}</Label>
+            <Input
               id="passwordConfirm"
               name="passwordConfirm"
               type="password"
@@ -183,13 +140,6 @@ export default function Register() {
               autoComplete="new-password"
               value={passwordConfirm}
               onChange={(e) => setPasswordConfirm(e.target.value)}
-              className="block w-full rounded-xl px-4 py-3 text-base outline-none transition-all"
-              style={{ 
-                backgroundColor: 'var(--bg-surface)',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--border-default)',
-                borderRadius: 'var(--radius-md)'
-              }}
               placeholder={t('auth.fields.passwordConfirmPlaceholder')}
             />
           </div>

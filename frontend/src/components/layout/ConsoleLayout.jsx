@@ -15,6 +15,10 @@ import {
 } from '@heroicons/react/24/outline'
 import { ChevronDownIcon } from '@heroicons/react/20/solid'
 import { fetchAPIKeys, createAPIKey, deleteAPIKey } from '../../services/apiKeys'
+import { Input } from '../ui/input'
+import { Label } from '../ui/label'
+import { Badge } from '../ui/badge'
+import { Separator } from '../ui/separator'
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
@@ -297,22 +301,14 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
           </button>
 
           {/* Separator */}
-          <div 
-            aria-hidden="true" 
-            className="h-6 w-px lg:hidden" 
-            style={{ backgroundColor: 'var(--border-subtle)' }}
-          />
+          <Separator orientation="vertical" className="h-6 lg:hidden" />
 
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="flex flex-1"></div>
             
             <div className="flex items-center gap-x-4 lg:gap-x-6">
               {/* Separator */}
-              <div 
-                aria-hidden="true" 
-                className="hidden lg:block lg:h-6 lg:w-px" 
-                style={{ backgroundColor: 'var(--border-subtle)' }}
-              />
+              <Separator orientation="vertical" className="hidden lg:block lg:h-6" />
 
               {/* Profile dropdown */}
               <Menu as="div" className="relative">
@@ -465,12 +461,7 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
                   <div className="space-y-6">
                     {/* Language Setting */}
                     <div>
-                      <label 
-                        className="block text-sm font-semibold mb-3"
-                        style={{ color: 'var(--text-primary)' }}
-                      >
-                        {t('settings.language')}
-                      </label>
+                      <Label className="mb-3">{t('settings.language')}</Label>
                       <div className="flex gap-3">
                         <button
                           onClick={() => i18n.changeLanguage('en')}
@@ -577,15 +568,12 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
                                   <h4 className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
                                     {key.name}
                                   </h4>
-                                  <span
-                                    className="text-xs px-2.5 py-0.5 rounded-full font-medium flex-shrink-0"
-                                    style={{
-                                      backgroundColor: key.is_active ? 'var(--color-success)' : 'var(--text-tertiary)',
-                                      color: 'white'
-                                    }}
+                                  <Badge
+                                    variant={key.is_active ? 'success' : 'muted'}
+                                    className="flex-shrink-0"
                                   >
                                     {key.is_active ? t('settings.apiKeyManagement.active') : t('settings.apiKeyManagement.inactive')}
-                                  </span>
+                                  </Badge>
                                 </div>
                                 
                                 {/* Key Display */}
@@ -669,24 +657,13 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
             </h3>
             
             <div className="space-y-4">
-              <div>
-                <label 
-                  className="block text-sm font-semibold mb-2"
-                  style={{ color: 'var(--text-primary)' }}
-                >
-                  {t('settings.apiKeyManagement.keyName')}
-                </label>
-                <input
+              <div className="space-y-2">
+                <Label>{t('settings.apiKeyManagement.keyName')}</Label>
+                <Input
                   type="text"
                   value={newKeyName}
                   onChange={(e) => setNewKeyName(e.target.value)}
                   placeholder={t('settings.apiKeyManagement.keyNamePlaceholder')}
-                  className="w-full px-3 py-2 rounded-lg text-sm"
-                  style={{
-                    backgroundColor: 'var(--bg-surface)',
-                    border: '1px solid var(--border-default)',
-                    color: 'var(--text-primary)'
-                  }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !creatingKey) {
                       handleCreateKey()
@@ -761,18 +738,14 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
 
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>
-                  {t('settings.apiKeyManagement.keyName')}
-                </label>
+                <Label className="text-xs mb-1">{t('settings.apiKeyManagement.keyName')}</Label>
                 <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
                   {newlyCreatedKey?.name}
                 </div>
               </div>
               
               <div>
-                <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>
-                  API Key
-                </label>
+                <Label className="text-xs mb-1">API Key</Label>
                 <div 
                   className="flex items-center gap-2 p-2 rounded-lg"
                   style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}

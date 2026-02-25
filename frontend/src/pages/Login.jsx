@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
 
 export default function Login() {
   const { t } = useTranslation();
@@ -64,15 +66,9 @@ export default function Login() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label 
-              htmlFor="email" 
-              className="block text-sm font-medium mb-2"
-              style={{ color: 'var(--text-primary)' }}
-            >
-              {t('auth.fields.email')}
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="email">{t('auth.fields.email')}</Label>
+            <Input
               id="email"
               name="email"
               type="email"
@@ -80,26 +76,13 @@ export default function Login() {
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="block w-full rounded-xl px-4 py-3 text-base outline-none transition-all"
-              style={{ 
-                backgroundColor: 'var(--bg-surface)',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--border-default)',
-                borderRadius: 'var(--radius-md)'
-              }}
               placeholder={t('auth.fields.emailPlaceholder')}
             />
           </div>
 
-          <div>
-            <label 
-              htmlFor="password" 
-              className="block text-sm font-medium mb-2"
-              style={{ color: 'var(--text-primary)' }}
-            >
-              {t('auth.fields.password')}
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="password">{t('auth.fields.password')}</Label>
+            <Input
               id="password"
               name="password"
               type="password"
@@ -107,13 +90,6 @@ export default function Login() {
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="block w-full rounded-xl px-4 py-3 text-base outline-none transition-all"
-              style={{ 
-                backgroundColor: 'var(--bg-surface)',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--border-default)',
-                borderRadius: 'var(--radius-md)'
-              }}
               placeholder={t('auth.fields.passwordPlaceholder')}
             />
           </div>

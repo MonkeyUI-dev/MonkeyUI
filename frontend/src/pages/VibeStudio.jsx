@@ -403,14 +403,14 @@ export default function VibeStudio({ isNew }) {
           <div className="flex items-center gap-x-4">
             <button
               onClick={() => navigate('/')}
-              className="p-2 rounded-full hover:bg-[#F5F0FF] transition-colors"
+              className="p-2 rounded-full hover:bg-white/5 transition-colors"
             >
               <ArrowLeftIcon className="size-5" style={{ color: 'var(--text-secondary)' }} />
             </button>
             <div className="flex items-center gap-x-3">
               <div 
                 className="size-10 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: styleData?.colors?.primary || 'var(--accent-blue)' }}
+                style={{ backgroundColor: styleData?.colors?.primary || 'var(--accent-mint)' }}
               >
                 <svg className="size-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 2L2 7l10 5 10-5-10-5z" />
@@ -463,7 +463,7 @@ export default function VibeStudio({ isNew }) {
               onClick={handleSaveVibe}
               className="gap-x-2"
               disabled={isSaving || !styleData || isAnalyzing}
-              style={{ backgroundColor: 'var(--accent-blue)', color: 'var(--text-on-dark)' }}
+              style={{ backgroundColor: 'var(--accent-mint)', color: 'var(--text-on-dark)' }}
             >
               <BookmarkIcon className="size-4" />
               {isSaving ? t('common.saving') : t('vibeStudio.saveVibe')}
@@ -508,7 +508,7 @@ export default function VibeStudio({ isNew }) {
                 size="sm"
                 className="relative"
                 style={{ 
-                  backgroundColor: isAnalyzing || uploadedImages.length === 0 ? 'var(--bg-surface)' : 'var(--accent-blue)', 
+                  backgroundColor: isAnalyzing || uploadedImages.length === 0 ? 'var(--bg-surface)' : 'var(--accent-mint)', 
                   color: isAnalyzing || uploadedImages.length === 0 ? 'var(--text-secondary)' : 'var(--text-on-dark)',
                   cursor: isAnalyzing || uploadedImages.length === 0 ? 'not-allowed' : 'pointer'
                 }}
@@ -551,7 +551,7 @@ export default function VibeStudio({ isNew }) {
               }}
             >
               {uploadedImages.length === 0 ? (
-                <label className="flex flex-col items-center justify-center h-full min-h-[400px] cursor-pointer hover:bg-[#F5F0FF] transition-colors">
+                <label className="flex flex-col items-center justify-center h-full min-h-[400px] cursor-pointer hover:bg-white/5 transition-colors">
                   <input
                     type="file"
                     accept="image/*"
@@ -627,7 +627,7 @@ export default function VibeStudio({ isNew }) {
                           cx="64"
                           cy="64"
                           r="56"
-                          stroke="var(--accent-blue)"
+                          stroke="var(--accent-mint)"
                           strokeWidth="8"
                           fill="none"
                           strokeLinecap="round"
@@ -643,7 +643,7 @@ export default function VibeStudio({ isNew }) {
                       <div className="absolute inset-0 flex items-center justify-center">
                         <span 
                           className="text-3xl font-bold"
-                          style={{ color: 'var(--accent-blue)' }}
+                          style={{ color: 'var(--accent-mint)' }}
                         >
                           {Math.floor(displayProgress)}%
                         </span>

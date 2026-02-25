@@ -5,53 +5,54 @@
 @layer base {
   :root {
     /* =========================================================
-     * MonkeyUI Design System - Playful Vibrant Academy
-     * A joyful, creative, approachable design language inspired
-     * by a "sticker-book" aesthetic with high-energy colors.
+     * MonkeyUI Design System - NOCTURNAL NEBULA FINANCE
+     * Ethereal · Precision · Sophisticated · Futuristic · Serene
      * Brand Colors
      * ========================================================= */
-    --brand-primary: #6B52E1;    /* Electric Violet */
-    --brand-secondary: #FFD560;  /* Marigold Yellow */
+    --brand-primary: #FFFFFF;    /* White */
+    --brand-secondary: #A8C0AF;  /* Muted mint/sage green */
 
     /* =========================================================
      * Neutral Colors
      * ========================================================= */
-    --bg-canvas: #FFFFFF;        /* Main background (white paper) */
-    --bg-surface: #F5F0FF;       /* Secondary surface (pale lilac) */
+    --bg-canvas: #050505;        /* Main background (Void Black) */
+    --bg-surface: #171717;       /* Secondary surface (Deep matte charcoal) */
     
-    --border-subtle: #E8DFF5;    /* Light violet borders/dividers */
-    --border-default: #D4C8F0;   /* Default violet borders */
+    --border-subtle: rgba(255, 255, 255, 0.1);    /* Light borders/dividers */
+    --border-default: rgba(255, 255, 255, 0.2);   /* Default borders */
     
-    --text-primary: #2D1B69;     /* Main text (deep indigo, never pure black) */
-    --text-secondary: #6B5B8A;   /* Secondary text (medium violet-gray) */
-    --text-tertiary: #9B8FBB;    /* Tertiary text (light violet-gray) */
+    --text-primary: #FFFFFF;     /* Main text (White) */
+    --text-secondary: #A3A3A3;   /* Secondary text (Mid-grey) */
+    --text-tertiary: #737373;    /* Tertiary text (Dark-grey) */
     --text-on-dark: #FFFFFF;     /* Text on dark backgrounds */
 
     /* =========================================================
-     * Accent Colors (High Saturation, Candy-like)
+     * Accent Colors (Desaturated spectral accents)
      * ========================================================= */
-    --accent-violet: #6B52E1;    /* Electric Violet for primary accents */
-    --accent-yellow: #FFD560;    /* Marigold Yellow for highlights */
-    --accent-pink: #FF6B9D;      /* Playful pink for illustrations */
-    --accent-blue: #6B52E1;      /* Alias to primary for backward compat */
+    --accent-mint: #A8C0AF;      /* Muted mint/sage green for primary accents */
+    --accent-silver: #E5E7EB;    /* Pale ethereal silver for highlights */
+    --accent-violet: #A8C0AF;    /* Alias to mint for backward compat */
+    --accent-yellow: #E5E7EB;    /* Alias to silver for backward compat */
+    --accent-pink: #A8C0AF;      /* Alias to mint for backward compat */
+    --accent-blue: #A8C0AF;      /* Alias to mint for backward compat */
 
     /* =========================================================
      * Functional Colors
      * ========================================================= */
-    --color-success: #22C55E;    /* Success states */
-    --color-warning: #FFD560;    /* Warning states (marigold) */
-    --color-error: #FF6B6B;      /* Error states (soft playful red) */
-    --color-info: #6B52E1;       /* Info states (primary violet) */
+    --color-success: #A8C0AF;    /* Success states */
+    --color-warning: #FCD34D;    /* Warning states */
+    --color-error: #FCA5A5;      /* Error states */
+    --color-info: #93C5FD;       /* Info states */
 
     /* =========================================================
      * Typography
      * ========================================================= */
-    --font-sans: "Nunito", "Quicksand", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    --font-accent: "Caveat", cursive;  /* Handwritten brush script for emotional words */
+    --font-sans: "Inter", "SF Pro Display", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-accent: "Inter", "SF Pro Display", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     
-    --font-weight-heading: 800;  /* Extra-bold for headings */
-    --font-weight-subheading: 700;
-    --font-weight-body: 400;     /* Regular for body text */
+    --font-weight-heading: 500;  /* Moderate weight for headings */
+    --font-weight-subheading: 500;
+    --font-weight-body: 300;     /* Light for body text */
     
     --text-h1-size: 3.5rem;      /* ~56px for hero headings */
     --text-h1-line: 1.1;
@@ -61,48 +62,48 @@
     /* =========================================================
      * Spacing & Radius
      * ========================================================= */
-    --radius-md: 24px;           /* Large border radius for cards/buttons */
+    --radius-md: 12px;           /* Standard rounded corners */
     --radius-pill: 9999px;       /* Fully rounded pill shapes */
 
     /* =========================================================
-     * Elevation (Shadows - Soft, Diffuse, Violet-tinted)
+     * Elevation (Shadows - Ambient and volumetric glows)
      * ========================================================= */
     --shadow-none: none;
-    --shadow-sm: 0 2px 8px rgba(107, 82, 225, 0.08);      /* Subtle sticker-lift effect */
-    --shadow-md: 0 8px 24px rgba(107, 82, 225, 0.12);     /* Floating cards */
-    --shadow-lg: 0 16px 48px rgba(107, 82, 225, 0.16);    /* Modals (use sparingly) */
+    --shadow-sm: 0 0 10px rgba(168, 192, 175, 0.1);      /* Soft aurora glow */
+    --shadow-md: 0 0 20px rgba(168, 192, 175, 0.15);     /* Floating islands */
+    --shadow-lg: 0 0 40px rgba(168, 192, 175, 0.2);      /* Modals */
 
     /* =========================================================
      * Component Semantics
      * ========================================================= */
-    --btn-primary-bg: #6B52E1;   /* Primary button background (Electric Violet) */
-    --btn-primary-fg: #FFFFFF;   /* Primary button text */
-    --link-default: #6B52E1;     /* Default link color */
+    --btn-primary-bg: #FFFFFF;   /* Primary button background */
+    --btn-primary-fg: #050505;   /* Primary button text */
+    --link-default: #A8C0AF;     /* Default link color */
 
     /* =========================================================
      * Shadcn/ui Compatibility Layer
      * Map design tokens to Shadcn's HSL format
      * ========================================================= */
-    --background: 0 0% 100%;
-    --foreground: 259 58% 26%;
-    --card: 260 100% 97%;
-    --card-foreground: 259 58% 26%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 259 58% 26%;
-    --primary: 252 69% 60%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 44 100% 69%;
-    --secondary-foreground: 259 58% 26%;
-    --muted: 260 100% 97%;
-    --muted-foreground: 262 20% 45%;
-    --accent: 260 100% 97%;
-    --accent-foreground: 259 58% 26%;
-    --destructive: 0 100% 71%;
+    --background: 0 0% 2%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 9%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 2%;
+    --secondary: 138 15% 71%;
+    --secondary-foreground: 0 0% 2%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 64%;
+    --accent: 138 15% 71%;
+    --accent-foreground: 0 0% 2%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 260 52% 92%;
-    --input: 260 52% 92%;
-    --ring: 252 69% 60%;
-    --radius: 24px;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 138 15% 71%;
+    --radius: 12px;
   }
 }
 
@@ -113,5 +114,6 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
+    font-weight: var(--font-weight-body);
   }
 }

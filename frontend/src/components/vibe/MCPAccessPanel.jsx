@@ -73,7 +73,7 @@ export default function MCPAccessPanel({
       id: 'cursor',
       title: t('vibeStudio.mcp.cursorConfig'),
       description: t('vibeStudio.mcp.cursorDesc'),
-      icon: <GlobeAltIcon className="size-5" style={{ color: 'var(--accent-blue)' }} />,
+      icon: <GlobeAltIcon className="size-5" style={{ color: 'var(--accent-mint)' }} />,
       subsections: [
         {
           id: 'cursor-config',
@@ -86,7 +86,7 @@ export default function MCPAccessPanel({
       id: 'copilot',
       title: t('vibeStudio.mcp.copilotConfig'),
       description: t('vibeStudio.mcp.copilotDesc'),
-      icon: <GlobeAltIcon className="size-5" style={{ color: 'var(--accent-blue)' }} />,
+      icon: <GlobeAltIcon className="size-5" style={{ color: 'var(--accent-mint)' }} />,
       subsections: [
         {
           id: 'copilot-config',
@@ -115,7 +115,7 @@ export default function MCPAccessPanel({
           <div className="flex items-center gap-3">
             <div 
               className="size-10 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: 'var(--accent-blue)' }}
+              style={{ backgroundColor: 'var(--accent-mint)' }}
             >
               <ServerIcon className="size-5 text-white" />
             </div>
@@ -133,7 +133,7 @@ export default function MCPAccessPanel({
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-[#F5F0FF] transition-colors"
+            className="p-2 rounded-full hover:bg-white/5 transition-colors"
           >
             <XMarkIcon className="size-5" style={{ color: 'var(--text-secondary)' }} />
           </button>
@@ -144,7 +144,7 @@ export default function MCPAccessPanel({
           {/* Protocol Notice */}
           <div 
             className="p-4 rounded-lg flex items-start gap-3"
-            style={{ backgroundColor: 'rgba(42, 153, 211, 0.1)', border: '1px solid var(--accent-blue)' }}
+            style={{ backgroundColor: 'rgba(168, 192, 175, 0.1)', border: '1px solid var(--accent-mint)' }}
           >
             <span className="text-xl">🔌</span>
             <div>
@@ -173,7 +173,7 @@ export default function MCPAccessPanel({
               >
                 <button
                   onClick={() => setExpandedSection(expandedSection === section.id ? null : section.id)}
-                  className="w-full flex items-center justify-between p-4 hover:bg-[#F5F0FF] transition-colors"
+                  className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
                   style={{ backgroundColor: 'var(--bg-canvas)' }}
                 >
                   <div className="flex items-center gap-3">
@@ -221,8 +221,8 @@ export default function MCPAccessPanel({
                           </span>
                           <button
                             onClick={() => handleCopy(subsection.content, subsection.id)}
-                            className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-full hover:bg-[#F5F0FF] transition-colors"
-                            style={{ color: 'var(--accent-blue)' }}
+                            className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-full hover:bg-white/5 transition-colors"
+                            style={{ color: 'var(--accent-mint)' }}
                           >
                             {copiedField === subsection.id ? (
                               <>
@@ -275,7 +275,7 @@ export default function MCPAccessPanel({
                 >
                   <code 
                     className="text-xs font-mono"
-                    style={{ color: 'var(--accent-blue)' }}
+                    style={{ color: 'var(--accent-mint)' }}
                   >
                     {tool.name}
                   </code>

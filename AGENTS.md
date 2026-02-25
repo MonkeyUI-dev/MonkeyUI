@@ -18,7 +18,7 @@ This is a monorepo full-stack application with a React frontend and Django backe
 | Cache / Queue   | Redis 7 + Celery       |
 | Auth            | JWT (SimpleJWT)        |
 | AI / LLM        | OpenAI, Gemini, OpenRouter |
-| Deployment      | Fly.io, Docker Compose |
+| Deployment      | Docker Compose         |
 
 ## Code Standards
 

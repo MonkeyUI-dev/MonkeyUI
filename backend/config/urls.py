@@ -20,7 +20,7 @@ def serve_media(request, path):
 
 
 def health_check(request):
-    """Health check endpoint for Fly.io and load balancers."""
+    """Health check endpoint for load balancers."""
     return JsonResponse({"status": "healthy", "service": "monkeyui-backend"})
 
 

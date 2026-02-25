@@ -17,19 +17,8 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-change-this-in-production'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-# Fly.io app name (automatically set by Fly.io)
-APP_NAME = os.environ.get("FLY_APP_NAME")
-
 # ALLOWED_HOSTS configuration
-# Automatically includes Fly.io domain when deployed
-allowed_hosts = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
-if APP_NAME:
-    allowed_hosts.append(f"{APP_NAME}.fly.dev")
-    # Fly.io internal domains for health checks
-    allowed_hosts.append(f"{APP_NAME}.internal")
-    allowed_hosts.append(".fly.dev")
-    allowed_hosts.append(".internal")
-ALLOWED_HOSTS = allowed_hosts
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 
 # Application definition

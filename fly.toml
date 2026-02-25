@@ -27,7 +27,7 @@ primary_region = 'sin'
   ALLOWED_HOSTS = 'localhost,127.0.0.1'
   
   # CORS - Frontend is served from same domain, but add others if needed
-  # CORS_ALLOWED_ORIGINS = 'https://your-external-frontend.com'
+  CORS_ALLOWED_ORIGINS = 'https://demo.monkeyui.com'
 
 # Define multiple processes: web app and celery worker
 [processes]

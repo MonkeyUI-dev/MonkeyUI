@@ -237,7 +237,7 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
               <li className="mt-auto">
                 <button
                   onClick={() => setSettingsOpen(true)}
-                  className="group -mx-2 flex gap-x-3 rounded-2xl p-2 text-sm/6 font-semibold transition-colors hover:bg-[#F5F0FF] w-full"
+                  className="group -mx-2 flex gap-x-3 rounded-2xl p-2 text-sm/6 font-semibold transition-colors hover:bg-white/5 w-full"
                   style={{ color: 'var(--text-secondary)' }}
                 >
                   <Cog6ToothIcon className="size-6 shrink-0" />
@@ -321,7 +321,7 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
                   <span 
                     className="flex size-8 shrink-0 items-center justify-center rounded-full font-semibold"
                     style={{ 
-                      backgroundColor: 'var(--accent-blue)', 
+                      backgroundColor: 'var(--accent-mint)', 
                       color: 'var(--text-on-dark)' 
                     }}
                   >
@@ -364,7 +364,7 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
                   <MenuItem>
                     <button
                       onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-sm data-focus:bg-[#F5F0FF]"
+                      className="block w-full text-left px-4 py-2 text-sm data-focus:bg-white/5"
                       style={{ color: 'var(--text-primary)' }}
                     >
                       {t('common.logout')}

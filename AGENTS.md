@@ -203,19 +203,19 @@ class Document(models.Model):
 
 ## Design System
 
-MonkeyUI follows a **Playful Vibrant Academy** design aesthetic — a joyful, creative, and approachable design language inspired by a "sticker-book" aesthetic with high-energy colors, organic shapes, and whimsical details. All generated UI components should adhere to this design language.
+MonkeyUI follows a **NOCTURNAL NEBULA FINANCE** design aesthetic — an ethereal, precise, sophisticated, futuristic, and serene design language inspired by deep space exploration and constellations. All generated UI components should adhere to this design language.
 
 ### Design Principles
-- **Curated Play**: A digital playground that blends structured learning with the organic, messy joy of a child's scrapbook
-- **Warmth & Human Touch**: Communicates trust through warmth, not sterility — like a friendly teacher who sits on the floor with students
-- **High-Energy Color**: Vibrant, high-contrast, candy-like palette with Electric Violet and Marigold Yellow as the primary power pair
-- **Soft & Rounded**: No sharp corners — everything is softened with large border radii (24px+), pill-shaped buttons, and organic photo masks
-- **Bouncy Motion**: Hover states should feel like pressing a physical button or lifting a sticker; elastic, bouncy transitions
+- **Illuminated Clarity in the Void**: A visual language that feels like navigating a high-tech interface in deep space.
+- **Technological Mastery**: Communicates trust through precision and high-fidelity rendering, suggesting a platform that is powerful, silent, and incredibly fast.
+- **Monochromatic Dark Mode**: Strictly controlled palette favoring void blacks with desaturated spectral accents (muted mint/sage green and pale ethereal silver).
+- **Ambient & Volumetric Lighting**: Soft "aurora" glows and diffuse fogs drift behind elements. Light seems to emanate from the data itself.
+- **Cinematic Center-Stage**: Layouts feature a central visual anchor with supporting details orbiting around it, feeling more like a HUD.
 
 ### Material & Lighting
-- Surfaces feel like **matte paper and soft plastics** — flat, clean color blocks with a "cut-out" paper feel
-- Uniform, high-key lighting; shadows are very soft and diffuse (sticker-lift effect)
-- Depth is achieved through **overlap and layering** (2.5D collage approach), not heavy shadows
+- Surfaces feel like **smoked glass and matte darkness** — deep, matte charcoal surfaces that recede into true black.
+- Overlays are treated as "smoked glass" — translucent panels that blur the background slightly.
+- Depth is achieved through **atmospheric perspective** — elements further "back" are dimmer and covered by a subtle haze.
 
 ### CSS Variables Reference
 
@@ -226,48 +226,46 @@ Apply these CSS custom properties in your components to maintain visual consiste
   /* =========================================================
    * Brand Colors
    * ========================================================= */
-  --brand-primary: #6B52E1;    /* Electric Violet */
-  --brand-secondary: #FFD560;  /* Marigold Yellow */
+  --brand-primary: #FFFFFF;    /* White */
+  --brand-secondary: #A8C0AF;  /* Muted mint/sage green */
 
   /* =========================================================
    * Neutral Colors
    * ========================================================= */
-  --bg-canvas: #FFFFFF;        /* Main background (white paper) */
-  --bg-surface: #F5F0FF;       /* Secondary surface (pale lilac) */
+  --bg-canvas: #050505;        /* Main background (Void Black) */
+  --bg-surface: #171717;       /* Secondary surface (Deep matte charcoal) */
   
-  --border-subtle: #E8DFF5;    /* Light violet borders/dividers */
-  --border-default: #D4C8F0;   /* Default violet borders */
+  --border-subtle: rgba(255, 255, 255, 0.1);    /* Light borders/dividers */
+  --border-default: rgba(255, 255, 255, 0.2);   /* Default borders */
   
-  --text-primary: #2D1B69;     /* Main text (deep indigo, never pure black) */
-  --text-secondary: #6B5B8A;   /* Secondary text (medium violet-gray) */
-  --text-tertiary: #9B8FBB;    /* Tertiary text (light violet-gray) */
+  --text-primary: #FFFFFF;     /* Main text (White) */
+  --text-secondary: #A3A3A3;   /* Secondary text (Mid-grey) */
+  --text-tertiary: #737373;    /* Tertiary text (Dark-grey) */
   --text-on-dark: #FFFFFF;     /* Text on dark backgrounds */
 
   /* =========================================================
-   * Accent Colors (High Saturation, Candy-like)
+   * Accent Colors (Desaturated spectral accents)
    * ========================================================= */
-  --accent-violet: #6B52E1;    /* Electric Violet for primary accents */
-  --accent-yellow: #FFD560;    /* Marigold Yellow for highlights */
-  --accent-pink: #FF6B9D;      /* Playful pink for illustrations */
-  --accent-blue: #6B52E1;      /* Alias to primary for backward compat */
+  --accent-mint: #A8C0AF;      /* Muted mint/sage green for primary accents */
+  --accent-silver: #E5E7EB;    /* Pale ethereal silver for highlights */
 
   /* =========================================================
    * Functional Colors
    * ========================================================= */
-  --color-success: #22C55E;    /* Success states */
-  --color-warning: #FFD560;    /* Warning states (marigold) */
-  --color-error: #FF6B6B;      /* Error states (soft playful red) */
-  --color-info: #6B52E1;       /* Info states (primary violet) */
+  --color-success: #A8C0AF;    /* Success states */
+  --color-warning: #FCD34D;    /* Warning states */
+  --color-error: #FCA5A5;      /* Error states */
+  --color-info: #93C5FD;       /* Info states */
 
   /* =========================================================
    * Typography
    * ========================================================= */
-  --font-sans: "Nunito", "Quicksand", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-accent: "Caveat", cursive;  /* Handwritten brush script for emotional words */
+  --font-sans: "Inter", "SF Pro Display", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-accent: "Inter", "SF Pro Display", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   
-  --font-weight-heading: 800;  /* Extra-bold for headings */
-  --font-weight-subheading: 700;
-  --font-weight-body: 400;     /* Regular for body text */
+  --font-weight-heading: 500;  /* Moderate weight for headings */
+  --font-weight-subheading: 500;
+  --font-weight-body: 300;     /* Light for body text */
   
   --text-h1-size: 3.5rem;      /* ~56px for hero headings */
   --text-h1-line: 1.1;
@@ -277,43 +275,43 @@ Apply these CSS custom properties in your components to maintain visual consiste
   /* =========================================================
    * Spacing & Radius
    * ========================================================= */
-  --radius-md: 24px;           /* Large border radius for cards/buttons */
+  --radius-md: 12px;           /* Standard rounded corners */
   --radius-pill: 9999px;       /* Fully rounded pill shapes */
 
   /* =========================================================
-   * Elevation (Shadows - Soft, Diffuse, Violet-tinted)
+   * Elevation (Shadows - Ambient and volumetric glows)
    * ========================================================= */
   --shadow-none: none;
-  --shadow-sm: 0 2px 8px rgba(107, 82, 225, 0.08);      /* Subtle sticker-lift */
-  --shadow-md: 0 8px 24px rgba(107, 82, 225, 0.12);     /* Floating cards */
-  --shadow-lg: 0 16px 48px rgba(107, 82, 225, 0.16);    /* Modals (use sparingly) */
+  --shadow-sm: 0 0 10px rgba(168, 192, 175, 0.1);      /* Soft aurora glow */
+  --shadow-md: 0 0 20px rgba(168, 192, 175, 0.15);     /* Floating islands */
+  --shadow-lg: 0 0 40px rgba(168, 192, 175, 0.2);      /* Modals */
 
   /* =========================================================
    * Component Semantics
    * ========================================================= */
-  --btn-primary-bg: #6B52E1;   /* Primary button background (Electric Violet) */
-  --btn-primary-fg: #FFFFFF;   /* Primary button text */
-  --link-default: #6B52E1;     /* Default link color */
+  --btn-primary-bg: #FFFFFF;   /* Primary button background */
+  --btn-primary-fg: #050505;   /* Primary button text */
+  --link-default: #A8C0AF;     /* Default link color */
 
   /* =========================================================
    * Shadcn/ui Compatibility Layer (HSL format)
    * ========================================================= */
-  --background: 0 0% 100%;
-  --foreground: 259 58% 26%;
-  --primary: 252 69% 60%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 44 100% 69%;
-  --secondary-foreground: 259 58% 26%;
-  --muted: 260 100% 97%;
-  --muted-foreground: 262 20% 45%;
-  --accent: 260 100% 97%;
-  --accent-foreground: 259 58% 26%;
-  --destructive: 0 100% 71%;
+  --background: 0 0% 2%;
+  --foreground: 0 0% 100%;
+  --primary: 0 0% 100%;
+  --primary-foreground: 0 0% 2%;
+  --secondary: 138 15% 71%;
+  --secondary-foreground: 0 0% 2%;
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 64%;
+  --accent: 138 15% 71%;
+  --accent-foreground: 0 0% 2%;
+  --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  --border: 260 52% 92%;
-  --input: 260 52% 92%;
-  --ring: 252 69% 60%;
-  --radius: 24px;
+  --border: 0 0% 20%;
+  --input: 0 0% 20%;
+  --ring: 138 15% 71%;
+  --radius: 12px;
 }
 ```
 
@@ -323,42 +321,42 @@ When Tailwind classes align with our design system, prefer them. Otherwise, use 
 
 ```jsx
 // ✅ Good: Using CSS variables for custom colors
-<div className="bg-white" style={{ borderColor: 'var(--border-subtle)' }}>
+<div className="bg-background" style={{ borderColor: 'var(--border-subtle)' }}>
   <h1 style={{ color: 'var(--text-primary)', fontWeight: 'var(--font-weight-heading)' }}>
     {t('hero.title')}
   </h1>
 </div>
 
-// ✅ Good: Pill-shaped button with primary violet
-<Button className="rounded-full bg-primary text-white px-6 py-3">
+// ✅ Good: Pill-shaped button with primary white
+<Button className="rounded-full bg-primary text-primary-foreground px-6 py-3">
   {t('common.getStarted')}
 </Button>
 
-// ✅ Good: Using font-accent for handwritten words
-<span className="font-accent text-2xl" style={{ color: 'var(--accent-yellow)' }}>
-  {t('hero.playful')}
+// ✅ Good: Using accent color for highlights
+<span className="text-2xl" style={{ color: 'var(--accent-mint)' }}>
+  {t('hero.highlight')}
 </span>
 
 // ❌ Avoid: Hardcoding colors
 <div className="bg-[#F8F8F8]">...</div>
 
-// ❌ Avoid: Sharp corners (use rounded-2xl or rounded-full)
+// ❌ Avoid: Sharp corners (use rounded-xl or rounded-full)
 <div className="rounded-sm">...</div>
 ```
 
 ### Component Design Guidelines
 
-1. **Buttons**: Pill-shaped (`rounded-full`) with `--btn-primary-bg` (Electric Violet); include bouncy `active:scale-[0.97]` effect
-2. **Cards**: Massive border radii (24px+), use solid color backgrounds (`--bg-surface` pale lilac) rather than outlines; treat as "islands"
-3. **Text Hierarchy**: Headings use `--font-weight-heading` (800) with Nunito; for emotional/marketing words, use `--font-accent` (Caveat handwritten)
-4. **Spacing**: Asymmetric and breathing — elements float in open space with generous padding
-5. **Color Usage**: Use violet and yellow in large solid blocks (card backgrounds, highlighter strokes); never use Corporate Blue/Grey palettes
-6. **Photos**: Never use raw rectangular photos — mask into circles, arches, or organic blobs
-7. **Decorative Elements**: Use hand-drawn doodles (arrows, spirals, dots, sparkles) sparingly to add motion and whimsy
-8. **Navigation**: Minimal and pill-shaped; active states use rounded capsules
-9. **No Sharp Corners**: No 90-degree angles on buttons, cards, or images
-10. **No Dark Mode**: This aesthetic relies on the "white paper" brightness
-11. **No Serif Fonts**: Do not use traditional serifs — they feel too academic for this vibe
+1. **Buttons**: Pill-shaped (`rounded-full`) with `--btn-primary-bg` (White) or pale mint. Secondary buttons are glass-style pills with a thin stroke and low-opacity fill.
+2. **Cards**: Dark panels with a very faint (1px) top or border highlight to catch the "light". Use `--bg-surface` (Deep matte charcoal).
+3. **Text Hierarchy**: Headings use `--font-weight-heading` (500) with Inter/SF Pro. Body text is often small, set in grey, with generous line height.
+4. **Spacing**: Expansive and fluid. Massive breathing room around central hero elements.
+5. **Color Usage**: Monochromatic dark mode with desaturated spectral accents. Never use neon or highly saturated colors.
+6. **Data Display**: Large, crisp numbers. "Stat blocks" that group a label (grey) with a value (white/mint).
+7. **Decorative Elements**: Constellation lines. Thin, low-opacity vector lines connecting floating elements. Soft, blurred orbs of color in the background.
+8. **Navigation**: Minimalist floating pills. Backgrounds are semi-transparent black with a subtle white border.
+9. **No Hard Drop Shadows**: Depth comes from glow and overlay, not shadow.
+10. **No Boxy Grids**: Avoid rigid, Excel-like grids with visible heavy borders.
+11. **No Serif Fonts**: Do not use traditional serifs — they clash with the engineered, futuristic soul of the interface.
 
 ## i18n Implementation
 
@@ -467,8 +465,8 @@ uv run python -m pytest apps/design_system/mcp/tests.py -v  # Run MCP tests
 5. Write self-documenting code with clear variable names
 6. Add comments for complex logic only
 7. Ensure code is production-ready and follows best practices
-8. **Visual Consistency**: Generated UI should reflect the Playful Vibrant Academy aesthetic — joyful, rounded, high-energy, and whimsical
-9. **No Sharp Corners**: All buttons use `rounded-full`, cards use `rounded-3xl` or `--radius-md` (24px)
-10. **Color Palette**: Electric Violet (#6B52E1) + Marigold Yellow (#FFD560) — never use corporate blue/grey palettes
-11. **Typography**: Use Nunito/Quicksand for UI, Caveat (handwritten) for playful accents
-12. **Anti-Patterns**: No pure black text, no rectangular photos, no serif fonts, no dark mode
+8. **Visual Consistency**: Generated UI should reflect the NOCTURNAL NEBULA FINANCE aesthetic — ethereal, precise, sophisticated, futuristic, and serene.
+9. **No Sharp Corners**: All buttons use `rounded-full`, cards use `rounded-xl` or `--radius-md` (12px)
+10. **Color Palette**: Void Blacks (#050505, #171717) + Muted Mint/Sage Green (#A8C0AF) + White (#FFFFFF) — never use neon or highly saturated colors.
+11. **Typography**: Use Inter/SF Pro for UI. No serif fonts.
+12. **Anti-Patterns**: No hard drop shadows, no boxy grids, no serif fonts, no neon colors.

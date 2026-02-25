@@ -82,7 +82,7 @@ export default function AestheticAnalysisPanel({ aestheticData, isEmpty, isAnaly
           className="rounded-xl p-12 flex flex-col items-center justify-center min-h-[400px]"
           style={{ backgroundColor: 'var(--bg-canvas)', border: '1px solid var(--border-subtle)' }}
         >
-          <div className="animate-spin size-8 border-2 border-[#6B52E1] border-t-transparent rounded-full mb-4" />
+          <div className="animate-spin size-8 border-2 border-[var(--accent-mint)] border-t-transparent rounded-full mb-4" />
           <p 
             className="text-sm font-medium"
             style={{ color: 'var(--text-secondary)' }}

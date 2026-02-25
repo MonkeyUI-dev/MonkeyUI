@@ -1,81 +1,49 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react'
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline'
+import { Palette, Type, Copy, Layers } from 'lucide-react'
+import { Label } from '@/components/ui/label'
 
-// Icons for each section
-function ColorPaletteIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="12" r="10" />
-      <circle cx="12" cy="12" r="4" fill="currentColor" />
-    </svg>
-  )
-}
-
-function TypographyIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M4 7V4h16v3" />
-      <path d="M12 4v16" />
-      <path d="M8 20h8" />
-    </svg>
-  )
-}
-
-function ShadowIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="3" y="3" width="14" height="14" rx="2" />
-      <rect x="7" y="7" width="14" height="14" rx="2" fill="currentColor" opacity="0.3" />
-    </svg>
-  )
-}
-
-function StyleIcon({ className, ...props }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
-      <path d="M12 2L2 7l10 5 10-5-10-5z" />
-      <path d="M2 17l10 5 10-5" />
-      <path d="M2 12l10 5 10-5" />
-    </svg>
-  )
-}
+// Alias lucide-react icons for section usage
+const ColorPaletteIcon = Palette
+const TypographyIcon = Type
+const ShadowIcon = Copy
+const StyleIcon = Layers
 
 
-// Collapsible Section Component
+// Collapsible Section Component using Headless UI Disclosure
 function CollapsibleSection({ title, icon: Icon, children, defaultOpen = false }) {
-  const [isOpen, setIsOpen] = useState(defaultOpen)
-
   return (
-    <div 
-      className="rounded-xl overflow-hidden"
-      style={{ backgroundColor: 'var(--bg-canvas)', border: '1px solid var(--border-subtle)' }}
-    >
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-4 hover:bg-[#F5F0FF] transition-colors"
-      >
-        <div className="flex items-center gap-x-3">
-          <Icon className="size-5" style={{ color: 'var(--accent-blue)' }} />
-          <span 
-            className="font-semibold"
-            style={{ color: 'var(--text-primary)' }}
+    <Disclosure defaultOpen={defaultOpen}>
+      {({ open }) => (
+        <div 
+          className="rounded-xl overflow-hidden"
+          style={{ backgroundColor: 'var(--bg-canvas)', border: '1px solid var(--border-subtle)' }}
+        >
+          <DisclosureButton
+            className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
           >
-            {title}
-          </span>
-        </div>
-        {isOpen ? (
-          <ChevronUpIcon className="size-5" style={{ color: 'var(--text-tertiary)' }} />
-        ) : (
-          <ChevronDownIcon className="size-5" style={{ color: 'var(--text-tertiary)' }} />
-        )}
-      </button>
-      {isOpen && (
-        <div className="px-4 pb-4">
-          {children}
+            <div className="flex items-center gap-x-3">
+              <Icon className="size-5" style={{ color: 'var(--accent-mint)' }} />
+              <span 
+                className="font-semibold"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                {title}
+              </span>
+            </div>
+            {open ? (
+              <ChevronUpIcon className="size-5" style={{ color: 'var(--text-tertiary)' }} />
+            ) : (
+              <ChevronDownIcon className="size-5" style={{ color: 'var(--text-tertiary)' }} />
+            )}
+          </DisclosureButton>
+          <DisclosurePanel className="px-4 pb-4">
+            {children}
+          </DisclosurePanel>
         </div>
       )}
-    </div>
+    </Disclosure>
   )
 }
 
@@ -172,7 +140,7 @@ export default function StyleAnalysisPanel({ styleData, onStyleDataChange, isEmp
           className="rounded-xl p-12 flex flex-col items-center justify-center min-h-[400px]"
           style={{ backgroundColor: 'var(--bg-canvas)', border: '1px solid var(--border-subtle)' }}
         >
-          <div className="animate-spin size-8 border-2 border-[#6B52E1] border-t-transparent rounded-full mb-4" />
+          <div className="animate-spin size-8 border-2 border-[var(--accent-mint)] border-t-transparent rounded-full mb-4" />
           <p 
             className="text-sm font-medium"
             style={{ color: 'var(--text-secondary)' }}
@@ -271,12 +239,9 @@ export default function StyleAnalysisPanel({ styleData, onStyleDataChange, isEmp
             className="p-3 rounded-lg"
             style={{ backgroundColor: 'var(--bg-surface)' }}
           >
-            <label 
-              className="text-xs font-medium block mb-2"
-              style={{ color: 'var(--text-tertiary)' }}
-            >
+            <Label className="text-xs mb-2" style={{ color: 'var(--text-tertiary)' }}>
               {t('vibeStudio.fontFamily')}
-            </label>
+            </Label>
             <input
               type="text"
               value={styleData.typography?.fontFamily || ''}
@@ -290,12 +255,9 @@ export default function StyleAnalysisPanel({ styleData, onStyleDataChange, isEmp
               className="p-3 rounded-lg"
               style={{ backgroundColor: 'var(--bg-surface)' }}
             >
-              <label 
-                className="text-xs font-medium block mb-2"
-                style={{ color: 'var(--text-tertiary)' }}
-              >
+              <Label className="text-xs mb-2" style={{ color: 'var(--text-tertiary)' }}>
                 {t('vibeStudio.fontWeight')}
-              </label>
+              </Label>
               <input
                 type="text"
                 value={styleData.typography?.fontWeight || ''}
@@ -308,12 +270,9 @@ export default function StyleAnalysisPanel({ styleData, onStyleDataChange, isEmp
               className="p-3 rounded-lg"
               style={{ backgroundColor: 'var(--bg-surface)' }}
             >
-              <label 
-                className="text-xs font-medium block mb-2"
-                style={{ color: 'var(--text-tertiary)' }}
-              >
+              <Label className="text-xs mb-2" style={{ color: 'var(--text-tertiary)' }}>
                 {t('vibeStudio.baseFontSize')}
-              </label>
+              </Label>
               <input
                 type="text"
                 value={styleData.typography?.baseFontSize || ''}
@@ -335,12 +294,9 @@ export default function StyleAnalysisPanel({ styleData, onStyleDataChange, isEmp
           className="p-3 rounded-lg"
           style={{ backgroundColor: 'var(--bg-surface)' }}
         >
-          <label 
-            className="text-xs font-medium block mb-2"
-            style={{ color: 'var(--text-tertiary)' }}
-          >
+          <Label className="text-xs mb-2" style={{ color: 'var(--text-tertiary)' }}>
             {t('vibeStudio.shadowLevel')}
-          </label>
+          </Label>
           <div className="flex items-center gap-x-4">
             <input
               type="range"

@@ -24,10 +24,10 @@ const alertStyles = {
     Icon: ExclamationTriangleIcon
   },
   info: {
-    container: 'bg-violet-50 dark:bg-violet-500/10 dark:outline dark:outline-violet-500/20',
-    icon: 'text-violet-400',
-    text: 'text-violet-800 dark:text-violet-300',
-    button: 'bg-violet-50 text-violet-500 hover:bg-violet-100 focus-visible:ring-violet-600 focus-visible:ring-offset-violet-50 dark:bg-transparent dark:text-violet-400 dark:hover:bg-violet-500/10 dark:focus-visible:ring-violet-500 dark:focus-visible:ring-offset-violet-900',
+    container: 'bg-blue-50 dark:bg-blue-500/10 dark:outline dark:outline-blue-500/20',
+    icon: 'text-blue-400',
+    text: 'text-blue-800 dark:text-blue-300',
+    button: 'bg-blue-50 text-blue-500 hover:bg-blue-100 focus-visible:ring-blue-600 focus-visible:ring-offset-blue-50 dark:bg-transparent dark:text-blue-400 dark:hover:bg-blue-500/10 dark:focus-visible:ring-blue-500 dark:focus-visible:ring-offset-blue-900',
     Icon: InformationCircleIcon
   }
 }

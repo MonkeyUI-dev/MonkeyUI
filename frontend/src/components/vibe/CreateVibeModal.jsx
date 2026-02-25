@@ -3,6 +3,9 @@ import { useTranslation } from 'react-i18next'
 import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react'
 import { XMarkIcon, ArrowRightIcon } from '@heroicons/react/24/outline'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
 
 export default function CreateVibeModal({ isOpen, onClose, onGoToStudio }) {
   const { t } = useTranslation()
@@ -60,7 +63,7 @@ export default function CreateVibeModal({ isOpen, onClose, onGoToStudio }) {
                 {/* Close button */}
                 <button
                   onClick={handleClose}
-                  className="absolute top-4 right-4 p-2 rounded-full hover:bg-[#F5F0FF] transition-colors"
+                  className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/5 transition-colors"
                 >
                   <XMarkIcon className="size-5" style={{ color: 'var(--text-secondary)' }} />
                 </button>
@@ -76,50 +79,26 @@ export default function CreateVibeModal({ isOpen, onClose, onGoToStudio }) {
                 {/* Form */}
                 <div className="space-y-5">
                   {/* Vibe Name */}
-                  <div>
-                    <label 
-                      htmlFor="vibe-name" 
-                      className="block text-sm font-medium mb-2"
-                      style={{ color: 'var(--text-secondary)' }}
-                    >
-                      {t('vibeStudio.vibeName')}
-                    </label>
-                    <input
+                  <div className="space-y-2">
+                    <Label htmlFor="vibe-name">{t('vibeStudio.vibeName')}</Label>
+                    <Input
                       type="text"
                       id="vibe-name"
                       value={vibeName}
                       onChange={(e) => setVibeName(e.target.value)}
                       placeholder={t('vibeStudio.vibeNamePlaceholder')}
-                      className="w-full px-4 py-3 rounded-2xl text-sm outline-none transition-all focus:ring-2 focus:ring-[#6B52E1]"
-                      style={{ 
-                        backgroundColor: 'var(--bg-surface)', 
-                        border: '1px solid var(--border-subtle)',
-                        color: 'var(--text-primary)'
-                      }}
                     />
                   </div>
 
                   {/* Style Description */}
-                  <div>
-                    <label 
-                      htmlFor="style-description" 
-                      className="block text-sm font-medium mb-2"
-                      style={{ color: 'var(--text-secondary)' }}
-                    >
-                      {t('vibeStudio.styleDescription')}
-                    </label>
-                    <textarea
+                  <div className="space-y-2">
+                    <Label htmlFor="style-description">{t('vibeStudio.styleDescription')}</Label>
+                    <Textarea
                       id="style-description"
                       value={styleDescription}
                       onChange={(e) => setStyleDescription(e.target.value)}
                       placeholder={t('vibeStudio.styleDescriptionPlaceholder')}
                       rows={5}
-                      className="w-full px-4 py-3 rounded-2xl text-sm outline-none resize-y transition-all focus:ring-2 focus:ring-[#6B52E1]"
-                      style={{ 
-                        backgroundColor: 'var(--bg-surface)', 
-                        border: '1px solid var(--border-subtle)',
-                        color: 'var(--text-primary)'
-                      }}
                     />
                   </div>
                 </div>
@@ -131,7 +110,7 @@ export default function CreateVibeModal({ isOpen, onClose, onGoToStudio }) {
                     disabled={!vibeName.trim()}
                     className="gap-x-2"
                     style={{ 
-                      backgroundColor: vibeName.trim() ? 'var(--accent-blue)' : 'var(--bg-surface)',
+                      backgroundColor: vibeName.trim() ? 'var(--accent-mint)' : 'var(--bg-surface)',
                       color: vibeName.trim() ? 'var(--text-on-dark)' : 'var(--text-tertiary)'
                     }}
                   >

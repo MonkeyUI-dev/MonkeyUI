@@ -3,16 +3,10 @@ import { useTranslation } from 'react-i18next'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { ClipboardDocumentIcon, CheckIcon, PencilIcon, EyeIcon } from '@heroicons/react/24/outline'
+import { Layers } from 'lucide-react'
+import { Textarea } from '@/components/ui/textarea'
 
-function AestheticIcon({ className, style }) {
-  return (
-    <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M12 2L2 7l10 5 10-5-10-5z" />
-      <path d="M2 17l10 5 10-5" />
-      <path d="M2 12l10 5 10-5" />
-    </svg>
-  )
-}
+const AestheticIcon = Layers
 
 export default function AestheticAnalysisPanel({ aestheticData, isEmpty, isAnalyzing, onAestheticDataChange }) {
   const { t } = useTranslation()
@@ -166,15 +160,10 @@ export default function AestheticAnalysisPanel({ aestheticData, isEmpty, isAnaly
         {/* Content: Edit mode or Markdown preview */}
         {isEditing ? (
           <div className="p-4" style={{ backgroundColor: 'var(--bg-canvas)' }}>
-            <textarea
+            <Textarea
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
-              className="w-full min-h-[500px] p-4 rounded-lg text-sm font-mono leading-relaxed outline-none resize-y"
-              style={{ 
-                backgroundColor: 'var(--bg-surface)', 
-                color: 'var(--text-primary)',
-                border: '1px solid var(--border-default)'
-              }}
+              className="min-h-[500px] font-mono leading-relaxed resize-y"
             />
             <div className="flex justify-end gap-2 mt-3">
               <button

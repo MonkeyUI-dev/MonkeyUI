@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { PlusIcon, SwatchIcon, TrashIcon, EllipsisVerticalIcon, LinkIcon } from '@heroicons/react/24/outline'
 import ConsoleLayout from '@/components/layout/ConsoleLayout'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
 import Pagination from '@/components/ui/Pagination'
 import CreateVibeModal from '@/components/vibe/CreateVibeModal'
 import designSystemService, { DesignSystemStatus } from '@/services/designSystem'
@@ -280,32 +282,76 @@ function DesignSystemCard({ system, onSelect, onDelete, progress }) {
   const isProcessing = system.status === DesignSystemStatus.PROCESSING || system.status === DesignSystemStatus.PENDING
   
   // Check if color is light (needs border)
-  const isLightColor = (hexColor) => {
-    if (!hexColor) return false
-    // Remove # if present
-    const hex = hexColor.replace('#', '')
-    // Convert to RGB
-    const r = parseInt(hex.substr(0, 2), 16)
-    const g = parseInt(hex.substr(2, 2), 16)
-    const b = parseInt(hex.substr(4, 2), 16)
+  const isLightColor = (color) => {
+    if (!color) return false
+    
+    // Handle CSS variables
+    if (color.startsWith('var(')) {
+      // We can't easily compute CSS variables in JS without DOM access,
+      // but we know our specific variables
+      if (color.includes('--bg-canvas') || color.includes('--bg-surface')) return false
+      if (color.includes('--brand-primary') || color.includes('--text-primary')) return true
+      return false
+    }
+
+    let r, g, b
+
+    // Handle rgb/rgba
+    if (color.startsWith('rgb')) {
+      const match = color.match(/\d+/g)
+      if (match && match.length >= 3) {
+        r = parseInt(match[0], 10)
+        g = parseInt(match[1], 10)
+        b = parseInt(match[2], 10)
+      } else {
+        return false
+      }
+    } 
+    // Handle hex
+    else if (color.startsWith('#') || /^[0-9A-Fa-f]{3,6}$/.test(color)) {
+      let hex = color.replace('#', '')
+      if (hex.length === 3) {
+        hex = hex.split('').map(char => char + char).join('')
+      }
+      if (hex.length !== 6) return false
+      
+      r = parseInt(hex.substr(0, 2), 16)
+      g = parseInt(hex.substr(2, 2), 16)
+      b = parseInt(hex.substr(4, 2), 16)
+    }
+    // Handle named colors (basic ones)
+    else {
+      const namedColors = {
+        white: [255, 255, 255],
+        black: [0, 0, 0],
+        transparent: [0, 0, 0] // Assume dark for transparent
+      }
+      const rgb = namedColors[color.toLowerCase()]
+      if (rgb) {
+        [r, g, b] = rgb
+      } else {
+        return false
+      }
+    }
+
     // Calculate luminance (perceived brightness)
     const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-    // If luminance > 0.9, it's a light color
-    return luminance > 0.9
+    // If luminance > 0.5, it's a light color
+    return luminance > 0.5
   }
   
-  // Get status badge color
-  const getStatusColor = (status) => {
+  // Get status badge variant
+  const getStatusBadgeVariant = (status) => {
     switch (status) {
       case DesignSystemStatus.COMPLETED:
-        return 'var(--color-success)'
+        return 'success'
       case DesignSystemStatus.PROCESSING:
       case DesignSystemStatus.PENDING:
-        return 'var(--accent-blue)'
+        return 'info'
       case DesignSystemStatus.FAILED:
-        return 'var(--color-error)'
+        return 'error'
       default:
-        return 'var(--text-tertiary)'
+        return 'muted'
     }
   }
   
@@ -333,7 +379,7 @@ function DesignSystemCard({ system, onSelect, onDelete, progress }) {
           style={{ 
             backgroundColor: system.primary_color || 'var(--bg-surface)',
             color: system.primary_color 
-              ? (isLightColor(system.primary_color) ? 'var(--text-primary)' : 'var(--text-on-dark)')
+              ? (isLightColor(system.primary_color) ? 'var(--bg-canvas)' : 'var(--text-on-dark)')
               : 'var(--text-secondary)',
             border: isLightColor(system.primary_color) ? '1px solid var(--border-default)' : 'none'
           }}
@@ -382,22 +428,15 @@ function DesignSystemCard({ system, onSelect, onDelete, progress }) {
             <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
               {progress.message || t('designWorkshop.analyzing')}
             </span>
-            <span className="text-xs font-medium" style={{ color: 'var(--accent-blue)' }}>
+            <span className="text-xs font-medium" style={{ color: 'var(--color-info)' }}>
               {progress.progress || 0}%
             </span>
           </div>
-          <div 
-            className="w-full h-1.5 rounded-full overflow-hidden"
-            style={{ backgroundColor: 'var(--bg-surface)' }}
-          >
-            <div 
-              className="h-full transition-all duration-500 ease-out"
-              style={{ 
-                width: `${progress.progress || 0}%`,
-                backgroundColor: 'var(--accent-blue)'
-              }}
-            />
-          </div>
+          <Progress
+            value={progress.progress || 0}
+            className="bg-[var(--bg-surface)]"
+            indicatorClassName="bg-[var(--color-info)]"
+          />
         </div>
       )}
 
@@ -411,15 +450,9 @@ function DesignSystemCard({ system, onSelect, onDelete, progress }) {
         </div>
         
         {/* Status badge */}
-        <div 
-          className="px-2 py-0.5 rounded-full text-xs font-medium"
-          style={{ 
-            backgroundColor: `${getStatusColor(system.status)}15`,
-            color: getStatusColor(system.status)
-          }}
-        >
+        <Badge variant={getStatusBadgeVariant(system.status)}>
           {t(`designWorkshop.status.${system.status}`)}
-        </div>
+        </Badge>
       </div>
 
       {/* Hover overlay */}

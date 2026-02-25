@@ -20,7 +20,7 @@ echo "Checking prerequisites..."
 
 # Check Node.js
 if ! command -v node &> /dev/null; then
-    echo -e "${RED}❌ Node.js is not installed. Please install Node.js 18+${NC}"
+    echo -e "${RED}❌ Node.js is not installed. Please install Node.js 22+${NC}"
     exit 1
 fi
 echo -e "${GREEN}✓ Node.js found: $(node --version)${NC}"

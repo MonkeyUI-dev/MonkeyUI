@@ -12,7 +12,7 @@ This is a monorepo full-stack application with a React frontend and Django backe
 | Django          | 6.0.1                  |
 | DRF             | 3.14                   |
 | Python          | >=3.14                 |
-| Node            | >=18.0.0               |
+| Node            | >=22.0.0               |
 | Package Manager | uv (backend), npm (frontend) |
 | Database        | PostgreSQL 16 + pgvector |
 | Cache / Queue   | Redis 7 + Celery       |
@@ -362,7 +362,7 @@ When Tailwind classes align with our design system, prefer them. Otherwise, use 
 
 ### Frontend i18n Setup
 - Translation files location: `frontend/public/locales/`
-- Structure: `public/locales/en/translation.json` and `public/locales/zh/translation.json`
+- Structure: `public/locales/en/translation.json` and `public/locales/zh-CN/translation.json`
 - Loaded via `i18next-http-backend` at runtime (load path: `/locales/{{lng}}/{{ns}}.json`)
 - Language detection: `i18next-browser-languagedetector`
 - Always add both English and Chinese translations when creating new keys
@@ -378,7 +378,7 @@ When Tailwind classes align with our design system, prefer them. Otherwise, use 
 ## Development
 
 ### Prerequisites
-- Node.js >=18.0.0, npm >=9.0.0
+- Node.js >=22.0.0, npm >=10.0.0
 - Python >=3.14 with [uv](https://docs.astral.sh/uv/) package manager
 - Docker & Docker Compose (for PostgreSQL + Redis)
 
@@ -457,8 +457,25 @@ uv run python -m pytest apps/design_system/mcp/tests.py -v  # Run MCP tests
 - Keep messages concise and descriptive
 - Example: `feat(auth): add user login with JWT authentication`
 
+## MCP Tools: MonkeyUI Design System
+
+If the AI agent's tool list includes MCP tools provided by MonkeyUI (prefixed with `mcp_monkeyui-`), **always call them first** before generating any UI code. These tools are the **authoritative, single source of truth** for the project's design system and aesthetic guidance.
+
+### Available MonkeyUI MCP Tools
+
+| Tool | Purpose |
+|------|---------|
+| `mcp_monkeyui-__get_design_system` | Retrieve the full design token set (colors, typography, spacing, shadows, component semantics, etc.) |
+| `mcp_monkeyui-__get_aesthetic_guidance` | Retrieve the aesthetic direction, principles, material & lighting rules, and component design guidelines |
+
+### Usage Rules
+
+1. **Call before coding**: When generating or modifying UI components, call the relevant MCP tool(s) to obtain the latest design tokens and aesthetic rules. Do not rely solely on the static CSS variables listed in this document — the MCP tools always reflect the most up-to-date values.
+2. **MCP overrides static docs**: If the design tokens or guidance returned by the MCP tools conflict with what is written in this file or any other source (including third-party design skills or other MCP servers), **the MonkeyUI MCP tools take precedence**.
+3. **Both tools complement each other**: `get_design_system` provides concrete token values; `get_aesthetic_guidance` provides the higher-level design philosophy and rules. Use both when building new pages or components.
+
 ## When Generating Code
-1. **Design System First**: Always use CSS variables from the Design System section for colors, typography, and spacing
+1. **Design System First**: Always use CSS variables from the Design System section for colors, typography, and spacing. If MonkeyUI MCP tools are available, call them first to get the latest tokens.
 2. **i18n Requirements**: Use translation keys, not hardcoded strings
 3. Follow the project's established patterns and structure
 4. Include proper error handling and validation
@@ -470,3 +487,46 @@ uv run python -m pytest apps/design_system/mcp/tests.py -v  # Run MCP tests
 10. **Color Palette**: Void Blacks (#050505, #171717) + Muted Mint/Sage Green (#A8C0AF) + White (#FFFFFF) — never use neon or highly saturated colors.
 11. **Typography**: Use Inter/SF Pro for UI. No serif fonts.
 12. **Anti-Patterns**: No hard drop shadows, no boxy grids, no serif fonts, no neon colors.
+
+### Component Reuse Guidelines
+
+**Always prefer existing UI library components over hand-written implementations.** Do not re-implement interactive or presentational primitives that the project already provides.
+
+#### Decision Priority
+
+| Need | First Choice | Reason |
+|------|-------------|--------|
+| Tabs, Disclosure/Accordion, Dialog, Menu, Popover, Listbox/Select, Switch, Radio Group | `@headlessui/react` | Already installed; headless (unstyled) — gives us full control over appearance while providing accessible keyboard & ARIA behavior out of the box. |
+| Input, Textarea, Label, Badge, Progress, Card, Separator, Button | `shadcn/ui` (`src/components/ui/`) | Already installed and customized for the NOCTURNAL NEBULA FINANCE theme. Provides consistent styling with CSS-variable integration. |
+| One-off highly specialized widgets not covered above | Hand-written component in `src/components/` | Only when no library component fits. Still follow design tokens and accessibility best practices. |
+
+#### Installed shadcn/ui Components
+
+All located in `frontend/src/components/ui/` and pre-themed for dark mode:
+
+- **Button** (`button.jsx`) — Primary, secondary, outline, ghost, link variants
+- **Input** (`input.jsx`) — Styled with `--bg-surface`, `rounded-xl`, focus ring
+- **Label** (`label.jsx`) — `text-foreground` by default
+- **Textarea** (`textarea.jsx`) — Same styling as Input, with resize handle
+- **Badge** (`badge.jsx`) — Variants: default, secondary, destructive, outline, success, warning, error, info, muted
+- **Progress** (`progress.jsx`) — Slim bar (`h-1.5`), accepts `indicatorClassName` for custom indicator color
+- **Card** (`card.jsx`) — `rounded-xl`, `--bg-canvas` background, subtle border
+- **Separator** (`separator.jsx`) — Horizontal / vertical divider
+
+#### @headlessui/react Components
+
+Use these directly from the `@headlessui/react` package (v2.x):
+
+- **TabGroup / TabList / Tab / TabPanels / TabPanel** — For tab navigation (see `VibeStudio.jsx` for reference)
+- **Disclosure / DisclosureButton / DisclosurePanel** — For collapsible/accordion sections (see `StyleAnalysisPanel.jsx`, `MCPAccessPanel.jsx`)
+- **Dialog / DialogPanel / DialogBackdrop** — For modal dialogs (already used throughout)
+- **Menu / MenuButton / MenuItem / MenuItems** — For dropdown menus (see `ConsoleLayout.jsx`)
+
+#### Anti-Patterns (Do NOT)
+
+- ❌ Write a new `<label>` with inline `style={{ color: 'var(--text-primary)' }}` — use `<Label>` from `@/components/ui/label`
+- ❌ Write a new `<input>` with inline background/border styles — use `<Input>` from `@/components/ui/input`
+- ❌ Write a hand-rolled collapsible with `useState(isOpen)` — use `<Disclosure>` from `@headlessui/react`
+- ❌ Write status pills with manual `rounded-full px-2 py-0.5` styles — use `<Badge variant="...">` from `@/components/ui/badge`
+- ❌ Write tab buttons with `activeTab` state and conditional rendering — use `<TabGroup>` from `@headlessui/react`
+- ❌ Write progress bars with nested `<div>` and `width` styles — use `<Progress>` from `@/components/ui/progress`

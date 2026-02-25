@@ -3,6 +3,9 @@ import { useTranslation } from 'react-i18next'
 import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react'
 import { XMarkIcon, ArrowRightIcon } from '@heroicons/react/24/outline'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
 
 export default function CreateVibeModal({ isOpen, onClose, onGoToStudio }) {
   const { t } = useTranslation()
@@ -76,50 +79,26 @@ export default function CreateVibeModal({ isOpen, onClose, onGoToStudio }) {
                 {/* Form */}
                 <div className="space-y-5">
                   {/* Vibe Name */}
-                  <div>
-                    <label 
-                      htmlFor="vibe-name" 
-                      className="block text-sm font-medium mb-2"
-                      style={{ color: 'var(--text-secondary)' }}
-                    >
-                      {t('vibeStudio.vibeName')}
-                    </label>
-                    <input
+                  <div className="space-y-2">
+                    <Label htmlFor="vibe-name">{t('vibeStudio.vibeName')}</Label>
+                    <Input
                       type="text"
                       id="vibe-name"
                       value={vibeName}
                       onChange={(e) => setVibeName(e.target.value)}
                       placeholder={t('vibeStudio.vibeNamePlaceholder')}
-                      className="w-full px-4 py-3 rounded-2xl text-sm outline-none transition-all focus:ring-2 focus:ring-[var(--accent-mint)]"
-                      style={{ 
-                        backgroundColor: 'var(--bg-surface)', 
-                        border: '1px solid var(--border-subtle)',
-                        color: 'var(--text-primary)'
-                      }}
                     />
                   </div>
 
                   {/* Style Description */}
-                  <div>
-                    <label 
-                      htmlFor="style-description" 
-                      className="block text-sm font-medium mb-2"
-                      style={{ color: 'var(--text-secondary)' }}
-                    >
-                      {t('vibeStudio.styleDescription')}
-                    </label>
-                    <textarea
+                  <div className="space-y-2">
+                    <Label htmlFor="style-description">{t('vibeStudio.styleDescription')}</Label>
+                    <Textarea
                       id="style-description"
                       value={styleDescription}
                       onChange={(e) => setStyleDescription(e.target.value)}
                       placeholder={t('vibeStudio.styleDescriptionPlaceholder')}
                       rows={5}
-                      className="w-full px-4 py-3 rounded-2xl text-sm outline-none resize-y transition-all focus:ring-2 focus:ring-[var(--accent-mint)]"
-                      style={{ 
-                        backgroundColor: 'var(--bg-surface)', 
-                        border: '1px solid var(--border-subtle)',
-                        color: 'var(--text-primary)'
-                      }}
                     />
                   </div>
                 </div>

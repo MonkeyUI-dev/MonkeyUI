@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/react'
 import { 
   ArrowLeftIcon, 
   ArrowDownTrayIcon, 
@@ -9,6 +10,7 @@ import {
   XMarkIcon,
   ServerIcon
 } from '@heroicons/react/24/outline'
+import { Layers, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Alert from '@/components/ui/Alert'
 import StyleAnalysisPanel from '@/components/vibe/StyleAnalysisPanel'
@@ -37,7 +39,6 @@ export default function VibeStudio({ isNew }) {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false)
   const [isMCPPanelOpen, setIsMCPPanelOpen] = useState(false)
   const [alert, setAlert] = useState({ show: false, type: 'success', message: '' })
-  const [activeTab, setActiveTab] = useState('designSystem')
   const [aestheticData, setAestheticData] = useState(null)
 
   // Convert backend style data format to frontend format
@@ -379,6 +380,63 @@ export default function VibeStudio({ isNew }) {
     }
   }
 
+  // Check if color is light (needs border)
+  const isLightColor = (color) => {
+    if (!color) return false
+    
+    // Handle CSS variables
+    if (color.startsWith('var(')) {
+      if (color.includes('--bg-canvas') || color.includes('--bg-surface')) return false
+      if (color.includes('--brand-primary') || color.includes('--text-primary')) return true
+      return false
+    }
+
+    let r, g, b
+
+    // Handle rgb/rgba
+    if (color.startsWith('rgb')) {
+      const match = color.match(/\d+/g)
+      if (match && match.length >= 3) {
+        r = parseInt(match[0], 10)
+        g = parseInt(match[1], 10)
+        b = parseInt(match[2], 10)
+      } else {
+        return false
+      }
+    } 
+    // Handle hex
+    else if (color.startsWith('#') || /^[0-9A-Fa-f]{3,6}$/.test(color)) {
+      let hex = color.replace('#', '')
+      if (hex.length === 3) {
+        hex = hex.split('').map(char => char + char).join('')
+      }
+      if (hex.length !== 6) return false
+      
+      r = parseInt(hex.substr(0, 2), 16)
+      g = parseInt(hex.substr(2, 2), 16)
+      b = parseInt(hex.substr(4, 2), 16)
+    }
+    // Handle named colors (basic ones)
+    else {
+      const namedColors = {
+        white: [255, 255, 255],
+        black: [0, 0, 0],
+        transparent: [0, 0, 0] // Assume dark for transparent
+      }
+      const rgb = namedColors[color.toLowerCase()]
+      if (rgb) {
+        [r, g, b] = rgb
+      } else {
+        return false
+      }
+    }
+
+    // Calculate luminance (perceived brightness)
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+    // If luminance > 0.5, it's a light color
+    return luminance > 0.5
+  }
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-surface)' }}>
       {/* Alert notification */}
@@ -410,13 +468,15 @@ export default function VibeStudio({ isNew }) {
             <div className="flex items-center gap-x-3">
               <div 
                 className="size-10 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: styleData?.colors?.primary || 'var(--accent-mint)' }}
+                style={{ 
+                  backgroundColor: styleData?.colors?.primary || 'var(--accent-mint)',
+                  border: isLightColor(styleData?.colors?.primary || 'var(--accent-mint)') ? '1px solid var(--border-default)' : 'none'
+                }}
               >
-                <svg className="size-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                  <path d="M2 17l10 5 10-5" />
-                  <path d="M2 12l10 5 10-5" />
-                </svg>
+                <Layers 
+                  className="size-6" 
+                  style={{ color: isLightColor(styleData?.colors?.primary || 'var(--accent-mint)') ? 'var(--bg-canvas)' : 'var(--text-on-dark)' }}
+                />
               </div>
               <div>
                 <input
@@ -514,26 +574,7 @@ export default function VibeStudio({ isNew }) {
                 }}
               >
                 {isAnalyzing && (
-                  <svg 
-                    className="animate-spin -ml-1 mr-2 h-4 w-4 inline-block" 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    fill="none" 
-                    viewBox="0 0 24 24"
-                  >
-                    <circle 
-                      className="opacity-25" 
-                      cx="12" 
-                      cy="12" 
-                      r="10" 
-                      stroke="currentColor" 
-                      strokeWidth="4"
-                    />
-                    <path 
-                      className="opacity-75" 
-                      fill="currentColor" 
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
+                  <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4 inline-block" />
                 )}
                 {isAnalyzing ? t('vibeStudio.analyzing') : t('vibeStudio.analyzeImages')}
               </Button>
@@ -664,49 +705,46 @@ export default function VibeStudio({ isNew }) {
 
           {/* Right: Tabbed Analysis Panel */}
           <div className="space-y-4">
-            {/* Tab Navigation */}
-            <div 
-              className="flex rounded-lg p-1 gap-1"
-              style={{ backgroundColor: 'var(--bg-canvas)', border: '1px solid var(--border-subtle)' }}
-            >
-              <button
-                onClick={() => setActiveTab('designSystem')}
-                className="flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors"
-                style={{
-                  backgroundColor: activeTab === 'designSystem' ? 'var(--btn-primary-bg)' : 'transparent',
-                  color: activeTab === 'designSystem' ? 'var(--btn-primary-fg)' : 'var(--text-secondary)',
-                }}
+            <TabGroup>
+              {/* Tab Navigation */}
+              <TabList
+                className="flex rounded-lg p-1 gap-1"
+                style={{ backgroundColor: 'var(--bg-canvas)', border: '1px solid var(--border-subtle)' }}
               >
-                {t('vibeStudio.tabs.designSystem')}
-              </button>
-              <button
-                onClick={() => setActiveTab('aesthetic')}
-                className="flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors"
-                style={{
-                  backgroundColor: activeTab === 'aesthetic' ? 'var(--btn-primary-bg)' : 'transparent',
-                  color: activeTab === 'aesthetic' ? 'var(--btn-primary-fg)' : 'var(--text-secondary)',
-                }}
-              >
-                {t('vibeStudio.tabs.aestheticAnalysis')}
-              </button>
-            </div>
+                <Tab
+                  className="flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors outline-none data-[selected]:bg-[var(--btn-primary-bg)] data-[selected]:text-[var(--btn-primary-fg)]"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
+                  {t('vibeStudio.tabs.designSystem')}
+                </Tab>
+                <Tab
+                  className="flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors outline-none data-[selected]:bg-[var(--btn-primary-bg)] data-[selected]:text-[var(--btn-primary-fg)]"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
+                  {t('vibeStudio.tabs.aestheticAnalysis')}
+                </Tab>
+              </TabList>
 
-            {/* Tab Content */}
-            {activeTab === 'designSystem' ? (
-              <StyleAnalysisPanel 
-                styleData={styleData}
-                onStyleDataChange={setStyleData}
-                isEmpty={!styleData && !isAnalyzing && currentDesignSystem?.status !== DesignSystemStatus.PROCESSING && currentDesignSystem?.status !== DesignSystemStatus.PENDING}
-                isAnalyzing={isAnalyzing}
-              />
-            ) : (
-              <AestheticAnalysisPanel
-                aestheticData={aestheticData}
-                isEmpty={!aestheticData && !isAnalyzing && currentDesignSystem?.status !== DesignSystemStatus.PROCESSING && currentDesignSystem?.status !== DesignSystemStatus.PENDING}
-                isAnalyzing={isAnalyzing}
-                onAestheticDataChange={setAestheticData}
-              />
-            )}
+              {/* Tab Content */}
+              <TabPanels>
+                <TabPanel>
+                  <StyleAnalysisPanel 
+                    styleData={styleData}
+                    onStyleDataChange={setStyleData}
+                    isEmpty={!styleData && !isAnalyzing && currentDesignSystem?.status !== DesignSystemStatus.PROCESSING && currentDesignSystem?.status !== DesignSystemStatus.PENDING}
+                    isAnalyzing={isAnalyzing}
+                  />
+                </TabPanel>
+                <TabPanel>
+                  <AestheticAnalysisPanel
+                    aestheticData={aestheticData}
+                    isEmpty={!aestheticData && !isAnalyzing && currentDesignSystem?.status !== DesignSystemStatus.PROCESSING && currentDesignSystem?.status !== DesignSystemStatus.PENDING}
+                    isAnalyzing={isAnalyzing}
+                    onAestheticDataChange={setAestheticData}
+                  />
+                </TabPanel>
+              </TabPanels>
+            </TabGroup>
           </div>
         </div>
       </main>

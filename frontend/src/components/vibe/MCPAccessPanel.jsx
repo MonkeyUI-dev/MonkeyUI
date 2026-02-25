@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react'
 import { 
   XMarkIcon, 
   ServerIcon,
@@ -24,7 +25,6 @@ export default function MCPAccessPanel({
 }) {
   const { t } = useTranslation()
   const [copiedField, setCopiedField] = useState(null)
-  const [expandedSection, setExpandedSection] = useState('cursor')
 
   if (!isOpen) return null
 
@@ -166,92 +166,92 @@ export default function MCPAccessPanel({
           {/* Configuration Sections */}
           <div className="space-y-3">
             {sections.map((section) => (
-              <div 
-                key={section.id}
-                className="rounded-lg overflow-hidden"
-                style={{ border: '1px solid var(--border-subtle)' }}
-              >
-                <button
-                  onClick={() => setExpandedSection(expandedSection === section.id ? null : section.id)}
-                  className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
-                  style={{ backgroundColor: 'var(--bg-canvas)' }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div 
-                      className="size-9 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: 'var(--bg-surface)' }}
-                    >
-                      {section.icon}
-                    </div>
-                    <div className="text-left">
-                      <span 
-                        className="font-medium"
-                        style={{ color: 'var(--text-primary)' }}
-                      >
-                        {section.title}
-                      </span>
-                      <p 
-                        className="text-sm"
-                        style={{ color: 'var(--text-secondary)' }}
-                      >
-                        {section.description}
-                      </p>
-                    </div>
-                  </div>
-                  {expandedSection === section.id ? (
-                    <ChevronUpIcon className="size-5" style={{ color: 'var(--text-secondary)' }} />
-                  ) : (
-                    <ChevronDownIcon className="size-5" style={{ color: 'var(--text-secondary)' }} />
-                  )}
-                </button>
-                
-                {expandedSection === section.id && (
+              <Disclosure key={section.id} defaultOpen={section.id === 'cursor'}>
+                {({ open }) => (
                   <div 
-                    className="p-4 pt-0 space-y-4"
-                    style={{ backgroundColor: 'var(--bg-surface)' }}
+                    className="rounded-lg overflow-hidden"
+                    style={{ border: '1px solid var(--border-subtle)' }}
                   >
-                    {section.subsections.map((subsection) => (
-                      <div key={subsection.id} className="space-y-2">
-                        <div className="flex items-center justify-between">
+                    <DisclosureButton
+                      className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
+                      style={{ backgroundColor: 'var(--bg-canvas)' }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div 
+                          className="size-9 rounded-lg flex items-center justify-center"
+                          style={{ backgroundColor: 'var(--bg-surface)' }}
+                        >
+                          {section.icon}
+                        </div>
+                        <div className="text-left">
                           <span 
-                            className="text-sm font-medium"
+                            className="font-medium"
                             style={{ color: 'var(--text-primary)' }}
                           >
-                            {subsection.title}
+                            {section.title}
                           </span>
-                          <button
-                            onClick={() => handleCopy(subsection.content, subsection.id)}
-                            className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-full hover:bg-white/5 transition-colors"
-                            style={{ color: 'var(--accent-mint)' }}
+                          <p 
+                            className="text-sm"
+                            style={{ color: 'var(--text-secondary)' }}
                           >
-                            {copiedField === subsection.id ? (
-                              <>
-                                <CheckIcon className="size-3.5" />
-                                {t('common.copied')}
-                              </>
-                            ) : (
-                              <>
-                                <ClipboardDocumentIcon className="size-3.5" />
-                                {t('common.copy')}
-                              </>
-                            )}
-                          </button>
+                            {section.description}
+                          </p>
                         </div>
-                        <pre 
-                          className="rounded-lg p-4 text-xs overflow-x-auto font-mono"
-                          style={{ 
-                            backgroundColor: '#1e1e1e', 
-                            color: '#d4d4d4',
-                            border: '1px solid var(--border-subtle)'
-                          }}
-                        >
-                          {subsection.content}
-                        </pre>
                       </div>
-                    ))}
+                      {open ? (
+                        <ChevronUpIcon className="size-5" style={{ color: 'var(--text-secondary)' }} />
+                      ) : (
+                        <ChevronDownIcon className="size-5" style={{ color: 'var(--text-secondary)' }} />
+                      )}
+                    </DisclosureButton>
+                    
+                    <DisclosurePanel
+                      className="p-4 pt-0 space-y-4"
+                      style={{ backgroundColor: 'var(--bg-surface)' }}
+                    >
+                      {section.subsections.map((subsection) => (
+                        <div key={subsection.id} className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span 
+                              className="text-sm font-medium"
+                              style={{ color: 'var(--text-primary)' }}
+                            >
+                              {subsection.title}
+                            </span>
+                            <button
+                              onClick={() => handleCopy(subsection.content, subsection.id)}
+                              className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-full hover:bg-white/5 transition-colors"
+                              style={{ color: 'var(--accent-mint)' }}
+                            >
+                              {copiedField === subsection.id ? (
+                                <>
+                                  <CheckIcon className="size-3.5" />
+                                  {t('common.copied')}
+                                </>
+                              ) : (
+                                <>
+                                  <ClipboardDocumentIcon className="size-3.5" />
+                                  {t('common.copy')}
+                                </>
+                              )}
+                            </button>
+                          </div>
+                          <pre 
+                            className="rounded-lg p-4 text-xs overflow-x-auto font-mono"
+                            style={{ 
+                              backgroundColor: '#1e1e1e', 
+                              color: '#d4d4d4',
+                              border: '1px solid var(--border-subtle)'
+                            }}
+                          >
+                            {subsection.content}
+                          </pre>
+                        </div>
+                      ))}
+                    </DisclosurePanel>
                   </div>
                 )}
-              </div>
+              </Disclosure>
             ))}
           </div>
 

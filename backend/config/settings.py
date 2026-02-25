@@ -252,10 +252,6 @@ cors_origins = os.getenv(
     'http://localhost:5173,http://127.0.0.1:5173'
 ).split(',')
 
-# Auto-include Fly.io backend domain for local testing
-if APP_NAME and DEBUG:
-    cors_origins.append(f"https://{APP_NAME}.fly.dev")
-
 CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins if origin.strip()]
 CORS_ALLOW_CREDENTIALS = True
 

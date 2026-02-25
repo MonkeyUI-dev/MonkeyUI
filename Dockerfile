@@ -87,7 +87,7 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8080/api/health/ || exit 1
 
-# Default command (overridden by fly.toml processes)
+# Default command
 # For local development/testing only
 CMD /opt/venv/bin/python manage.py migrate --noinput && \
     /opt/venv/bin/gunicorn config.wsgi:application --bind 0.0.0.0:8080 --workers 2 --threads 4 --timeout 120 --access-logfile - --error-logfile -

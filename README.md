@@ -1,6 +1,5 @@
 # MonkeyUI
-
-A modern full-stack application built with React and Django.
+A UIUX knowledge base empowering vibe coding, helping developers generate professional-grade, high-intent UI through carefully designed reference guidelines, without requiring designer expertise.
 
 ## Project Structure
 
@@ -30,7 +29,7 @@ monkeyui/
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+ and npm
+- Node.js 22+ and npm
 - Python 3.11+
 - PostgreSQL 15+ with pgvector extension
 - Pipenv

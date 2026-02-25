@@ -119,7 +119,7 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
     // Map i18n language codes to locale codes for toLocaleDateString
     const localeMap = {
       'en': 'en-US',
-      'zh': 'zh-CN'
+      'zh-CN': 'zh-CN'
     }
     const locale = localeMap[i18n.language] || 'en-US'
     return new Date(dateString).toLocaleDateString(locale, {
@@ -135,7 +135,7 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
   ]
 
   const toggleLanguage = () => {
-    const newLang = i18n.language === 'en' ? 'zh' : 'en'
+    const newLang = i18n.language === 'en' ? 'zh-CN' : 'en'
     i18n.changeLanguage(newLang)
   }
 
@@ -484,12 +484,12 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
                           English
                         </button>
                         <button
-                          onClick={() => i18n.changeLanguage('zh')}
+                          onClick={() => i18n.changeLanguage('zh-CN')}
                           className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
                           style={{
-                            backgroundColor: i18n.language === 'zh' ? 'var(--btn-primary-bg)' : 'var(--bg-surface)',
-                            color: i18n.language === 'zh' ? 'var(--btn-primary-fg)' : 'var(--text-primary)',
-                            border: i18n.language === 'zh' ? 'none' : '1px solid var(--border-default)'
+                            backgroundColor: i18n.language === 'zh-CN' ? 'var(--btn-primary-bg)' : 'var(--bg-surface)',
+                            color: i18n.language === 'zh-CN' ? 'var(--btn-primary-fg)' : 'var(--text-primary)',
+                            border: i18n.language === 'zh-CN' ? 'none' : '1px solid var(--border-default)'
                           }}
                         >
                           中文

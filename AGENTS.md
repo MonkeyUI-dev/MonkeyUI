@@ -12,7 +12,7 @@ This is a monorepo full-stack application with a React frontend and Django backe
 | Django          | 6.0.1                  |
 | DRF             | 3.14                   |
 | Python          | >=3.14                 |
-| Node            | >=18.0.0               |
+| Node            | >=22.0.0               |
 | Package Manager | uv (backend), npm (frontend) |
 | Database        | PostgreSQL 16 + pgvector |
 | Cache / Queue   | Redis 7 + Celery       |
@@ -362,7 +362,7 @@ When Tailwind classes align with our design system, prefer them. Otherwise, use 
 
 ### Frontend i18n Setup
 - Translation files location: `frontend/public/locales/`
-- Structure: `public/locales/en/translation.json` and `public/locales/zh/translation.json`
+- Structure: `public/locales/en/translation.json` and `public/locales/zh-CN/translation.json`
 - Loaded via `i18next-http-backend` at runtime (load path: `/locales/{{lng}}/{{ns}}.json`)
 - Language detection: `i18next-browser-languagedetector`
 - Always add both English and Chinese translations when creating new keys
@@ -378,7 +378,7 @@ When Tailwind classes align with our design system, prefer them. Otherwise, use 
 ## Development
 
 ### Prerequisites
-- Node.js >=18.0.0, npm >=9.0.0
+- Node.js >=22.0.0, npm >=10.0.0
 - Python >=3.14 with [uv](https://docs.astral.sh/uv/) package manager
 - Docker & Docker Compose (for PostgreSQL + Redis)
 

@@ -280,18 +280,62 @@ function DesignSystemCard({ system, onSelect, onDelete, progress }) {
   const isProcessing = system.status === DesignSystemStatus.PROCESSING || system.status === DesignSystemStatus.PENDING
   
   // Check if color is light (needs border)
-  const isLightColor = (hexColor) => {
-    if (!hexColor) return false
-    // Remove # if present
-    const hex = hexColor.replace('#', '')
-    // Convert to RGB
-    const r = parseInt(hex.substr(0, 2), 16)
-    const g = parseInt(hex.substr(2, 2), 16)
-    const b = parseInt(hex.substr(4, 2), 16)
+  const isLightColor = (color) => {
+    if (!color) return false
+    
+    // Handle CSS variables
+    if (color.startsWith('var(')) {
+      // We can't easily compute CSS variables in JS without DOM access,
+      // but we know our specific variables
+      if (color.includes('--bg-canvas') || color.includes('--bg-surface')) return false
+      if (color.includes('--brand-primary') || color.includes('--text-primary')) return true
+      return false
+    }
+
+    let r, g, b
+
+    // Handle rgb/rgba
+    if (color.startsWith('rgb')) {
+      const match = color.match(/\d+/g)
+      if (match && match.length >= 3) {
+        r = parseInt(match[0], 10)
+        g = parseInt(match[1], 10)
+        b = parseInt(match[2], 10)
+      } else {
+        return false
+      }
+    } 
+    // Handle hex
+    else if (color.startsWith('#') || /^[0-9A-Fa-f]{3,6}$/.test(color)) {
+      let hex = color.replace('#', '')
+      if (hex.length === 3) {
+        hex = hex.split('').map(char => char + char).join('')
+      }
+      if (hex.length !== 6) return false
+      
+      r = parseInt(hex.substr(0, 2), 16)
+      g = parseInt(hex.substr(2, 2), 16)
+      b = parseInt(hex.substr(4, 2), 16)
+    }
+    // Handle named colors (basic ones)
+    else {
+      const namedColors = {
+        white: [255, 255, 255],
+        black: [0, 0, 0],
+        transparent: [0, 0, 0] // Assume dark for transparent
+      }
+      const rgb = namedColors[color.toLowerCase()]
+      if (rgb) {
+        [r, g, b] = rgb
+      } else {
+        return false
+      }
+    }
+
     // Calculate luminance (perceived brightness)
     const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-    // If luminance > 0.9, it's a light color
-    return luminance > 0.9
+    // If luminance > 0.5, it's a light color
+    return luminance > 0.5
   }
   
   // Get status badge color
@@ -333,7 +377,7 @@ function DesignSystemCard({ system, onSelect, onDelete, progress }) {
           style={{ 
             backgroundColor: system.primary_color || 'var(--bg-surface)',
             color: system.primary_color 
-              ? (isLightColor(system.primary_color) ? 'var(--text-primary)' : 'var(--text-on-dark)')
+              ? (isLightColor(system.primary_color) ? 'var(--bg-canvas)' : 'var(--text-on-dark)')
               : 'var(--text-secondary)',
             border: isLightColor(system.primary_color) ? '1px solid var(--border-default)' : 'none'
           }}

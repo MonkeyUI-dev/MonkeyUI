@@ -31,7 +31,7 @@ npm install
 
 ```bash
 cd backend
-pipenv install --dev
+uv sync
 cp .env.example .env
 # Edit .env with your database credentials
 ```
@@ -50,9 +50,8 @@ psql monkeyui_dev -c 'CREATE EXTENSION vector;'
 
 ```bash
 cd backend
-pipenv shell
-python manage.py migrate
-python manage.py createsuperuser
+uv run python manage.py migrate
+uv run python manage.py createsuperuser
 ```
 
 ## 🏃 Running the Application
@@ -69,8 +68,7 @@ Frontend will be available at: http://localhost:5173
 **Terminal 2 - Backend:**
 ```bash
 cd backend
-pipenv shell
-python manage.py runserver
+uv run python manage.py runserver
 ```
 Backend API will be available at: http://localhost:8000
 
@@ -85,14 +83,9 @@ Once the backend is running, visit:
 The application supports English and Chinese.
 
 ### Frontend
-- Translation files: `frontend/public/locales/en|zh/translation.json`
+- Translation files: `frontend/public/locales/en|zh-CN/translation.json`
 - Use `t()` function from `react-i18next` in components
 - Never hardcode user-facing text
-
-### Backend
-- Use `gettext_lazy()` for all user-facing strings
-- Generate translations: `python manage.py makemessages -l zh_Hans`
-- Compile translations: `python manage.py compilemessages`
 
 ## 🛠 Development Tools
 
@@ -106,13 +99,11 @@ npm run lint     # Run ESLint
 
 ### Backend Commands
 ```bash
-python manage.py runserver          # Start dev server
-python manage.py makemigrations     # Create migrations
-python manage.py migrate            # Apply migrations
-python manage.py createsuperuser    # Create admin user
-python manage.py test               # Run tests
-black .                             # Format code
-flake8                              # Check code style
+uv run python manage.py runserver          # Start dev server
+uv run python manage.py makemigrations     # Create migrations
+uv run python manage.py migrate            # Apply migrations
+uv run python manage.py createsuperuser    # Create admin user
+uv run python manage.py test               # Run tests
 ```
 
 ## 📦 Adding Shadcn/ui Components
@@ -142,15 +133,12 @@ monkeyui/
 └── .github/           # GitHub configuration & Copilot instructions
 ```
 
-See [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) for detailed structure.
-
 ## 📚 Documentation
 
-- [Main README](README.md) - Project overview
-- [Frontend README](frontend/README.md) - Frontend documentation
-- [Backend README](backend/README.md) - Backend documentation
-- [Contributing Guide](CONTRIBUTING.md) - How to contribute
-- [Documentation](docs/README.md) - Detailed documentation
+- [Main README](../README.md) - Project overview
+- [Frontend README](../frontend/README.md) - Frontend documentation
+- [Backend README](../backend/README.md) - Backend documentation
+- [Contributing Guide](../CONTRIBUTING.md) - How to contribute
 
 ## ⚙️ Configuration
 
@@ -168,14 +156,6 @@ DEBUG=True
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/monkeyui_dev
 ```
 
-## 🤖 GitHub Copilot
-
-This project includes GitHub Copilot instructions at `.github/copilot-instructions.md`. These instructions ensure that:
-- All code uses English
-- i18n is properly implemented
-- Best practices are followed
-- Code style is consistent
-
 ## 🐛 Troubleshooting
 
 ### Database Connection Error
@@ -185,11 +165,10 @@ This project includes GitHub Copilot instructions at `.github/copilot-instructio
 
 ### Frontend Build Error
 - Clear cache: `rm -rf node_modules && npm install`
-- Check Node.js version: `node --version` (should be 18+)
+- Check Node.js version: `node --version` (should be 22+)
 
 ### Backend Import Error
-- Activate virtual environment: `pipenv shell`
-- Reinstall dependencies: `pipenv install`
+- Reinstall dependencies: `uv sync`
 
 ## 💡 Next Steps
 
@@ -205,6 +184,6 @@ This project includes GitHub Copilot instructions at `.github/copilot-instructio
 
 Start building amazing features with MonkeyUI!
 
-For questions or issues, please refer to the documentation or open an issue.
+For questions or issues, please open an issue.
 
 Happy coding! 🐒

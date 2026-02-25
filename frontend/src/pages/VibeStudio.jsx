@@ -379,6 +379,63 @@ export default function VibeStudio({ isNew }) {
     }
   }
 
+  // Check if color is light (needs border)
+  const isLightColor = (color) => {
+    if (!color) return false
+    
+    // Handle CSS variables
+    if (color.startsWith('var(')) {
+      if (color.includes('--bg-canvas') || color.includes('--bg-surface')) return false
+      if (color.includes('--brand-primary') || color.includes('--text-primary')) return true
+      return false
+    }
+
+    let r, g, b
+
+    // Handle rgb/rgba
+    if (color.startsWith('rgb')) {
+      const match = color.match(/\d+/g)
+      if (match && match.length >= 3) {
+        r = parseInt(match[0], 10)
+        g = parseInt(match[1], 10)
+        b = parseInt(match[2], 10)
+      } else {
+        return false
+      }
+    } 
+    // Handle hex
+    else if (color.startsWith('#') || /^[0-9A-Fa-f]{3,6}$/.test(color)) {
+      let hex = color.replace('#', '')
+      if (hex.length === 3) {
+        hex = hex.split('').map(char => char + char).join('')
+      }
+      if (hex.length !== 6) return false
+      
+      r = parseInt(hex.substr(0, 2), 16)
+      g = parseInt(hex.substr(2, 2), 16)
+      b = parseInt(hex.substr(4, 2), 16)
+    }
+    // Handle named colors (basic ones)
+    else {
+      const namedColors = {
+        white: [255, 255, 255],
+        black: [0, 0, 0],
+        transparent: [0, 0, 0] // Assume dark for transparent
+      }
+      const rgb = namedColors[color.toLowerCase()]
+      if (rgb) {
+        [r, g, b] = rgb
+      } else {
+        return false
+      }
+    }
+
+    // Calculate luminance (perceived brightness)
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+    // If luminance > 0.5, it's a light color
+    return luminance > 0.5
+  }
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-surface)' }}>
       {/* Alert notification */}
@@ -410,9 +467,19 @@ export default function VibeStudio({ isNew }) {
             <div className="flex items-center gap-x-3">
               <div 
                 className="size-10 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: styleData?.colors?.primary || 'var(--accent-mint)' }}
+                style={{ 
+                  backgroundColor: styleData?.colors?.primary || 'var(--accent-mint)',
+                  border: isLightColor(styleData?.colors?.primary || 'var(--accent-mint)') ? '1px solid var(--border-default)' : 'none'
+                }}
               >
-                <svg className="size-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg 
+                  className="size-6" 
+                  style={{ color: isLightColor(styleData?.colors?.primary || 'var(--accent-mint)') ? 'var(--bg-canvas)' : 'var(--text-on-dark)' }}
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2"
+                >
                   <path d="M12 2L2 7l10 5 10-5-10-5z" />
                   <path d="M2 17l10 5 10-5" />
                   <path d="M2 12l10 5 10-5" />

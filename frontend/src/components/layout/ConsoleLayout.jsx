@@ -12,9 +12,11 @@ import {
   GlobeAltIcon,
   CheckIcon,
   ClipboardDocumentIcon,
+  CpuChipIcon,
 } from '@heroicons/react/24/outline'
 import { ChevronDownIcon } from '@heroicons/react/20/solid'
 import { fetchAPIKeys, createAPIKey, deleteAPIKey } from '../../services/apiKeys'
+import { fetchLLMConfigs, createLLMConfig, updateLLMConfig, deleteLLMConfig } from '../../services/llmConfig'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { Badge } from '../ui/badge'
@@ -43,10 +45,21 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
   const [keyToDelete, setKeyToDelete] = useState(null)
   const [copiedKeyId, setCopiedKeyId] = useState(null)
 
+  // LLM Config state
+  const [llmConfigs, setLlmConfigs] = useState([])
+  const [loadingLLMConfigs, setLoadingLLMConfigs] = useState(false)
+  const [savingProvider, setSavingProvider] = useState(null)
+  const [providerApiKeys, setProviderApiKeys] = useState({ gemini: '', openrouter: '' })
+  const [showDeleteLLMDialog, setShowDeleteLLMDialog] = useState(false)
+  const [llmConfigToDelete, setLlmConfigToDelete] = useState(null)
+
   // Load API keys when settings dialog opens and API Keys tab is active
   useEffect(() => {
     if (settingsOpen && activeSettingTab === 'apiKeys') {
       loadAPIKeys()
+    }
+    if (settingsOpen && activeSettingTab === 'models') {
+      loadLLMConfigs()
     }
   }, [settingsOpen, activeSettingTab])
 
@@ -118,6 +131,58 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
     }
   }
 
+  // LLM Config handlers
+  const loadLLMConfigs = async () => {
+    setLoadingLLMConfigs(true)
+    try {
+      const data = await fetchLLMConfigs()
+      const configs = Array.isArray(data) ? data : []
+      setLlmConfigs(configs)
+      setProviderApiKeys({ gemini: '', openrouter: '' })
+    } catch (error) {
+      console.error('Failed to load LLM configs:', error)
+      setLlmConfigs([])
+    } finally {
+      setLoadingLLMConfigs(false)
+    }
+  }
+
+  const handleSaveLLMConfig = async (provider) => {
+    const apiKey = providerApiKeys[provider]
+    if (!apiKey.trim()) return
+
+    setSavingProvider(provider)
+    try {
+      const existing = llmConfigs.find(c => c.provider === provider)
+      if (existing) {
+        await updateLLMConfig(existing.id, { api_key: apiKey })
+      } else {
+        await createLLMConfig({ provider, api_key: apiKey })
+      }
+      await loadLLMConfigs()
+    } catch (error) {
+      console.error('Failed to save LLM config:', error)
+      alert(t('settings.modelConfig.saveError'))
+    } finally {
+      setSavingProvider(null)
+    }
+  }
+
+  const handleDeleteLLMConfig = async () => {
+    if (!llmConfigToDelete) return
+    try {
+      await deleteLLMConfig(llmConfigToDelete.id)
+      setShowDeleteLLMDialog(false)
+      setLlmConfigToDelete(null)
+      await loadLLMConfigs()
+    } catch (error) {
+      console.error('Failed to delete LLM config:', error)
+      alert(t('settings.modelConfig.deleteError'))
+    }
+  }
+
+  const getProviderConfig = (provider) => llmConfigs.find(c => c.provider === provider)
+
   const formatDate = (dateString) => {
     if (!dateString) return t('settings.apiKeyManagement.never')
     // Map i18n language codes to locale codes for toLocaleDateString
@@ -135,6 +200,7 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
 
   const settingsTabs = [
     { id: 'general', name: t('settings.general'), icon: GlobeAltIcon },
+    { id: 'models', name: t('settings.models'), icon: CpuChipIcon },
     { id: 'apiKeys', name: t('settings.apiKeys'), icon: KeyIcon },
   ]
 
@@ -490,6 +556,139 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
                   </div>
                 )}
 
+                {activeSettingTab === 'models' && (
+                  <div className="space-y-6">
+                    <div>
+                      <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+                        {t('settings.modelConfig.description')}
+                      </p>
+                    </div>
+
+                    {loadingLLMConfigs ? (
+                      <div className="text-center py-12" style={{ color: 'var(--text-secondary)' }}>
+                        {t('common.loading')}
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {[
+                          { id: 'gemini', name: 'Gemini', description: t('settings.modelConfig.geminiDescription') },
+                          { id: 'openrouter', name: 'OpenRouter', description: t('settings.modelConfig.openrouterDescription') },
+                        ].map((provider) => {
+                          const config = getProviderConfig(provider.id)
+                          return (
+                            <div
+                              key={provider.id}
+                              className="p-5 rounded-xl"
+                              style={{
+                                backgroundColor: 'var(--bg-surface)',
+                                border: '1px solid var(--border-subtle)'
+                              }}
+                            >
+                              <div className="flex items-start justify-between mb-3">
+                                <div>
+                                  <div className="flex items-center gap-2.5 mb-1">
+                                    <h4 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                      {provider.name}
+                                    </h4>
+                                    <Badge variant={config ? 'success' : 'muted'} className="flex-shrink-0">
+                                      {config ? t('settings.modelConfig.configured') : t('settings.modelConfig.notConfigured')}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                                    {provider.description}
+                                  </p>
+                                </div>
+                                {config && (
+                                  <button
+                                    onClick={() => {
+                                      setLlmConfigToDelete(config)
+                                      setShowDeleteLLMDialog(true)
+                                    }}
+                                    className="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors flex-shrink-0"
+                                    style={{
+                                      color: 'var(--color-error)',
+                                      border: '1px solid var(--border-default)'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'
+                                      e.currentTarget.style.borderColor = 'var(--color-error)'
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.backgroundColor = 'transparent'
+                                      e.currentTarget.style.borderColor = 'var(--border-default)'
+                                    }}
+                                  >
+                                    {t('settings.modelConfig.delete')}
+                                  </button>
+                                )}
+                              </div>
+
+                              <Separator className="my-3" />
+
+                              {/* Model (fixed) */}
+                              <div className="mb-3">
+                                <Label className="text-xs mb-1">{t('settings.modelConfig.model')}</Label>
+                                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                                  {t('settings.modelConfig.fixedModel')}
+                                </p>
+                              </div>
+
+                              {/* API Key */}
+                              {config ? (
+                                <div className="mb-3">
+                                  <Label className="text-xs mb-1">{t('settings.modelConfig.apiKey')}</Label>
+                                  <div className="flex items-center gap-2">
+                                    <code
+                                      className="text-xs px-3 py-1.5 rounded inline-block font-mono flex-1"
+                                      style={{
+                                        backgroundColor: 'var(--bg-canvas)',
+                                        color: 'var(--text-secondary)',
+                                        border: '1px solid var(--border-subtle)'
+                                      }}
+                                    >
+                                      {config.api_key_display}
+                                    </code>
+                                  </div>
+                                </div>
+                              ) : null}
+
+                              {/* Update / Set API Key */}
+                              <div>
+                                <Label className="text-xs mb-1">
+                                  {config ? t('settings.modelConfig.apiKey') : t('settings.modelConfig.apiKey')}
+                                </Label>
+                                <div className="flex gap-2">
+                                  <Input
+                                    type="password"
+                                    value={providerApiKeys[provider.id]}
+                                    onChange={(e) => setProviderApiKeys(prev => ({
+                                      ...prev,
+                                      [provider.id]: e.target.value
+                                    }))}
+                                    placeholder={t('settings.modelConfig.apiKeyPlaceholder')}
+                                    className="flex-1 text-sm"
+                                  />
+                                  <button
+                                    onClick={() => handleSaveLLMConfig(provider.id)}
+                                    disabled={!providerApiKeys[provider.id].trim() || savingProvider === provider.id}
+                                    className="px-4 py-2 rounded-lg text-sm font-medium transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                                    style={{
+                                      backgroundColor: 'var(--btn-primary-bg)',
+                                      color: 'var(--btn-primary-fg)'
+                                    }}
+                                  >
+                                    {savingProvider === provider.id ? t('settings.modelConfig.saving') : t('settings.modelConfig.save')}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {activeSettingTab === 'apiKeys' && (
                   <div className="space-y-6">
                     {/* Header with description and count */}
@@ -830,6 +1029,66 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
               </button>
               <button
                 onClick={handleDeleteKey}
+                className="px-4 py-2 rounded-lg text-sm font-medium"
+                style={{
+                  backgroundColor: 'var(--color-error)',
+                  color: 'white'
+                }}
+              >
+                {t('common.delete')}
+              </button>
+            </div>
+          </DialogPanel>
+        </div>
+      </Dialog>
+
+      {/* Delete LLM Config Confirmation Dialog */}
+      <Dialog open={showDeleteLLMDialog} onClose={() => setShowDeleteLLMDialog(false)} className="relative z-50">
+        <DialogBackdrop className="fixed inset-0 bg-black/30" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <DialogPanel 
+            className="mx-auto max-w-md rounded-xl p-6 w-full"
+            style={{ 
+              backgroundColor: 'var(--bg-canvas)',
+              border: '1px solid var(--border-subtle)'
+            }}
+          >
+            <h3 
+              className="text-lg font-bold mb-4"
+              style={{ color: 'var(--text-primary)', fontWeight: 'var(--font-weight-heading)' }}
+            >
+              {t('settings.modelConfig.confirmDelete')}
+            </h3>
+            
+            <p className="text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
+              {t('settings.modelConfig.deleteWarning')}
+            </p>
+
+            {llmConfigToDelete && (
+              <div 
+                className="p-3 rounded-lg mb-4 mt-4"
+                style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
+              >
+                <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                  {llmConfigToDelete.provider_display}
+                </div>
+              </div>
+            )}
+
+            <div className="mt-6 flex gap-3 justify-end">
+              <button
+                onClick={() => setShowDeleteLLMDialog(false)}
+                className="px-4 py-2 rounded-lg text-sm font-medium"
+                style={{
+                  backgroundColor: 'var(--bg-surface)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border-default)'
+                }}
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={handleDeleteLLMConfig}
                 className="px-4 py-2 rounded-lg text-sm font-medium"
                 style={{
                   backgroundColor: 'var(--color-error)',

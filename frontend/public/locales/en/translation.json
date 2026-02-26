@@ -106,6 +106,8 @@
       "inactive": "Inactive",
       "configured": "Configured",
       "notConfigured": "Not configured",
+      "default": "Default",
+      "setDefault": "Set as default",
       "geminiDescription": "Direct access to Google Gemini API",
       "openrouterDescription": "Access multiple models via OpenRouter",
       "fixedModel": "Gemini 3 Pro (fixed)",
@@ -114,7 +116,9 @@
       "deleteSuccess": "Provider configuration removed successfully",
       "deleteError": "Failed to remove provider configuration",
       "confirmDelete": "Are you sure you want to remove this provider configuration?",
-      "deleteWarning": "Your API key will be permanently deleted. AI features will fall back to the system default if available."
+      "deleteWarning": "Your API key will be permanently deleted. AI features will fall back to the system default if available.",
+      "readinessWarning": "Please configure a default model provider before creating a design system.",
+      "readinessAction": "Configure now"
     }
   },
   "console": {

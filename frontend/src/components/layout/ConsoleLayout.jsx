@@ -26,7 +26,7 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export default function ConsoleLayout({ children, designSystems = [], onCreateNew }) {
+export default function ConsoleLayout({ children, designSystems = [], onCreateNew, openSettingsTab = null, onSettingsClosed }) {
   const { t, i18n } = useTranslation()
   const { user, logout } = useAuth()
   const navigate = useNavigate()
@@ -52,6 +52,14 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
   const [providerApiKeys, setProviderApiKeys] = useState({ gemini: '', openrouter: '' })
   const [showDeleteLLMDialog, setShowDeleteLLMDialog] = useState(false)
   const [llmConfigToDelete, setLlmConfigToDelete] = useState(null)
+
+  // Allow parent to open settings to a specific tab
+  useEffect(() => {
+    if (openSettingsTab) {
+      setActiveSettingTab(openSettingsTab)
+      setSettingsOpen(true)
+    }
+  }, [openSettingsTab])
 
   // Load API keys when settings dialog opens and API Keys tab is active
   useEffect(() => {
@@ -182,6 +190,15 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
   }
 
   const getProviderConfig = (provider) => llmConfigs.find(c => c.provider === provider)
+
+  const handleSetDefault = async (config) => {
+    try {
+      await updateLLMConfig(config.id, { is_default: true })
+      await loadLLMConfigs()
+    } catch (error) {
+      console.error('Failed to set default provider:', error)
+    }
+  }
 
   const formatDate = (dateString) => {
     if (!dateString) return t('settings.apiKeyManagement.never')
@@ -445,7 +462,7 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
       </main>
 
       {/* Settings Dialog */}
-      <Dialog open={settingsOpen} onClose={setSettingsOpen} className="relative z-50">
+      <Dialog open={settingsOpen} onClose={(open) => { setSettingsOpen(open); if (!open) onSettingsClosed?.() }} className="relative z-50">
         <DialogBackdrop className="fixed inset-0 bg-black/30" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <DialogPanel 
@@ -513,6 +530,7 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
                   onClick={() => {
                     setSettingsOpen(false)
                     setActiveSettingTab('general')
+                    onSettingsClosed?.()
                   }}
                   className="p-1 rounded-full hover:bg-[#F5F0FF]"
                   style={{ color: 'var(--text-secondary)' }}
@@ -593,34 +611,53 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
                                     <Badge variant={config ? 'success' : 'muted'} className="flex-shrink-0">
                                       {config ? t('settings.modelConfig.configured') : t('settings.modelConfig.notConfigured')}
                                     </Badge>
+                                    {config?.is_default && (
+                                      <Badge variant="default" className="flex-shrink-0">
+                                        {t('settings.modelConfig.default')}
+                                      </Badge>
+                                    )}
                                   </div>
                                   <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
                                     {provider.description}
                                   </p>
                                 </div>
-                                {config && (
-                                  <button
-                                    onClick={() => {
-                                      setLlmConfigToDelete(config)
-                                      setShowDeleteLLMDialog(true)
-                                    }}
-                                    className="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors flex-shrink-0"
-                                    style={{
-                                      color: 'var(--color-error)',
-                                      border: '1px solid var(--border-default)'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'
-                                      e.currentTarget.style.borderColor = 'var(--color-error)'
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      e.currentTarget.style.backgroundColor = 'transparent'
-                                      e.currentTarget.style.borderColor = 'var(--border-default)'
-                                    }}
-                                  >
-                                    {t('settings.modelConfig.delete')}
-                                  </button>
-                                )}
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                  {config && !config.is_default && (
+                                    <button
+                                      onClick={() => handleSetDefault(config)}
+                                      className="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
+                                      style={{
+                                        color: 'var(--accent-mint)',
+                                        border: '1px solid var(--border-default)'
+                                      }}
+                                    >
+                                      {t('settings.modelConfig.setDefault')}
+                                    </button>
+                                  )}
+                                  {config && (
+                                    <button
+                                      onClick={() => {
+                                        setLlmConfigToDelete(config)
+                                        setShowDeleteLLMDialog(true)
+                                      }}
+                                      className="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
+                                      style={{
+                                        color: 'var(--color-error)',
+                                        border: '1px solid var(--border-default)'
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'
+                                        e.currentTarget.style.borderColor = 'var(--color-error)'
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.backgroundColor = 'transparent'
+                                        e.currentTarget.style.borderColor = 'var(--border-default)'
+                                      }}
+                                    >
+                                      {t('settings.modelConfig.delete')}
+                                    </button>
+                                  )}
+                                </div>
                               </div>
 
                               <Separator className="my-3" />

@@ -104,6 +104,8 @@
       "inactive": "未启用",
       "configured": "已配置",
       "notConfigured": "未配置",
+      "default": "默认",
+      "setDefault": "设为默认",
       "geminiDescription": "直接访问 Google Gemini API",
       "openrouterDescription": "通过 OpenRouter 访问多种模型",
       "fixedModel": "Gemini 3 Pro（固定）",
@@ -112,7 +114,9 @@
       "deleteSuccess": "供应商配置已移除",
       "deleteError": "移除供应商配置失败",
       "confirmDelete": "确定要移除此供应商配置吗？",
-      "deleteWarning": "您的 API 密钥将被永久删除。AI 功能将回退到系统默认设置（如果可用）。"
+      "deleteWarning": "您的 API 密钥将被永久删除。AI 功能将回退到系统默认设置（如果可用）。",
+      "readinessWarning": "请在创建设计系统之前配置默认模型供应商。",
+      "readinessAction": "立即配置"
     }
   },
   "console": {

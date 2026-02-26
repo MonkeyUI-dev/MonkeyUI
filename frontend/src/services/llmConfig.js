@@ -45,3 +45,12 @@ export const deleteLLMConfig = async (configId) => {
   const response = await api.delete(`/accounts/llm-configs/${configId}/`);
   return response.data;
 };
+
+/**
+ * Check if the user has a default LLM provider configured
+ * @returns {Promise} Promise resolving to { ready: boolean, default_provider: string|null }
+ */
+export const checkLLMReadiness = async () => {
+  const response = await api.get('/accounts/llm-configs/readiness/');
+  return response.data;
+};

@@ -9,6 +9,8 @@ from .views import (
     ChangePasswordView,
     UserAPIKeyListCreateView,
     UserAPIKeyDetailView,
+    UserLLMConfigListCreateView,
+    UserLLMConfigDetailView,
 )
 
 app_name = 'accounts'
@@ -24,4 +26,8 @@ urlpatterns = [
     # API Keys
     path('api-keys/', UserAPIKeyListCreateView.as_view(), name='api-key-list-create'),
     path('api-keys/<uuid:pk>/', UserAPIKeyDetailView.as_view(), name='api-key-detail'),
+
+    # LLM Configurations
+    path('llm-configs/', UserLLMConfigListCreateView.as_view(), name='llm-config-list-create'),
+    path('llm-configs/<uuid:pk>/', UserLLMConfigDetailView.as_view(), name='llm-config-detail'),
 ]

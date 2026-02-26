@@ -14,8 +14,9 @@ from .serializers import (
     ChangePasswordSerializer,
     UserAPIKeySerializer,
     CreateUserAPIKeySerializer,
+    UserLLMConfigSerializer,
 )
-from .models import UserAPIKey
+from .models import UserAPIKey, UserLLMConfig
 
 User = get_user_model()
 
@@ -192,4 +193,39 @@ class UserAPIKeyDetailView(generics.RetrieveUpdateDestroyAPIView):
         self.perform_destroy(instance)
         return Response({
             'message': _('API key deleted successfully')
+        }, status=status.HTTP_200_OK)
+
+
+class UserLLMConfigListCreateView(generics.ListCreateAPIView):
+    """
+    API endpoint to list and create LLM provider configurations
+    for the authenticated user.
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserLLMConfigSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        return UserLLMConfig.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class UserLLMConfigDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    API endpoint to retrieve, update, or delete a specific LLM
+    provider configuration.
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserLLMConfigSerializer
+
+    def get_queryset(self):
+        return UserLLMConfig.objects.filter(user=self.request.user)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response({
+            'message': _('LLM configuration deleted successfully')
         }, status=status.HTTP_200_OK)

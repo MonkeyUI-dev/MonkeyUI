@@ -649,7 +649,7 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
 
                               <Separator className="my-3" />
 
-                              {/* Model (fixed) */}
+                              {/* Model */}
                               <div className="mb-3">
                                 <Label className="text-xs mb-1">{t('settings.modelConfig.model')}</Label>
                                 <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>

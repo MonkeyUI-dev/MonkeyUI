@@ -110,7 +110,7 @@
       "setDefault": "Default",
       "geminiDescription": "Direct access to Google Gemini API",
       "openrouterDescription": "Access multiple models via OpenRouter",
-      "fixedModel": "Gemini 3 Pro (fixed)",
+      "fixedModel": "Gemini 2.5 Pro",
       "saveSuccess": "Provider configuration saved successfully",
       "saveError": "Failed to save provider configuration",
       "deleteSuccess": "Provider configuration removed successfully",

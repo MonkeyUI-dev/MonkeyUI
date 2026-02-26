@@ -108,7 +108,7 @@
       "setDefault": "默认",
       "geminiDescription": "直接访问 Google Gemini API",
       "openrouterDescription": "通过 OpenRouter 访问多种模型",
-      "fixedModel": "Gemini 3 Pro（固定）",
+      "fixedModel": "Gemini 2.5 Pro",
       "saveSuccess": "供应商配置保存成功",
       "saveError": "保存供应商配置失败",
       "deleteSuccess": "供应商配置已移除",

@@ -779,6 +779,82 @@ class TestLLMConfigViews(AccountsAPITestBase):
         response = self.client.get(self.LLM_CONFIGS_URL)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    def test_set_default_provider(self):
+        """PATCH with is_default=True should mark the provider as default."""
+        from apps.accounts.models import UserLLMConfig
+        cfg = UserLLMConfig(user=self.user, provider="gemini")
+        cfg.set_api_key("test-key")
+        cfg.save()
+        url = f"{self.LLM_CONFIGS_URL}{cfg.pk}/"
+        response = self.client.patch(url, {"is_default": True}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["is_default"])
+
+    def test_only_one_default_per_user(self):
+        """Setting a new default should clear the previous one."""
+        from apps.accounts.models import UserLLMConfig
+        cfg1 = UserLLMConfig(user=self.user, provider="gemini", is_default=True)
+        cfg1.set_api_key("key-1")
+        cfg1.save()
+        cfg2 = UserLLMConfig(user=self.user, provider="openrouter", is_default=False)
+        cfg2.set_api_key("key-2")
+        cfg2.save()
+        url = f"{self.LLM_CONFIGS_URL}{cfg2.pk}/"
+        self.client.patch(url, {"is_default": True}, format="json")
+        cfg1.refresh_from_db()
+        cfg2.refresh_from_db()
+        self.assertFalse(cfg1.is_default)
+        self.assertTrue(cfg2.is_default)
+
+
+# ---------------------------------------------------------------------------
+# LLM Readiness Check Tests
+# ---------------------------------------------------------------------------
+
+class TestLLMReadinessView(AccountsAPITestBase):
+    """Tests for the LLM readiness check endpoint."""
+
+    READINESS_URL = "/api/accounts/llm-configs/readiness/"
+
+    def setUp(self):
+        super().setUp()
+        self.user = self._create_user()
+        self._authenticate(self.user)
+
+    def test_not_ready_when_no_config(self):
+        """Should return ready=False when no default config exists."""
+        response = self.client.get(self.READINESS_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data["ready"])
+        self.assertIsNone(response.data["default_provider"])
+
+    def test_ready_when_default_exists(self):
+        """Should return ready=True when a default config exists."""
+        from apps.accounts.models import UserLLMConfig
+        cfg = UserLLMConfig(user=self.user, provider="gemini", is_default=True)
+        cfg.set_api_key("test-key")
+        cfg.save()
+        response = self.client.get(self.READINESS_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["ready"])
+        self.assertEqual(response.data["default_provider"], "gemini")
+
+    def test_not_ready_when_config_exists_but_not_default(self):
+        """Should return ready=False when config exists but is_default=False."""
+        from apps.accounts.models import UserLLMConfig
+        cfg = UserLLMConfig(user=self.user, provider="gemini", is_default=False)
+        cfg.set_api_key("test-key")
+        cfg.save()
+        response = self.client.get(self.READINESS_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data["ready"])
+
+    def test_unauthenticated_returns_401(self):
+        """Readiness endpoint should require authentication."""
+        self.client.credentials()
+        response = self.client.get(self.READINESS_URL)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
 
 if __name__ == "__main__":
     unittest.main()

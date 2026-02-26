@@ -149,7 +149,7 @@ class UserLLMConfigSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'provider', 'provider_display',
             'api_key', 'api_key_display',
-            'is_active', 'created_at', 'updated_at',
+            'is_active', 'is_default', 'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 

@@ -101,8 +101,9 @@ def get_default_provider(for_vision: bool = False, user=None) -> Optional[LLMCon
     Get the default (first available) LLM provider configuration.
     
     Priority order:
-    1. OpenRouter (preferred - supports Gemini 3 Pro with reasoning)
-    2. Gemini (direct API)
+    1. User's explicitly marked default provider (is_default=True)
+    2. OpenRouter (preferred - supports Gemini 3 Pro with reasoning)
+    3. Gemini (direct API)
     
     Args:
         for_vision: If True, use vision-capable model
@@ -111,7 +112,22 @@ def get_default_provider(for_vision: bool = False, user=None) -> Optional[LLMCon
     Returns:
         LLMConfig for the first available provider, None if none available
     """
-    # Check for explicit default provider in settings
+    # 1. Check user's explicit default provider
+    if user is not None:
+        try:
+            from apps.accounts.models import UserLLMConfig
+            default_config = UserLLMConfig.objects.filter(
+                user=user, is_active=True, is_default=True
+            ).first()
+            if default_config:
+                provider_type = LLMProviderType(default_config.provider)
+                config = get_provider_config(provider_type, for_vision, user=user)
+                if config:
+                    return config
+        except Exception:
+            pass
+
+    # 2. Check for explicit default provider in settings
     default_provider = getattr(settings, 'DEFAULT_LLM_PROVIDER', None)
     if default_provider:
         try:
@@ -122,7 +138,7 @@ def get_default_provider(for_vision: bool = False, user=None) -> Optional[LLMCon
         except ValueError:
             pass
     
-    # Try providers in priority order (OpenRouter first for Gemini 3 Pro support)
+    # 3. Try providers in priority order (OpenRouter first for Gemini 3 Pro support)
     priority_order = [
         LLMProviderType.OPENROUTER,
         LLMProviderType.GEMINI,

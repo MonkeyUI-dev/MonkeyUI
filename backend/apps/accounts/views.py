@@ -229,3 +229,21 @@ class UserLLMConfigDetailView(generics.RetrieveUpdateDestroyAPIView):
         return Response({
             'message': _('LLM configuration deleted successfully')
         }, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def llm_readiness_view(request):
+    """
+    Check whether the authenticated user has a default LLM provider
+    configured with valid credentials.
+    """
+    default_config = UserLLMConfig.objects.filter(
+        user=request.user, is_active=True, is_default=True
+    ).first()
+
+    ready = default_config is not None
+    return Response({
+        'ready': ready,
+        'default_provider': default_config.provider if default_config else None,
+    }, status=status.HTTP_200_OK)

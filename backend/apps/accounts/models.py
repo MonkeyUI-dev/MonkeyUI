@@ -241,6 +241,11 @@ class UserLLMConfig(TimeStampedModel):
         verbose_name=_('Is Active'),
         help_text=_('Whether this provider configuration is active')
     )
+    is_default = models.BooleanField(
+        default=False,
+        verbose_name=_('Is Default'),
+        help_text=_('Whether this is the default provider for the user')
+    )
 
     class Meta:
         verbose_name = _('User LLM configuration')
@@ -255,6 +260,14 @@ class UserLLMConfig(TimeStampedModel):
 
     def __str__(self):
         return f'{self.user.email} - {self.get_provider_display()}'
+
+    def save(self, *args, **kwargs):
+        # Ensure only one default config per user
+        if self.is_default:
+            UserLLMConfig.objects.filter(
+                user=self.user, is_default=True
+            ).exclude(pk=self.pk).update(is_default=False)
+        super().save(*args, **kwargs)
 
     def set_api_key(self, plaintext_key: str):
         """Encrypt and store the API key."""

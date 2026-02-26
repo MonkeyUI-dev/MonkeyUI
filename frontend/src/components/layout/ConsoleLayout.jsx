@@ -200,6 +200,11 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
     }
   }
 
+  const handleCloseSettings = (open) => {
+    setSettingsOpen(open)
+    if (!open) onSettingsClosed?.()
+  }
+
   const formatDate = (dateString) => {
     if (!dateString) return t('settings.apiKeyManagement.never')
     // Map i18n language codes to locale codes for toLocaleDateString
@@ -462,7 +467,7 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
       </main>
 
       {/* Settings Dialog */}
-      <Dialog open={settingsOpen} onClose={(open) => { setSettingsOpen(open); if (!open) onSettingsClosed?.() }} className="relative z-50">
+      <Dialog open={settingsOpen} onClose={handleCloseSettings} className="relative z-50">
         <DialogBackdrop className="fixed inset-0 bg-black/30" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <DialogPanel 

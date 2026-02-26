@@ -30,6 +30,6 @@ urlpatterns = [
 
     # LLM Configurations
     path('llm-configs/', UserLLMConfigListCreateView.as_view(), name='llm-config-list-create'),
-    path('llm-configs/<uuid:pk>/', UserLLMConfigDetailView.as_view(), name='llm-config-detail'),
     path('llm-configs/readiness/', llm_readiness_view, name='llm-readiness'),
+    path('llm-configs/<uuid:pk>/', UserLLMConfigDetailView.as_view(), name='llm-config-detail'),
 ]

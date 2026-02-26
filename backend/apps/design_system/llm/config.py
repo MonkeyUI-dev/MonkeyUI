@@ -8,10 +8,13 @@ Supported providers:
 - Gemini (direct Google API)
 - OpenRouter (with Gemini 3 Pro and reasoning capabilities)
 """
+import logging
 import os
 from django.conf import settings
 from typing import Optional
 from .providers import LLMConfig, LLMProviderType
+
+logger = logging.getLogger(__name__)
 
 
 # Default model configurations for each provider
@@ -62,7 +65,7 @@ def get_provider_config(
             if user_config:
                 api_key = user_config.get_api_key()
         except Exception:
-            pass
+            logger.warning('Failed to load per-user LLM config for provider %s', provider_type.value, exc_info=True)
 
     # 2. Try Django settings / env vars as fallback
     llm_settings = getattr(settings, 'LLM_PROVIDERS', {})
@@ -125,7 +128,7 @@ def get_default_provider(for_vision: bool = False, user=None) -> Optional[LLMCon
                 if config:
                     return config
         except Exception:
-            pass
+            logger.warning('Failed to load user default LLM provider', exc_info=True)
 
     # 2. Check for explicit default provider in settings
     default_provider = getattr(settings, 'DEFAULT_LLM_PROVIDER', None)

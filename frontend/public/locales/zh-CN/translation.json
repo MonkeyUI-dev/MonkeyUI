@@ -105,7 +105,7 @@
       "configured": "已配置",
       "notConfigured": "未配置",
       "default": "默认",
-      "setDefault": "设为默认",
+      "setDefault": "默认",
       "geminiDescription": "直接访问 Google Gemini API",
       "openrouterDescription": "通过 OpenRouter 访问多种模型",
       "fixedModel": "Gemini 3 Pro（固定）",

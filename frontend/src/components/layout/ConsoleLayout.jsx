@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
-import { Dialog, DialogBackdrop, DialogPanel, TransitionChild, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
+import { Dialog, DialogBackdrop, DialogPanel, TransitionChild, Menu, MenuButton, MenuItem, MenuItems, Switch } from '@headlessui/react'
 import {
   Bars3Icon,
   XMarkIcon,
@@ -191,12 +191,13 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
 
   const getProviderConfig = (provider) => llmConfigs.find(c => c.provider === provider)
 
-  const handleSetDefault = async (config) => {
+  const handleToggleDefault = async (config, enabled) => {
+    if (!enabled) return
     try {
       await updateLLMConfig(config.id, { is_default: true })
       await loadLLMConfigs()
     } catch (error) {
-      console.error('Failed to set default provider:', error)
+      console.error('Failed to toggle default provider:', error)
     }
   }
 
@@ -616,52 +617,33 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
                                     <Badge variant={config ? 'success' : 'muted'} className="flex-shrink-0">
                                       {config ? t('settings.modelConfig.configured') : t('settings.modelConfig.notConfigured')}
                                     </Badge>
-                                    {config?.is_default && (
-                                      <Badge variant="default" className="flex-shrink-0">
-                                        {t('settings.modelConfig.default')}
-                                      </Badge>
-                                    )}
                                   </div>
                                   <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
                                     {provider.description}
                                   </p>
                                 </div>
-                                <div className="flex items-center gap-2 flex-shrink-0">
-                                  {config && !config.is_default && (
-                                    <button
-                                      onClick={() => handleSetDefault(config)}
-                                      className="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
-                                      style={{
-                                        color: 'var(--accent-mint)',
-                                        border: '1px solid var(--border-default)'
-                                      }}
-                                    >
-                                      {t('settings.modelConfig.setDefault')}
-                                    </button>
-                                  )}
-                                  {config && (
-                                    <button
-                                      onClick={() => {
-                                        setLlmConfigToDelete(config)
-                                        setShowDeleteLLMDialog(true)
-                                      }}
-                                      className="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
-                                      style={{
-                                        color: 'var(--color-error)',
-                                        border: '1px solid var(--border-default)'
-                                      }}
-                                      onMouseEnter={(e) => {
-                                        e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'
-                                        e.currentTarget.style.borderColor = 'var(--color-error)'
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        e.currentTarget.style.backgroundColor = 'transparent'
-                                        e.currentTarget.style.borderColor = 'var(--border-default)'
-                                      }}
-                                    >
-                                      {t('settings.modelConfig.delete')}
-                                    </button>
-                                  )}
+                                <div className="flex items-center gap-3 flex-shrink-0">
+                                  <span className="text-xs" style={{ color: config?.is_default ? 'var(--accent-mint)' : 'var(--text-tertiary)' }}>
+                                    {config?.is_default ? t('settings.modelConfig.default') : t('settings.modelConfig.setDefault')}
+                                  </span>
+                                  <Switch
+                                    checked={!!config?.is_default}
+                                    onChange={(enabled) => config && handleToggleDefault(config, enabled)}
+                                    disabled={!config}
+                                    className={classNames(
+                                      config?.is_default ? 'bg-[var(--accent-mint)]' : 'bg-[var(--bg-canvas)]',
+                                      !config ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer',
+                                      'relative inline-flex h-5 w-9 flex-shrink-0 rounded-full border border-[var(--border-default)] transition-colors duration-200 ease-in-out focus:outline-none'
+                                    )}
+                                  >
+                                    <span
+                                      className={classNames(
+                                        config?.is_default ? 'translate-x-4' : 'translate-x-0',
+                                        'pointer-events-none inline-block h-4 w-4 transform rounded-full shadow ring-0 transition duration-200 ease-in-out'
+                                      )}
+                                      style={{ backgroundColor: config?.is_default ? 'var(--bg-canvas)' : 'var(--text-tertiary)' }}
+                                    />
+                                  </Switch>
                                 </div>
                               </div>
 
@@ -690,6 +672,17 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
                                     >
                                       {config.api_key_display}
                                     </code>
+                                    <button
+                                      onClick={() => {
+                                        setLlmConfigToDelete(config)
+                                        setShowDeleteLLMDialog(true)
+                                      }}
+                                      className="text-xs transition-colors hover:underline flex-shrink-0"
+                                      style={{ color: 'var(--color-error)' }}
+                                      aria-label={`${t('settings.modelConfig.delete')} ${provider.name}`}
+                                    >
+                                      {t('settings.modelConfig.delete')}
+                                    </button>
                                   </div>
                                 </div>
                               ) : null}

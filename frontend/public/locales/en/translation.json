@@ -107,7 +107,7 @@
       "configured": "Configured",
       "notConfigured": "Not configured",
       "default": "Default",
-      "setDefault": "Set as default",
+      "setDefault": "Default",
       "geminiDescription": "Direct access to Google Gemini API",
       "openrouterDescription": "Access multiple models via OpenRouter",
       "fixedModel": "Gemini 3 Pro (fixed)",

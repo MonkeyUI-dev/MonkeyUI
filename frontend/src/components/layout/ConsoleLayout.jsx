@@ -655,7 +655,7 @@ export default function ConsoleLayout({ children, designSystems = [], onCreateNe
                               {/* Update / Set API Key */}
                               <div>
                                 <Label className="text-xs mb-1">
-                                  {config ? t('settings.modelConfig.apiKey') : t('settings.modelConfig.apiKey')}
+                                  {t('settings.modelConfig.apiKey')}
                                 </Label>
                                 <div className="flex gap-2">
                                   <Input

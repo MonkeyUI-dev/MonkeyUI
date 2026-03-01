@@ -5,10 +5,16 @@
 
 app = 'vibecoding-design-kb-demo'
 primary_region = 'sin'
+kill_signal = 'SIGTERM'
+kill_timeout = 30
 
 [build]
   dockerfile = "Dockerfile"
   ignorefile = ".dockerignore"
+
+[deploy]
+  release_command = "/opt/venv/bin/python manage.py migrate --noinput"
+  strategy = "rolling"
 
 [env]
   PORT = '8080'
@@ -31,7 +37,7 @@ primary_region = 'sin'
 
 # Define multiple processes: web app and celery worker
 [processes]
-  app = "sh -c '/opt/venv/bin/python manage.py migrate --noinput && /opt/venv/bin/gunicorn config.wsgi:application --bind 0.0.0.0:8080 --workers 2 --threads 4 --timeout 120 --access-logfile - --error-logfile -'"
+  app = "/opt/venv/bin/gunicorn config.wsgi:application --bind 0.0.0.0:8080 --workers 2 --threads 4 --timeout 120 --access-logfile - --error-logfile -"
   worker = "/opt/venv/bin/celery -A config worker --loglevel=info --concurrency=2"
 
 [http_service]
@@ -55,6 +61,27 @@ primary_region = 'sin'
     path = "/api/health/"
     timeout = "5s"
     headers = { Host = "vibecoding-design-kb-demo.fly.dev" }
+
+[checks]
+  [checks.app_health]
+    type = "http"
+    port = 8080
+    path = "/api/health/"
+    method = "GET"
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "30s"
+    processes = ["app"]
+
+[[restart]]
+  policy = "always"
+  retries = 10
+  processes = ["worker"]
+
+[[restart]]
+  policy = "on-failure"
+  retries = 10
+  processes = ["app"]
 
 [[vm]]
   memory = '1gb'

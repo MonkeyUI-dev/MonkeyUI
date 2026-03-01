@@ -62,17 +62,6 @@ kill_timeout = 30
     timeout = "5s"
     headers = { Host = "vibecoding-design-kb-demo.fly.dev" }
 
-[checks]
-  [checks.app_health]
-    type = "http"
-    port = 8080
-    path = "/api/health/"
-    method = "GET"
-    interval = "30s"
-    timeout = "5s"
-    grace_period = "30s"
-    processes = ["app"]
-
 [[restart]]
   policy = "always"
   retries = 10

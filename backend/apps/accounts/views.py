@@ -207,19 +207,12 @@ class UserAPIKeyDetailView(generics.RetrieveUpdateDestroyAPIView):
 def _generate_event_password():
     """Generate a random password that passes Django validators."""
     # 4 lowercase + 4 uppercase + 4 digits + 2 special chars = 14 chars
-    chars = (
-        secrets.choice(string.ascii_lowercase) for _ in range(4)
+    password_chars = (
+        [secrets.choice(string.ascii_lowercase) for _ in range(4)]
+        + [secrets.choice(string.ascii_uppercase) for _ in range(4)]
+        + [secrets.choice(string.digits) for _ in range(4)]
+        + [secrets.choice('!@#$%&*') for _ in range(2)]
     )
-    uppers = (
-        secrets.choice(string.ascii_uppercase) for _ in range(4)
-    )
-    digits = (
-        secrets.choice(string.digits) for _ in range(4)
-    )
-    specials = (
-        secrets.choice('!@#$%&*') for _ in range(2)
-    )
-    password_chars = list(chars) + list(uppers) + list(digits) + list(specials)
     secrets.SystemRandom().shuffle(password_chars)
     return ''.join(password_chars)
 

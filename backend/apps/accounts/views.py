@@ -217,6 +217,9 @@ def _generate_event_password():
     return ''.join(password_chars)
 
 
+SHEBUILDS_EVENT_ID = '20260308'
+
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @throttle_classes([EventRegisterThrottle])
@@ -228,7 +231,7 @@ def event_register_view(request):
     """
     # Generate random credentials
     random_suffix = secrets.token_hex(4)
-    email = f"shebuilds_{random_suffix}@monkeyui.app"
+    email = f"shebuilds-{SHEBUILDS_EVENT_ID}-{random_suffix}@monkeyui.app"
     password = _generate_event_password()
     name = f"SheBuilds User {random_suffix[:4]}"
 

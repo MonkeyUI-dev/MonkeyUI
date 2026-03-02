@@ -217,5 +217,24 @@
         "getTailwindConfig": "Get Tailwind config"
       }
     }
+  },
+  "sheBuilds": {
+    "title": "SheBuilds 2026",
+    "date": "March 8, 2026",
+    "subtitle": "One-click registration for the SheBuilds event",
+    "quickRegister": "Quick register",
+    "registering": "Creating your account...",
+    "success": "Registration successful!",
+    "credentials": "Your credentials",
+    "email": "Email",
+    "password": "Password",
+    "apiKey": "API key",
+    "copyAll": "Copy all credentials",
+    "enterConsole": "Enter console",
+    "error": "Registration failed. Please try again.",
+    "credentialsCopied": "All credentials copied to clipboard!",
+    "welcome": "Welcome to MonkeyUI",
+    "description": "Get instant access to MonkeyUI's AI-powered design system tools. One click creates your account, password, and API key.",
+    "registerAnother": "Register another account"
   }
 }

@@ -3,6 +3,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import SheBuildsRegister from './pages/SheBuildsRegister';
 import DesignWorkshop from './pages/DesignWorkshop';
 import VibeStudio from './pages/VibeStudio';
 
@@ -14,6 +15,7 @@ function App() {
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/shebuilds" element={<SheBuildsRegister />} />
           
           {/* Protected routes */}
           <Route

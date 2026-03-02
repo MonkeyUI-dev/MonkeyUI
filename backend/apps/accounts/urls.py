@@ -9,6 +9,7 @@ from .views import (
     ChangePasswordView,
     UserAPIKeyListCreateView,
     UserAPIKeyDetailView,
+    event_register_view,
 )
 
 app_name = 'accounts'
@@ -20,6 +21,9 @@ urlpatterns = [
     path('me/', current_user_view, name='current-user'),
     path('change-password/', ChangePasswordView.as_view(), name='change-password'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
+    
+    # Event registration
+    path('event-register/', event_register_view, name='event-register'),
     
     # API Keys
     path('api-keys/', UserAPIKeyListCreateView.as_view(), name='api-key-list-create'),

@@ -216,5 +216,24 @@
         "getTailwindConfig": "获取 Tailwind 配置"
       }
     }
+  },
+  "sheBuilds": {
+    "title": "SheBuilds 2026",
+    "date": "2026年3月8日",
+    "subtitle": "SheBuilds 活动一键注册",
+    "quickRegister": "一键注册",
+    "registering": "正在创建账号...",
+    "success": "注册成功！",
+    "credentials": "您的凭据",
+    "email": "邮箱",
+    "password": "密码",
+    "apiKey": "API 密钥",
+    "copyAll": "复制全部凭据",
+    "enterConsole": "进入控制台",
+    "error": "注册失败，请重试。",
+    "credentialsCopied": "所有凭据已复制到剪贴板！",
+    "welcome": "欢迎使用 MonkeyUI",
+    "description": "即刻获得 MonkeyUI AI 设计系统工具的访问权限。一键创建账号、密码和 API 密钥。",
+    "registerAnother": "再注册一个账号"
   }
 }

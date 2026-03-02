@@ -33,7 +33,7 @@ class EventRegisterViewTests(TestCase):
 
         # Email should be in the expected format
         self.assertTrue(creds['email'].startswith('shebuilds-20260308-'))
-        self.assertTrue(creds['email'].endswith('@monkeyui.app'))
+        self.assertTrue(creds['email'].endswith('@monkeyui.com'))
 
         # API key should start with 'sk_'
         self.assertTrue(creds['api_key'].startswith('sk_'))

@@ -232,6 +232,7 @@
     "enterConsole": "进入控制台",
     "error": "注册失败，请重试。",
     "credentialsCopied": "所有凭据已复制到剪贴板！",
+    "copyTagline": "MonkeyUI — 帮你构建令自己心动的页面 ✨ https://monkeyui.com",
     "welcome": "欢迎使用 MonkeyUI",
     "description": "即刻获得 MonkeyUI AI 设计系统工具的访问权限。一键创建账号、密码和 API 密钥。",
     "registerAnother": "再注册一个账号"

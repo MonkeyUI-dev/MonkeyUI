@@ -46,6 +46,8 @@ export default function SheBuildsRegister() {
       `Email: ${credentials.email}`,
       `Password: ${credentials.password}`,
       `API Key: ${credentials.api_key}`,
+      '',
+      t('sheBuilds.copyTagline'),
     ].join('\n');
 
     try {

@@ -231,7 +231,7 @@ def event_register_view(request):
     """
     # Generate random credentials
     random_suffix = secrets.token_hex(4)
-    email = f"shebuilds-{SHEBUILDS_EVENT_ID}-{random_suffix}@monkeyui.app"
+    email = f"shebuilds-{SHEBUILDS_EVENT_ID}-{random_suffix}@monkeyui.com"
     password = _generate_event_password()
     name = f"SheBuilds User {random_suffix[:4]}"
 

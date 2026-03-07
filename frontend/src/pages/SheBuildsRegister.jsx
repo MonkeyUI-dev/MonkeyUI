@@ -25,7 +25,6 @@ export default function SheBuildsRegister() {
       const response = await api.post('/accounts/event-register/');
       const data = response.data;
 
-      // Store tokens so the user can enter console directly
       if (data.tokens) {
         localStorage.setItem('access_token', data.tokens.access);
         localStorage.setItem('refresh_token', data.tokens.refresh);
@@ -55,7 +54,6 @@ export default function SheBuildsRegister() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback for older browsers
       const textarea = document.createElement('textarea');
       textarea.value = text;
       document.body.appendChild(textarea);
@@ -68,7 +66,6 @@ export default function SheBuildsRegister() {
   };
 
   const handleEnterConsole = () => {
-    // Reload auth context by navigating — tokens are already in localStorage
     window.location.href = '/';
   };
 
@@ -76,7 +73,6 @@ export default function SheBuildsRegister() {
     setCredentials(null);
     setCopied(false);
     setError('');
-    // Clear stored tokens from previous quick-register
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
@@ -84,152 +80,148 @@ export default function SheBuildsRegister() {
 
   return (
     <div
-      className="flex min-h-screen flex-col items-center justify-center px-6 py-12"
-      style={{ backgroundColor: 'var(--bg-canvas)' }}
+      className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-12"
+      style={{
+        fontFamily: 'Inter, SF Pro Display, system-ui, sans-serif',
+        color: '#FFFFFF'
+      }}
     >
-      {/* Event header */}
-      <div className="w-full max-w-md text-center">
+      {/* Background Spectral Mesh Animation */}
+      <div 
+        className="absolute inset-0 z-0 pointer-events-none"
+        style={{
+          background: 'linear-gradient(-45deg, #6B8AF1, #F45099, #FF7C4D)',
+          backgroundSize: '200% 200%',
+          animation: 'sheb-drift 15s ease infinite',
+        }}
+      />
+      <style>
+        {`
+          @keyframes sheb-drift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+        `}
+      </style>
+
+      {/* Main Content Area (No Containers) */}
+      <div className="relative z-10 w-full max-w-lg text-center flex flex-col items-center">
+        {/* Event Context Eyebrow */}
         <div
-          className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm"
-          style={{
-            backgroundColor: 'rgba(168, 192, 175, 0.1)',
-            border: '1px solid rgba(168, 192, 175, 0.2)',
-            color: 'var(--accent-mint)',
-          }}
+          className="mb-8 text-sm uppercase tracking-[0.2em] font-medium"
+          style={{ opacity: 0.9 }}
         >
-          <span>✦</span>
-          <span>{t('sheBuilds.date')}</span>
+          {t('sheBuilds.date')}
         </div>
 
+        {/* Hero Typography */}
         <h1
-          className="mt-4 text-5xl font-bold tracking-tight"
-          style={{
-            color: 'var(--text-primary)',
-            fontWeight: 'var(--font-weight-heading)',
-          }}
+          className="text-6xl sm:text-7xl font-bold tracking-tight leading-none mb-4"
+          style={{ letterSpacing: '-0.02em', textShadow: 'none' }}
         >
           {t('sheBuilds.title')}
         </h1>
 
         <p
-          className="mt-3 text-lg"
-          style={{ color: 'var(--text-secondary)' }}
+          className="text-xl sm:text-2xl font-medium mb-2"
+          style={{ opacity: 0.9 }}
         >
           {t('sheBuilds.subtitle')}
         </p>
 
         <p
-          className="mt-2 text-sm"
-          style={{ color: 'var(--text-tertiary)' }}
+          className="text-base sm:text-lg max-w-md mx-auto mb-16"
+          style={{ opacity: 0.8, fontWeight: 400 }}
         >
           {t('sheBuilds.description')}
         </p>
-      </div>
 
-      {/* Main card */}
-      <div
-        className="mt-10 w-full max-w-md rounded-xl p-8"
-        style={{
-          backgroundColor: 'var(--bg-surface)',
-          border: '1px solid var(--border-subtle)',
-        }}
-      >
-        {error && (
-          <div
-            className="mb-6 rounded-xl px-4 py-3 text-sm"
-            style={{
-              backgroundColor: 'rgba(252, 165, 165, 0.15)',
-              color: 'var(--color-error)',
-              borderRadius: 'var(--radius-md)',
-            }}
-          >
-            {error}
-          </div>
-        )}
-
-        {!credentials ? (
-          /* Register button */
-          <div className="text-center">
-            <Button
-              onClick={handleQuickRegister}
-              disabled={loading}
-              className="w-full rounded-full px-8 py-4 text-lg font-semibold transition-all"
+        {/* Dynamic Content area */}
+        <div className="w-full flex flex-col items-center">
+          {error && (
+            <div
+              className="mb-8 rounded-full px-6 py-3 text-sm"
               style={{
-                backgroundColor: 'var(--btn-primary-bg)',
-                color: 'var(--btn-primary-fg)',
-                borderRadius: 'var(--radius-pill)',
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                color: '#FFFFFF',
               }}
             >
-              {loading ? t('sheBuilds.registering') : t('sheBuilds.quickRegister')}
-            </Button>
-          </div>
-        ) : (
-          /* Credentials display */
-          <div className="space-y-6">
-            <div className="flex items-center gap-2 text-center">
-              <div
-                className="mx-auto flex items-center gap-2 rounded-full px-3 py-1 text-sm"
+              {error}
+            </div>
+          )}
+
+          {!credentials ? (
+            /* Register button */
+            <div className="w-full max-w-sm">
+              <Button
+                onClick={handleQuickRegister}
+                disabled={loading}
+                className="w-full rounded-full px-8 py-5 text-xl font-bold transition-transform hover:scale-105"
                 style={{
-                  backgroundColor: 'rgba(168, 192, 175, 0.15)',
-                  color: 'var(--color-success)',
+                  backgroundColor: '#FFFFFF',
+                  color: '#F45099', /* Vibrant Magenta for pure contrast */
+                  border: 'none',
                 }}
+              >
+                {loading ? t('sheBuilds.registering') : t('sheBuilds.quickRegister')}
+              </Button>
+            </div>
+          ) : (
+            /* Credentials display (No Container cards) */
+            <div className="w-full max-w-sm space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <div
+                className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-widest px-4 py-1.5 rounded-full"
+                style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
               >
                 <span>✓</span>
                 <span>{t('sheBuilds.success')}</span>
               </div>
+
+              <h3 className="text-2xl font-bold tracking-tight">
+                {t('sheBuilds.credentials')}
+              </h3>
+
+              {/* Credential rows */}
+              <div className="space-y-4 text-left">
+                <CredentialRow label={t('sheBuilds.email')} value={credentials.email} />
+                <CredentialRow label={t('sheBuilds.password')} value={credentials.password} />
+                <CredentialRow label={t('sheBuilds.apiKey')} value={credentials.api_key} />
+              </div>
+
+              {/* Action buttons */}
+              <div className="space-y-4 pt-4 flex flex-col items-center">
+                <Button
+                  onClick={handleEnterConsole}
+                  className="w-full rounded-full px-6 py-4 text-lg font-bold transition-transform hover:scale-105"
+                  style={{
+                    backgroundColor: '#FFFFFF',
+                    color: '#6B8AF1', /* Electric Blue */
+                    border: 'none',
+                  }}
+                >
+                  {t('sheBuilds.enterConsole')}
+                </Button>
+
+                <button
+                  onClick={handleCopyAll}
+                  className="text-sm font-semibold tracking-wide uppercase transition-opacity hover:opacity-100 mt-2"
+                  style={{ opacity: copied ? 1 : 0.8, textDecoration: 'underline', textUnderlineOffset: '4px' }}
+                >
+                  {copied ? t('sheBuilds.credentialsCopied') : t('sheBuilds.copyAll')}
+                </button>
+
+                <button
+                  onClick={handleRegisterAnother}
+                  className="text-xs font-medium tracking-wider uppercase transition-opacity hover:opacity-100"
+                  style={{ opacity: 0.6, textDecoration: 'underline', textUnderlineOffset: '4px' }}
+                >
+                  {t('sheBuilds.registerAnother')}
+                </button>
+              </div>
             </div>
-
-            <h3
-              className="text-lg font-medium"
-              style={{ color: 'var(--text-primary)' }}
-            >
-              {t('sheBuilds.credentials')}
-            </h3>
-
-            {/* Credential rows */}
-            <div className="space-y-3">
-              <CredentialRow label={t('sheBuilds.email')} value={credentials.email} />
-              <CredentialRow label={t('sheBuilds.password')} value={credentials.password} />
-              <CredentialRow label={t('sheBuilds.apiKey')} value={credentials.api_key} />
-            </div>
-
-            {/* Action buttons */}
-            <div className="space-y-3 pt-2">
-              <Button
-                onClick={handleCopyAll}
-                className="w-full rounded-full px-6 py-3 text-base font-semibold transition-all"
-                style={{
-                  backgroundColor: copied ? 'rgba(168, 192, 175, 0.2)' : 'transparent',
-                  color: copied ? 'var(--color-success)' : 'var(--text-primary)',
-                  border: '1px solid var(--border-default)',
-                  borderRadius: 'var(--radius-pill)',
-                }}
-              >
-                {copied ? t('sheBuilds.credentialsCopied') : t('sheBuilds.copyAll')}
-              </Button>
-
-              <Button
-                onClick={handleEnterConsole}
-                className="w-full rounded-full px-6 py-3 text-base font-semibold transition-all"
-                style={{
-                  backgroundColor: 'var(--btn-primary-bg)',
-                  color: 'var(--btn-primary-fg)',
-                  borderRadius: 'var(--radius-pill)',
-                }}
-              >
-                {t('sheBuilds.enterConsole')}
-              </Button>
-
-              <button
-                onClick={handleRegisterAnother}
-                className="w-full text-center text-sm transition-colors hover:underline"
-                style={{ color: 'var(--text-tertiary)' }}
-              >
-                {t('sheBuilds.registerAnother')}
-              </button>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
@@ -237,25 +229,17 @@ export default function SheBuildsRegister() {
 
 function CredentialRow({ label, value }) {
   return (
-    <div
-      className="rounded-xl px-4 py-3"
-      style={{
-        backgroundColor: 'var(--bg-canvas)',
-        border: '1px solid var(--border-subtle)',
-      }}
-    >
+    <div className="py-2 border-b border-white/20">
       <div
-        className="mb-1 text-xs font-medium uppercase tracking-wider"
-        style={{ color: 'var(--text-tertiary)' }}
+        className="mb-1 text-xs font-bold uppercase tracking-widest"
+        style={{ opacity: 0.7 }}
       >
         {label}
       </div>
-      <div
-        className="break-all font-mono text-sm"
-        style={{ color: 'var(--text-primary)' }}
-      >
+      <div className="break-all font-mono text-lg font-medium text-white">
         {value}
       </div>
     </div>
   );
 }
+

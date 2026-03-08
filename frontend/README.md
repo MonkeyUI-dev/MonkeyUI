@@ -72,4 +72,7 @@ Create a `.env` file:
 
 ```
 VITE_API_URL=http://localhost:8000/api
+VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
 ```
+
+`VITE_GA_MEASUREMENT_ID` is optional. When it is not set, Google Analytics is not initialized and no page view events are sent.

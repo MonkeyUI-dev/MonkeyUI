@@ -199,3 +199,82 @@ class UserAPIKey(TimeStampedModel):
 
         self.last_used_at = timezone.now()
         self.save(update_fields=['last_used_at'])
+
+
+class UserLLMConfig(TimeStampedModel):
+    """
+    Per-user LLM provider configuration.
+
+    Each user can configure one entry per provider with their own API key.
+    API keys are encrypted at rest using Fernet symmetric encryption.
+    """
+
+    PROVIDER_CHOICES = [
+        ('gemini', _('Gemini')),
+        ('openrouter', _('OpenRouter')),
+    ]
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+    user = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.CASCADE,
+        related_name='llm_configs',
+        verbose_name=_('User'),
+        help_text=_('User who owns this LLM configuration')
+    )
+    provider = models.CharField(
+        max_length=20,
+        choices=PROVIDER_CHOICES,
+        verbose_name=_('Provider'),
+        help_text=_('LLM provider name')
+    )
+    api_key_encrypted = models.TextField(
+        verbose_name=_('Encrypted API key'),
+        help_text=_('Fernet-encrypted API key')
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name=_('Is Active'),
+        help_text=_('Whether this provider configuration is active')
+    )
+    is_default = models.BooleanField(
+        default=False,
+        verbose_name=_('Is Default'),
+        help_text=_('Whether this is the default provider for the user')
+    )
+
+    class Meta:
+        verbose_name = _('User LLM configuration')
+        verbose_name_plural = _('User LLM configurations')
+        ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'provider'],
+                name='unique_user_provider'
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.user.email} - {self.get_provider_display()}'
+
+    def save(self, *args, **kwargs):
+        # Ensure only one default config per user
+        if self.is_default:
+            UserLLMConfig.objects.filter(
+                user=self.user, is_default=True
+            ).exclude(pk=self.pk).update(is_default=False)
+        super().save(*args, **kwargs)
+
+    def set_api_key(self, plaintext_key: str):
+        """Encrypt and store the API key."""
+        from .encryption import encrypt_value
+        self.api_key_encrypted = encrypt_value(plaintext_key)
+
+    def get_api_key(self) -> str:
+        """Decrypt and return the API key."""
+        from .encryption import decrypt_value
+        return decrypt_value(self.api_key_encrypted)

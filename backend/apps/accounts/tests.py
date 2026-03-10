@@ -614,5 +614,247 @@ class TestAPIKeyViews(AccountsAPITestBase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
+# ---------------------------------------------------------------------------
+# Encryption Utility Tests
+# ---------------------------------------------------------------------------
+
+class TestEncryptionUtils(unittest.TestCase):
+    """Tests for the Fernet encryption utilities."""
+
+    @override_settings(SECRET_KEY="test-secret-key-for-encryption")
+    def test_encrypt_decrypt_roundtrip(self):
+        from apps.accounts.encryption import encrypt_value, decrypt_value
+        original = "sk_my-super-secret-api-key-12345"
+        encrypted = encrypt_value(original)
+        self.assertNotEqual(encrypted, original)
+        self.assertEqual(decrypt_value(encrypted), original)
+
+    @override_settings(SECRET_KEY="test-secret-key-for-encryption")
+    def test_encrypt_empty_string(self):
+        from apps.accounts.encryption import encrypt_value, decrypt_value
+        self.assertEqual(encrypt_value(""), "")
+        self.assertEqual(decrypt_value(""), "")
+
+    @override_settings(SECRET_KEY="test-secret-key-for-encryption")
+    def test_different_secret_key_fails(self):
+        from apps.accounts.encryption import encrypt_value
+        encrypted = encrypt_value("secret")
+        # Decrypting with a different key should raise
+        from cryptography.fernet import InvalidToken
+        with override_settings(SECRET_KEY="different-secret-key"):
+            from apps.accounts.encryption import decrypt_value
+            with self.assertRaises(InvalidToken):
+                decrypt_value(encrypted)
+
+
+# ---------------------------------------------------------------------------
+# UserLLMConfig Model Tests
+# ---------------------------------------------------------------------------
+
+class TestUserLLMConfigModel(TestCase):
+    """Tests for the UserLLMConfig model."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="llm@test.com", password="StrongP@ss123!"
+        )
+
+    def test_set_and_get_api_key(self):
+        """API key should survive encrypt → store → decrypt round-trip."""
+        from apps.accounts.models import UserLLMConfig
+        config = UserLLMConfig(user=self.user, provider="gemini")
+        config.set_api_key("AIzaSy-test-key-123")
+        config.save()
+        config.refresh_from_db()
+        self.assertEqual(config.get_api_key(), "AIzaSy-test-key-123")
+
+    def test_encrypted_value_differs_from_plaintext(self):
+        """The stored encrypted value must differ from the original."""
+        from apps.accounts.models import UserLLMConfig
+        config = UserLLMConfig(user=self.user, provider="openrouter")
+        config.set_api_key("sk_live_abc")
+        self.assertNotEqual(config.api_key_encrypted, "sk_live_abc")
+
+    def test_unique_user_provider_constraint(self):
+        """Each user can only have one config per provider."""
+        from django.db import IntegrityError
+        from apps.accounts.models import UserLLMConfig
+        UserLLMConfig.objects.create(
+            user=self.user, provider="gemini", api_key_encrypted="x"
+        )
+        with self.assertRaises(IntegrityError):
+            UserLLMConfig.objects.create(
+                user=self.user, provider="gemini", api_key_encrypted="y"
+            )
+
+    def test_str_representation(self):
+        from apps.accounts.models import UserLLMConfig
+        config = UserLLMConfig(user=self.user, provider="gemini")
+        self.assertIn("llm@test.com", str(config))
+
+
+# ---------------------------------------------------------------------------
+# UserLLMConfig API View Tests
+# ---------------------------------------------------------------------------
+
+class TestLLMConfigViews(AccountsAPITestBase):
+    """Tests for the LLM configuration CRUD endpoints."""
+
+    LLM_CONFIGS_URL = "/api/accounts/llm-configs/"
+
+    def setUp(self):
+        super().setUp()
+        self.user = self._create_user()
+        self._authenticate(self.user)
+
+    def test_create_llm_config(self):
+        """POST should create a new LLM provider configuration."""
+        data = {"provider": "gemini", "api_key": "AIzaSy-test-key"}
+        response = self.client.post(self.LLM_CONFIGS_URL, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["provider"], "gemini")
+        # api_key should not be in response (write-only)
+        self.assertNotIn("api_key", response.data)
+        # masked display should be present
+        self.assertIn("api_key_display", response.data)
+
+    def test_list_llm_configs(self):
+        """GET should list the authenticated user's configurations."""
+        from apps.accounts.models import UserLLMConfig
+        cfg = UserLLMConfig(user=self.user, provider="openrouter")
+        cfg.set_api_key("sk-or-test")
+        cfg.save()
+        response = self.client.get(self.LLM_CONFIGS_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+
+    def test_update_llm_config(self):
+        """PATCH should update the API key."""
+        from apps.accounts.models import UserLLMConfig
+        cfg = UserLLMConfig(user=self.user, provider="gemini")
+        cfg.set_api_key("old-key")
+        cfg.save()
+        url = f"{self.LLM_CONFIGS_URL}{cfg.pk}/"
+        response = self.client.patch(url, {"api_key": "new-key"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        cfg.refresh_from_db()
+        self.assertEqual(cfg.get_api_key(), "new-key")
+
+    def test_delete_llm_config(self):
+        """DELETE should remove the configuration."""
+        from apps.accounts.models import UserLLMConfig
+        cfg = UserLLMConfig(user=self.user, provider="gemini")
+        cfg.set_api_key("to-delete")
+        cfg.save()
+        url = f"{self.LLM_CONFIGS_URL}{cfg.pk}/"
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(UserLLMConfig.objects.filter(pk=cfg.pk).exists())
+
+    def test_duplicate_provider_returns_400(self):
+        """Creating a second config for the same provider should fail."""
+        data = {"provider": "gemini", "api_key": "key-1"}
+        self.client.post(self.LLM_CONFIGS_URL, data, format="json")
+        response = self.client.post(
+            self.LLM_CONFIGS_URL,
+            {"provider": "gemini", "api_key": "key-2"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_cannot_see_other_users_config(self):
+        """Users should only see their own configurations."""
+        from apps.accounts.models import UserLLMConfig
+        other = self._create_user(email="other@test.com")
+        cfg = UserLLMConfig(user=other, provider="gemini")
+        cfg.set_api_key("other-key")
+        cfg.save()
+        response = self.client.get(self.LLM_CONFIGS_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
+
+    def test_unauthenticated_returns_401(self):
+        """LLM config endpoints should require authentication."""
+        self.client.credentials()
+        response = self.client.get(self.LLM_CONFIGS_URL)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_set_default_provider(self):
+        """PATCH with is_default=True should mark the provider as default."""
+        from apps.accounts.models import UserLLMConfig
+        cfg = UserLLMConfig(user=self.user, provider="gemini")
+        cfg.set_api_key("test-key")
+        cfg.save()
+        url = f"{self.LLM_CONFIGS_URL}{cfg.pk}/"
+        response = self.client.patch(url, {"is_default": True}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["is_default"])
+
+    def test_only_one_default_per_user(self):
+        """Setting a new default should clear the previous one."""
+        from apps.accounts.models import UserLLMConfig
+        cfg1 = UserLLMConfig(user=self.user, provider="gemini", is_default=True)
+        cfg1.set_api_key("key-1")
+        cfg1.save()
+        cfg2 = UserLLMConfig(user=self.user, provider="openrouter", is_default=False)
+        cfg2.set_api_key("key-2")
+        cfg2.save()
+        url = f"{self.LLM_CONFIGS_URL}{cfg2.pk}/"
+        self.client.patch(url, {"is_default": True}, format="json")
+        cfg1.refresh_from_db()
+        cfg2.refresh_from_db()
+        self.assertFalse(cfg1.is_default)
+        self.assertTrue(cfg2.is_default)
+
+
+# ---------------------------------------------------------------------------
+# LLM Readiness Check Tests
+# ---------------------------------------------------------------------------
+
+class TestLLMReadinessView(AccountsAPITestBase):
+    """Tests for the LLM readiness check endpoint."""
+
+    READINESS_URL = "/api/accounts/llm-configs/readiness/"
+
+    def setUp(self):
+        super().setUp()
+        self.user = self._create_user()
+        self._authenticate(self.user)
+
+    def test_not_ready_when_no_config(self):
+        """Should return ready=False when no default config exists."""
+        response = self.client.get(self.READINESS_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data["ready"])
+        self.assertIsNone(response.data["default_provider"])
+
+    def test_ready_when_default_exists(self):
+        """Should return ready=True when a default config exists."""
+        from apps.accounts.models import UserLLMConfig
+        cfg = UserLLMConfig(user=self.user, provider="gemini", is_default=True)
+        cfg.set_api_key("test-key")
+        cfg.save()
+        response = self.client.get(self.READINESS_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["ready"])
+        self.assertEqual(response.data["default_provider"], "gemini")
+
+    def test_not_ready_when_config_exists_but_not_default(self):
+        """Should return ready=False when config exists but is_default=False."""
+        from apps.accounts.models import UserLLMConfig
+        cfg = UserLLMConfig(user=self.user, provider="gemini", is_default=False)
+        cfg.set_api_key("test-key")
+        cfg.save()
+        response = self.client.get(self.READINESS_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data["ready"])
+
+    def test_unauthenticated_returns_401(self):
+        """Readiness endpoint should require authentication."""
+        self.client.credentials()
+        response = self.client.get(self.READINESS_URL)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
 if __name__ == "__main__":
     unittest.main()

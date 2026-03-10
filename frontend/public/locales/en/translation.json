@@ -64,6 +64,7 @@
     "language": "Language",
     "general": "General",
     "apiKeys": "API keys",
+    "models": "Models",
     "apiKeyManagement": {
       "title": "API key management",
       "description": "Manage your API keys for MCP and external integrations",
@@ -90,6 +91,34 @@
       "loadError": "Failed to load API keys",
       "limitReached": "Maximum limit reached (10)",
       "keyCount": "{{count}} of 10 keys"
+    },
+    "modelConfig": {
+      "title": "Model configuration",
+      "description": "Configure your LLM provider API keys to use AI features with your own accounts",
+      "provider": "Provider",
+      "model": "Model",
+      "apiKey": "API key",
+      "apiKeyPlaceholder": "Enter your API key",
+      "save": "Save",
+      "saving": "Saving...",
+      "delete": "Remove",
+      "active": "Active",
+      "inactive": "Inactive",
+      "configured": "Configured",
+      "notConfigured": "Not configured",
+      "default": "Default",
+      "setDefault": "Default",
+      "geminiDescription": "Direct access to Google Gemini API",
+      "openrouterDescription": "Access multiple models via OpenRouter",
+      "fixedModel": "Gemini 3 Pro",
+      "saveSuccess": "Provider configuration saved successfully",
+      "saveError": "Failed to save provider configuration",
+      "deleteSuccess": "Provider configuration removed successfully",
+      "deleteError": "Failed to remove provider configuration",
+      "confirmDelete": "Are you sure you want to remove this provider configuration?",
+      "deleteWarning": "Your API key will be permanently deleted. AI features will fall back to the system default if available.",
+      "readinessWarning": "Please configure a default model provider before creating a design system.",
+      "readinessAction": "Configure now"
     }
   },
   "console": {

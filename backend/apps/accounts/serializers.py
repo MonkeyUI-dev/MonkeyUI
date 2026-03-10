@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from .models import UserAPIKey
+from .models import UserAPIKey, UserLLMConfig
 
 User = get_user_model()
 
@@ -124,3 +124,68 @@ class CreateUserAPIKeySerializer(serializers.ModelSerializer):
         model = UserAPIKey
         fields = ['id', 'name', 'key', 'key_prefix', 'expires_at', 'created_at']
         read_only_fields = ['id', 'key', 'key_prefix', 'created_at']
+
+
+class UserLLMConfigSerializer(serializers.ModelSerializer):
+    """
+    Serializer for UserLLMConfig.
+    Accepts a plaintext ``api_key`` on write and returns a masked
+    version on read.  The actual encrypted blob is never exposed.
+    """
+
+    api_key = serializers.CharField(
+        write_only=True,
+        required=True,
+        help_text=_('Plaintext API key (write-only)')
+    )
+    api_key_display = serializers.SerializerMethodField()
+    provider_display = serializers.CharField(
+        source='get_provider_display',
+        read_only=True
+    )
+
+    class Meta:
+        model = UserLLMConfig
+        fields = [
+            'id', 'provider', 'provider_display',
+            'api_key', 'api_key_display',
+            'is_active', 'is_default', 'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_api_key_display(self, obj):
+        """Return a masked version of the API key."""
+        try:
+            key = obj.get_api_key()
+            if len(key) > 8:
+                return f"{key[:4]}{'*' * (len(key) - 8)}{key[-4:]}"
+            return '****'
+        except Exception:
+            return '****'
+
+    def validate(self, attrs):
+        # On create, check uniqueness of (user, provider)
+        if self.instance is None:
+            user = self.context['request'].user
+            provider = attrs.get('provider')
+            if UserLLMConfig.objects.filter(user=user, provider=provider).exists():
+                raise serializers.ValidationError({
+                    'provider': _('A configuration for this provider already exists.')
+                })
+        return attrs
+
+    def create(self, validated_data):
+        api_key = validated_data.pop('api_key')
+        instance = UserLLMConfig(**validated_data)
+        instance.set_api_key(api_key)
+        instance.save()
+        return instance
+
+    def update(self, instance, validated_data):
+        api_key = validated_data.pop('api_key', None)
+        if api_key:
+            instance.set_api_key(api_key)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance

@@ -8,10 +8,13 @@ Supported providers:
 - Gemini (direct Google API)
 - OpenRouter (with Gemini 3 Pro and reasoning capabilities)
 """
+import logging
 import os
 from django.conf import settings
 from typing import Optional
 from .providers import LLMConfig, LLMProviderType
+
+logger = logging.getLogger(__name__)
 
 
 # Default model configurations for each provider
@@ -29,34 +32,52 @@ VISION_MODELS = {
 
 def get_provider_config(
     provider_type: LLMProviderType,
-    for_vision: bool = False
+    for_vision: bool = False,
+    user=None
 ) -> Optional[LLMConfig]:
     """
     Get LLM provider configuration from Django settings or environment variables.
     
     Configuration priority:
-    1. Django settings (LLM_PROVIDERS dict)
-    2. Environment variables (e.g., OPENAI_API_KEY, GEMINI_API_KEY)
+    1. Per-user configuration (UserLLMConfig) when a user is provided
+    2. Django settings (LLM_PROVIDERS dict)
+    3. Environment variables (e.g., OPENAI_API_KEY, GEMINI_API_KEY)
     
     Args:
         provider_type: The type of LLM provider
         for_vision: If True, use vision-capable model
+        user: Optional user instance to check per-user config first
         
     Returns:
         LLMConfig if configuration is available, None otherwise
     """
-    # Try Django settings first
+    api_key = None
+
+    # 1. Try per-user configuration
+    if user is not None:
+        try:
+            from apps.accounts.models import UserLLMConfig
+            user_config = UserLLMConfig.objects.filter(
+                user=user,
+                provider=provider_type.value,
+                is_active=True
+            ).first()
+            if user_config:
+                api_key = user_config.get_api_key()
+        except Exception:
+            logger.warning('Failed to load per-user LLM config for provider %s', provider_type.value, exc_info=True)
+
+    # 2. Try Django settings / env vars as fallback
     llm_settings = getattr(settings, 'LLM_PROVIDERS', {})
     provider_settings = llm_settings.get(provider_type.value, {})
-    
-    # Environment variable names for each provider
+
     env_key_mapping = {
         LLMProviderType.GEMINI: 'GEMINI_API_KEY',
         LLMProviderType.OPENROUTER: 'OPENROUTER_API_KEY',
     }
-    
-    # Get API key
-    api_key = provider_settings.get('api_key') or os.getenv(env_key_mapping.get(provider_type, ''))
+
+    if not api_key:
+        api_key = provider_settings.get('api_key') or os.getenv(env_key_mapping.get(provider_type, ''))
     
     if not api_key:
         return None
@@ -78,39 +99,56 @@ def get_provider_config(
     )
 
 
-def get_default_provider(for_vision: bool = False) -> Optional[LLMConfig]:
+def get_default_provider(for_vision: bool = False, user=None) -> Optional[LLMConfig]:
     """
     Get the default (first available) LLM provider configuration.
     
     Priority order:
-    1. OpenRouter (preferred - supports Gemini 3 Pro with reasoning)
-    2. Gemini (direct API)
+    1. User's explicitly marked default provider (is_default=True)
+    2. OpenRouter (preferred - supports Gemini 3 Pro with reasoning)
+    3. Gemini (direct API)
     
     Args:
         for_vision: If True, use vision-capable model
+        user: Optional user instance to check per-user config first
         
     Returns:
         LLMConfig for the first available provider, None if none available
     """
-    # Check for explicit default provider in settings
+    # 1. Check user's explicit default provider
+    if user is not None:
+        try:
+            from apps.accounts.models import UserLLMConfig
+            default_config = UserLLMConfig.objects.filter(
+                user=user, is_active=True, is_default=True
+            ).first()
+            if default_config:
+                provider_type = LLMProviderType(default_config.provider)
+                config = get_provider_config(provider_type, for_vision, user=user)
+                if config:
+                    return config
+        except Exception:
+            logger.warning('Failed to load user default LLM provider', exc_info=True)
+
+    # 2. Check for explicit default provider in settings
     default_provider = getattr(settings, 'DEFAULT_LLM_PROVIDER', None)
     if default_provider:
         try:
             provider_type = LLMProviderType(default_provider)
-            config = get_provider_config(provider_type, for_vision)
+            config = get_provider_config(provider_type, for_vision, user=user)
             if config:
                 return config
         except ValueError:
             pass
     
-    # Try providers in priority order (OpenRouter first for Gemini 3 Pro support)
+    # 3. Try providers in priority order (OpenRouter first for Gemini 3 Pro support)
     priority_order = [
         LLMProviderType.OPENROUTER,
         LLMProviderType.GEMINI,
     ]
     
     for provider_type in priority_order:
-        config = get_provider_config(provider_type, for_vision)
+        config = get_provider_config(provider_type, for_vision, user=user)
         if config:
             return config
     

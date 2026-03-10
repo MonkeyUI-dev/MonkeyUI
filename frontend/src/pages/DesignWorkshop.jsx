@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress'
 import Pagination from '@/components/ui/Pagination'
 import CreateVibeModal from '@/components/vibe/CreateVibeModal'
 import designSystemService, { DesignSystemStatus } from '@/services/designSystem'
+import { checkLLMReadiness } from '@/services/llmConfig'
 
 const PAGE_SIZE = 10
 
@@ -24,6 +25,8 @@ export default function DesignWorkshop() {
   const [totalPages, setTotalPages] = useState(1)
   const [pollingProgress, setPollingProgress] = useState({}) // { [systemId]: { progress, message } }
   const pollingRefs = useRef({}) // Store polling timers
+  const [openSettingsTab, setOpenSettingsTab] = useState(null)
+  const [showReadinessWarning, setShowReadinessWarning] = useState(false)
 
   // Fetch design systems on mount
   const fetchDesignSystems = useCallback(async (page = 1) => {
@@ -143,7 +146,17 @@ export default function DesignWorkshop() {
     }
   }, [fetchDesignSystems])
 
-  const handleCreateNew = () => {
+  const handleCreateNew = async () => {
+    try {
+      const { ready } = await checkLLMReadiness()
+      if (!ready) {
+        setShowReadinessWarning(true)
+        setOpenSettingsTab('models')
+        return
+      }
+    } catch {
+      // If readiness check fails (e.g. network error), allow creation anyway
+    }
     setIsCreateModalOpen(true)
   }
 
@@ -186,8 +199,34 @@ export default function DesignWorkshop() {
     <>
       <ConsoleLayout 
         onCreateNew={handleCreateNew}
+        openSettingsTab={openSettingsTab}
+        onSettingsClosed={() => { setOpenSettingsTab(null); setShowReadinessWarning(false) }}
       >
         <div className="space-y-8">
+          {/* Readiness Warning */}
+          {showReadinessWarning && (
+            <div 
+              className="flex items-center gap-3 p-4 rounded-xl text-sm"
+              style={{ 
+                backgroundColor: 'rgba(252, 211, 77, 0.1)',
+                border: '1px solid rgba(252, 211, 77, 0.3)',
+                color: 'var(--color-warning)'
+              }}
+            >
+              <span className="flex-1">{t('settings.modelConfig.readinessWarning')}</span>
+              <button
+                onClick={() => setOpenSettingsTab('models')}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium flex-shrink-0"
+                style={{
+                  backgroundColor: 'var(--btn-primary-bg)',
+                  color: 'var(--btn-primary-fg)'
+                }}
+              >
+                {t('settings.modelConfig.readinessAction')}
+              </button>
+            </div>
+          )}
+
           {/* Page Header */}
           <div className="flex items-center justify-between">
             <div>
